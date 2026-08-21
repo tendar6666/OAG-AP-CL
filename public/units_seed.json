@@ -1,0 +1,2417 @@
+[
+  {
+    "tibetan_name": "༤།༡ ཆོས་ཁོངས་ཆོས་དང་རིག་ཞུང་་ཚོགས་པ།",
+    "file_number": "4|1",
+    "name": "Department of Religion & Culture",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢ བོད་ཀྱི་དཔེ་མཛོད་ཁང་།",
+    "file_number": "4|2",
+    "name": "Library of Tibetan Works and Archives (LTWA)",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣ ཤེས་རིག་ལས་ཁུངས་དང་ཁྱབ་ཁོངས།",
+    "file_number": "4|3",
+    "name": "Department of Education",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣(ཀ) སམ་བྷོ་ཊ་སྤྱི་ཁྱབ་ཡིག་ཚང་།",
+    "file_number": "4|3 A",
+    "name": "STSS Head Office",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༡ ཤེས་རིག་དཔར་ཁང་མ་ལག",
+    "file_number": "4|11",
+    "name": "Sherig Parkhang",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༢ རྡ་ས་བོད་ཕྲུག་ཁྱིམ་སྡེ་དབུས་སྤྱི་ཁྱབ་ལས་ཁང་།",
+    "file_number": "4|12",
+    "name": "TCV Head Office",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༣ རྡ་ས་བོད་ཁྱིམ་ལག་ཤེས་བཟོ་གྲྭ།",
+    "file_number": "4|13",
+    "name": "TCV Handicraft-Cum-Vocational Traning Centre",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༥ ཕྱི་དྲིལ་ལས་ཁུངས།",
+    "file_number": "4|15",
+    "name": "Department of Information and International Relations (DIIR)",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༥ རྡ་ས་བོད་ཀྱི་གསོལ་མགྲོན་ཁང་།",
+    "file_number": "4|25",
+    "name": "Hotel Tibet Dharamshala",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༩ འཕྲོད་བསྟེན་ལས་ཁུངས་།",
+    "file_number": "4|29",
+    "name": "Department of Health",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣༠ བདེ་ལེགས་སྨན་ཁང་།",
+    "file_number": "4|30",
+    "name": "Delek Hospital",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣༡ སྨན་རྩིས་ཁང་དབུས་དང་ལྡི་ལི་ཕྱི་ཚོང་ཁང་།",
+    "file_number": "4|31",
+    "name": "Mentsekhang Head Office",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "",
+    "file_number": "4|31 A",
+    "name": "Mentsekhang Branches (Under Head Office)",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "",
+    "file_number": "4|31 B",
+    "name": "Mentsekhang HPRD",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "",
+    "file_number": "4|31 C",
+    "name": "Mentsekhang Menzoe (Medicine Godown)",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "",
+    "file_number": "4|31 D",
+    "name": "Mentsekhang Pharmacy",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༤༠ རྩིས་ཞིབ་ལས་ཁང་།",
+    "file_number": "4|40",
+    "name": "Office of Auditor General",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༤༡ རྡ་ཤོད་བོད་ཁྱིམ་སློབ་གྲྭ།",
+    "file_number": "4|41",
+    "name": "Lower TCV School",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༤༤ ནང་སྲིད་ལས་ཁུངས་ཀྱི་དབུས་ངལ་སེལ་ཚོགས་པ།",
+    "file_number": "4|44",
+    "name": "Department of Home",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "Handicraft Production Cum Sales Co-operative industrial society ltd",
+    "file_number": "Active",
+    "name": "Head Office",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༤༧ ཌལ་ཧོར་ཕུན་ཚོགས་གླིང་བཟོ་གྲྭ།",
+    "file_number": "4|47",
+    "name": "Dalhousie Tibetan Refugee Handicraft Center (Phuntsokling)",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༨༢ དབུས་སྣེ་ལེན་འབྲེལ་མཐུད་ཁང་།",
+    "file_number": "4|82",
+    "name": "Reception Center(Head Office)",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༨༦ སྤྱི་དཔར་སྡེ་ཚན།",
+    "file_number": "4|86",
+    "name": "Chi-Par Section",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༨༨ དཔལ་འབྱོར་ལས་ཁུངས་ཀྱི་ཡིད་ཆེས་དགེ་རྩ།",
+    "file_number": "4|88",
+    "name": "Department of Finance",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༨༩ རྡ་སྟེང་རྡོ་བཞུན་རླངས་ཛས་ལས་ཁང་།",
+    "file_number": "4|89",
+    "name": "TAWS Gas",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༠༡ བཀའ་དྲུང་ཡིག་ཚང་།",
+    "file_number": "4|101",
+    "name": "Kashag Secretariat",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༠༢ འཆར་འགོད་ལྷན་ཁང་།",
+    "file_number": "4|102",
+    "name": "Planning Commision",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༠༤ གཞུང་ཞབས་འདེམས་བསྐོ་ལྷན་ཁང་།",
+    "file_number": "4|104",
+    "name": "Public Service Commission",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༠༥ དཔལ་འབྱོར་ལས་ཁུངས་ཀྱི་བོད་མི་བདེ་དོན་ལས་ཁང་།",
+    "file_number": "4|105",
+    "name": "Department of Finance TAWS",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༠༦ བདེ་སྲུང་ལས་ཁུངས།",
+    "file_number": "4|106",
+    "name": "Department of Security",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༠༦(ཀ) ཉམས་ཞིབ།",
+    "file_number": "4|106",
+    "name": "Tibet Policy Institute",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༡༡ བོད་གཞུང་ཟློས་གར།",
+    "file_number": "4|111",
+    "name": "Tibetan Institute of Performing Arts (TIPA)",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༢༢ ཚོགས་དྲུང་ལས་ཁུངས།",
+    "file_number": "4|122",
+    "name": "Parliamentary Secretariat",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༢༤ རྡ་ས་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|124",
+    "name": "Dhasa Tibetan Settlement Office",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༤༡ ཆེས་མཐོའི་ཁྲིམས་ཞིབ་ཁང་།",
+    "file_number": "4|141",
+    "name": "Tibetan Supreme Justice Commission",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༤༣ འོས་བསྡུ་ལས་ཁང་།",
+    "file_number": "4|143",
+    "name": "Election Commission",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༤༤ དཔལ་འབྱོར་སྤྱི་ཚོགས་ཡར་རྒྱས་ཐེབས་རྩ།",
+    "file_number": "4|144",
+    "name": "Department of Finance SARD",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༤༦ གངས་སྐྱིད་ལས་བྱེད་གསོལ་ཚང་།",
+    "file_number": "4|146",
+    "name": "Gangkyi Staff Mess",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༤༧ རྡ་ས་རང་བཙན་ཚོགས་ཆུང་།",
+    "file_number": "4|147",
+    "name": "Dhasa BRDL",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༥༠ གོ་པལ་པུར་བོད་ཁྱིམ།",
+    "file_number": "4|150",
+    "name": "Gopalpur TCV",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༥༡ ནོར་གླིང་རིག་གཞུང་གཅེས་སྐྱོང་དང་ཆོས་ནོར།",
+    "file_number": "4|151",
+    "name": "Norbulingka Institute of Tibetan Culture",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "",
+    "file_number": "4|151 A",
+    "name": "Choenor",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༥༣ འགྲོ་བ་མིའི་ཐོབ་ཐང་དང་མང་གཙོ་འཕེལ་རྒྱས་ཁང་།",
+    "file_number": "4|153",
+    "name": "Tibetan Centre for Human Rights and Democracy",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༦༤ རྡ་སྟེང་བོད་ཕྲུག་ཁྱིམ་སྡེ། (Village)",
+    "file_number": "4|164",
+    "name": "Upper TCV School",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༦༥ བོད་ཁྱིམ་ཤེས་ཡོན་་དང་དགེ་འོས་སློབ་གཉེར་ཁང་། TTC & EDRC",
+    "file_number": "4|165",
+    "name": "TCV  TTC & EDRC",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༨༣ གངས་སྐྱིད་སམ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|183",
+    "name": "Gnagkyi STS School",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༩༨ མེ་དབོན་དཔེ་སྟོན་སློབ་གྲྭ།",
+    "file_number": "4|198",
+    "name": "Sambhota Mewoen Tsuglag Petoen School",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༠༡ ཐེག་ཆེན་ཆོས་གླིང་།",
+    "file_number": "4|201",
+    "name": "Thekchen Choeling",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༠༣ སྐུ་སྒེར་ཡིག་ཚང་།",
+    "file_number": "4|203",
+    "name": "His Holiness Private Office",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༠༨ རྡ་ས་བོད་ཁྱིམ་སྤྱི་ཁྱབ་ལས་ཁང་དང་ཟུར་དངུལ།",
+    "file_number": "4|208",
+    "name": "TCV Head Office and Sur-Nyul",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༡༠ རྡ་སྟེང་བོད་ཕྲུག་ཁྱིམ་སྡེ་ཟུང་དངུལ།",
+    "file_number": "4|210",
+    "name": "Upper TCV Sur-Nyul",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༣༣ ཌལ་ཧོར་ས་འགོ་ལས་ཁང་།",
+    "file_number": "4|233",
+    "name": "Dalhousie Tibetan Settlement Office",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༤༦ ཤེས་རབ་དགའ་ཚལ་སློབ་གླིང་།",
+    "file_number": "4|246",
+    "name": "Sherab Ga-tsel-Ling School",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༤༧ སམ་བྷོ་ཌ་བོད་སློབ་ཚོགས་མི་སྤྱི་ཁྱབ་ཡིག་ཚང་།",
+    "file_number": "4|247",
+    "name": "STSS Member Head Office",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༤༤ བདེ་དོན་ལྷན་ཚོགས་དང་ཡིད་ཆེས་དགེ་རྩ་ལས་བྱེད་གསོག་དངུལ།",
+    "file_number": "4|244",
+    "name": "TAWS and Trust's Staff Provident Fund",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༥༡ བོད་ཁྱིམ་ལས་བྱེད་ཀྱི་གཟིགས་གསོལདང་རྒས་ཕོགས།",
+    "file_number": "4|251",
+    "name": "TCV Staff Gratuity Fund Trust & Pension Fund",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༥༧ དཔལ་འབྱོར་འདུ་འགོད།",
+    "file_number": "4|257",
+    "name": "Paljor Dugoe (Revenue generation)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༦༢ བོད་ཀྱི་གསོ་རིགས་ཆེས་མཐོའི་སྨན་པའི་ལྷན་ཚོགས།",
+    "file_number": "4|262",
+    "name": "Central Council of Tibetan Medicine (CCTM)",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༩༤ ཊལ་ཧོར་རང་ཚོགས།",
+    "file_number": "4|294",
+    "name": "Dalhousie BRDL",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣༠༩ དུས་འཁོར་དབང་ཆེན་ཚོགས་ཆུང་།",
+    "file_number": "4|309",
+    "name": "Kalachakra Committee",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣༡༨ དྭང་སློབ་དབུས་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|318",
+    "name": "SFF BRDL",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣༤༤ གངས་ལྗོངས་དཔལ་འབྱོར་ཞབས་ཞུ་ཁང་།",
+    "file_number": "4|344",
+    "name": "Gang-Jong Development Finance Private Ltd",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣༥༠ བོད་རྒྱལ་ཡོངས་རྩེད་རིགས་ཚོགས་པ།",
+    "file_number": "4|350",
+    "name": "Tibetan National Sports Association",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༥ མ་ན་ལི་སམ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|5",
+    "name": "Manali STS School",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༥༤ ཀུ་ལུ་ས་འགོ་དང་ཕ་རན་སི་རོགས་ཚོགས།",
+    "file_number": "4|54",
+    "name": "Kullu Settlement Office",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༢༦ སིམ་ལ་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|226",
+    "name": "Shimla Tibetan Settlement Office",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༥༦ སིམ་ལ་བཟོ་གྲྭ",
+    "file_number": "4|56",
+    "name": "Shimla Tibetan Refugee Self Help Handicraft Society",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༨༢ བུན་ཊར་སམ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|182",
+    "name": "Bhuntar STS School",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༩༤ པ་་ཀུལ་ལྷ་འབྲི་དང་འཚེམས་པོ་སློབ་གཉེར་ཁང་།",
+    "file_number": "4|194",
+    "name": "Patlikul Lhadri and Talior Traning School",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "(Pandoh Tashi-Ling, Tso Pema, Sundernagar and Mandi)",
+    "file_number": "Active",
+    "name": "Head Office",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༣༠ སིམ་ལ་རང་ཚོགས།",
+    "file_number": "4|230",
+    "name": "Shimla BRDL",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༡༢ སྤོན་ཊོ་བཀྲིས་གླིང་བཟོ་གྲྭ",
+    "file_number": "4|112",
+    "name": "Pandoh Tashiling Tibetan Handicraft Training and Charitable Society",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢۳༨ སིམ་ལ་སྨན་ཁང་།",
+    "file_number": "4|238",
+    "name": "Shimla Primary Health Center",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣༥༥ སིམ་ལ་་སྃ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|355",
+    "name": "Shimla CTSA (Unit of Sambhota Tibetan Schools Society)",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༣༩ པོན་ཊོ་དང་མཚོ་པདྨ་སྨན་ཁང་།",
+    "file_number": "4|239",
+    "name": "Pandoh Tashiling Primary Health Center",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༤༩ བོན་གཞིས་ས་འགོ",
+    "file_number": "4|249",
+    "name": "Bon Tibetan Settlement Office",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༤༩ཀ བོན་གཞིས་འཕྲོད་བསྟེན་སྨན་ཁང་།",
+    "file_number": "4|249A",
+    "name": "Bon Primary Health Care Centre",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༦༣ བྷུན་ཊར་དགེ་འོས་མཐོ་སློབ་ཁང་།",
+    "file_number": "4|263",
+    "name": "Bhuntar Teachers Training College",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༦༤ མན་ཊི་སུན་རྡ་ན་གར་རང་ཚོགས།",
+    "file_number": "4|264",
+    "name": "Sundernagar BRDL",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༦༥ བོན་གཞིས་ཊོ་ལན་ཇི་རང་ཚོགས།",
+    "file_number": "4|265",
+    "name": "Dolanji BRDL",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༩༣ ཀུ་ལུ་རང་ཚོགས།",
+    "file_number": "4|293",
+    "name": "Kullu BRDL",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༩༧ མན་ཊི་དང་མཚོ་པདྨ་རང་ཚོགས།",
+    "file_number": "4|297",
+    "name": "Mandi & Tso-Pema BRDL",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༩༩ སྤོན་ཊོ་བཀྲ་ཤིས་གླིང་རང་ཚོགས།",
+    "file_number": "4|299",
+    "name": "Pandoh BRDL",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣༢༦ ཌོ་ལན་ཇི་བོན་གཞིས་སྃ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|326",
+    "name": "Dolanji Sambhota Tibetan School",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༤ འབིར་སུ་ཇ་བོད་ཁྱིམ་སློབ་གྲྭ།",
+    "file_number": "4|14",
+    "name": "Bir Suja TCV School",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༤༩ ཅོན་ཏ་ར་ནང་ཆེན་བཟོ་གྲྭ།",
+    "file_number": "4|49",
+    "name": "Chauntra Nangchen Division Tibetan Khampa industrial Society",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༥༠ སྦིར་སྡེ་དགེ་བཟོ་གྲྭ།",
+    "file_number": "4|50",
+    "name": "Bir Dege Division Tibetan Khampa industrial Society",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༥༡ སྦིར་བོད་ཚོགས་བཟོ་གྲྭ།",
+    "file_number": "4|51",
+    "name": "Bir Tibetan Society",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༨༧ སྦིར་གཞིས་ཁག་གསུམ་གྱི་སྨན་ཁང་།",
+    "file_number": "4|87",
+    "name": "Bir Primary Health Care Centre of 3 Settlement",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༧༤ ཅོན་ཏ་ར་བོད་ཁྱིམ་སློབ་གྲྭ།",
+    "file_number": "4|174",
+    "name": "Chauntra TCV School",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༨༡ ཅོན་ཏ་ར་སམ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|181",
+    "name": "Chauntra STS School",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༨༨ སྦིར་སམ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|188",
+    "name": "Bir Suja STS School",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༢༡ ཅོན་ཏ་ར་ས་འགོ་ལས་ཁང་།",
+    "file_number": "4|221",
+    "name": "Chauntra Tibetan Settlement Office",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༢༨ སྦིར་སྡེ་དགེ་ས་འགོ་ལས་ཁང་།",
+    "file_number": "4|228",
+    "name": "Bir Dege Tibetan Settlement Office",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༣༢ སྦིར་བོད་ཚོགས་ས་འགོ་ལས་ཁང་།",
+    "file_number": "4|232",
+    "name": "Bir Tibetan Society Settlement Office",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༨༡ སྦིར་བོད་ཚོགས་རང་ཚོགས།",
+    "file_number": "4|281",
+    "name": "Bir Tibetan Society BRDL",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༩༦ ཅོན་ཏ་ར་རང་ཚོ༣༣༠༡",
+    "file_number": "4|296",
+    "name": "Chauntra BRDL",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣༠༠ ཅོན་ཏ་ར་གསོ་རིག་྄སྨན་དཔྱད་ཉམས་ཞིབ་ཁང་།",
+    "file_number": "4|300",
+    "name": "Chauntra Sowa-Rigpa Study & Research (CSRSR) (Unit of TMAI)",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣༠༡ སྦིར་སྡེ་དགེ་རང་ཚོགས།",
+    "file_number": "4|301",
+    "name": "Bir Dege BRDL",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣༥༦ བཀྲ་ཤེས་ལྗོངས་རང་ཚོགས།",
+    "file_number": "4|356",
+    "name": "Tashi Jong BRDL",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༩ སུད་སི་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "4|9",
+    "name": "Office of Tibet - Swiss",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༡༠ ཨ་རི་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "4|10",
+    "name": "Office of Tibet - US",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣༩ དབྱིན་ལེན་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "4|39",
+    "name": "Office of Tibet - London (UK)",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༤༢ ཉི་ཧོང་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "4|42",
+    "name": "Office of Tibet - Japan",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༩༡ ཕ་རན་སི་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "4|91",
+    "name": "Office of Tibet - France",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༩༣ ལྷོ་ཨ་ཕི་རི་ཀ་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "4|93",
+    "name": "Office of Tibet - Pretoria (South Africa)",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༩༤ ཐེ་ཝན་སྐུ་ཚབ་དོན་གཅོད་ཁང་གི་བོད་ཀྱི་ཐེབས་རྩ་ལས་ཁང་།",
+    "file_number": "4|94",
+    "name": "Office of Tibet - Taiwan",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༩༥ ཨོ་སི་ཀྲེ་ལི་ཡ་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "4|95",
+    "name": "Office of Tibet - Australia",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༢༣༧ རུ་སོག་དོན་ཁང་།",
+    "file_number": "4|237",
+    "name": "Office of Tibet - Russia",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣༢༤ ལྷོ་ཨ་མི་རི་ཀ་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "4|324",
+    "name": "Office of Tibet - South America",
+    "is_active": true,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༤།༣༦ ལྡི་ལི་ས་གནས་འགོ་འཛིན་ལས་ཁང།",
+    "file_number": "4|36",
+    "name": "Delhi Settlement Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༨ ལྡི་ལི་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "4|38",
+    "name": "Tibet Bureau Delhi",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༢༨ ལྡི་ལི་སྣེ་ལེན་ཁང་ཡན་ལག",
+    "file_number": "4|128",
+    "name": "Delhi Reception Centre Branch",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༣༠ ལྡི་ལི་བོད་ཁྱིམ་སྡོད་ཤག",
+    "file_number": "4|130",
+    "name": "Delhi TCV Youth Hostel",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༩༥ སྤྱི་མཐུན་མཉམ་འབྲེལ།",
+    "file_number": "4|195",
+    "name": "Federation of Tibetan Cooperatives in India Head Quarter",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༩༩ སྤྱི་མཐུན་མཉམ་འབྲེལ་གྱི་ལྡི་ལི་ཕྱི་ཚོང་ཁང་།",
+    "file_number": "4|199",
+    "name": "Federation of Tibetan Cooperatives in India, Delhi",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༠༥ ལྡི་ལི་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|205",
+    "name": "Delhi BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༢༩ ལྡི་ལི་སམ་ཡས་གླིང་སྨན་ཁང་།",
+    "file_number": "4|229",
+    "name": "Delhi Samyeling Primary Health Center",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༥༠ ལྡི་ལི་བོད་ཁང་།",
+    "file_number": "4|250",
+    "name": "Tibet House - Delhi",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༥༤ སྨན་རྩིས་ཁང་གི་་ལྡི་ལི་ཕྱི་ཚོང་ཁང་།",
+    "file_number": "4|354",
+    "name": "Delhi Men-Tse-Khang Exports",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༦ བལ་ཡུལ་སྲོང་བཙན་སློབ་གྲྭ།",
+    "file_number": "4|6",
+    "name": "Nepal Songtsen Bhrikuti Boarding High School",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༧ བལ་ཡུལ་འཕགས་ཤིང་རྣམ་རྒྱལ་འབྲིང་སློབ།",
+    "file_number": "4|7",
+    "name": "Nepal Swoyambhu Namgyal Middle Boarding School",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༨ བལ་ཡུལ་གོར་ཁ་ན་རྣམ་རྒྱལ་མཐོ་སློབ།",
+    "file_number": "4|8",
+    "name": "Nepal Gokarna Namgyal Higher Secondary School",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༦༢ བལ་ཡུལ་ཤར་ཁུམ་མཉམ་འབྲེལ།",
+    "file_number": "4|62",
+    "name": "Nepal Sharkhum Delek-ling Handicraft Centre",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༦༦ བལ་ཡུལ་འཇོ་འཁེལ་བཟོ་གྲྭ།",
+    "file_number": "4|66",
+    "name": "Nepal Jawalakhel Handicraft Centre",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༦༨ འཇོ་འཁེལ་མཉམ་འབྲེལ།",
+    "file_number": "4|68",
+    "name": "Jawalakhel Bahumukhi Co-operative Society Ltd",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༩༦ བལ་ཡུལ་སི་ཀྲི་སི་གདན་ཚོང་ཁང་།",
+    "file_number": "4|96",
+    "name": "Nepal CTC Carpets",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༩༧ བལ་ཡུལ་དགའ་ལྡན་རུམ་གདན་ཕྱི་ཚོང་ཁང་།",
+    "file_number": "4|97",
+    "name": "Nepal Gaden Carpets",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༡༣ སྤོག་ར་བཀྲིས་དཔལ་འཁྱིལ་བཟོ་གཞིས་ལས་ཁང་།",
+    "file_number": "4|113",
+    "name": "Nepal Pokhara Tashi Palkhiel Handicraft Centre",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༡༥ བལ་ཡུལ་དོན་་ཁང་དང་བལ་ཡུལ་སྣེ་ལེན་ཡན་ལག",
+    "file_number": "4|115",
+    "name": "Nepal Reception Centre Branch",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༡༧ བལ་ཡུལ་འཇོ་འཁེལ་ཨ་ཏི་ཤ་ཉིན་སློབ།",
+    "file_number": "4|117",
+    "name": "Nepal Jawalakhel Atisha Primary School",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༡༩ སྤོག་ར་བཀྲིས་གླིང་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|119",
+    "name": "Nepal Pokhara Tashiling Settlement Office",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༢༦ བལ་ཡུལ་འཇོ་འཁེལ་གངས་ཅན་བདེ་རྩ།",
+    "file_number": "4|126",
+    "name": "Nepal Snow-Lion Foundation",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༣༣ སྤོག་ར་གློ་སྒྲིག་བདེ་དོན་ཚོགས་པ། ཨ་ན་སྤུར་ན་གསོལ་མགྲོན་ཁང་།",
+    "file_number": "4|133",
+    "name": "Nepal Pokhara Lodrik Society, Annapurna Guest House",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༥༥ སྤོག་ར་བཀྲིས་དཔལ་འཁྱིལ་མཉམ་འབྲེལ།",
+    "file_number": "4|155",
+    "name": "Pokhara Tashi Palkhiel Tibetan Co-operative Society Ltd",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༥༦ སྤོག་ར་བཀྲིས་གླིང་བཟོ་གཞིས་ལས་ཁང་། ས་འགོ་ལས་ཁང་།",
+    "file_number": "4|156",
+    "name": "Nepal Pokhara Tashiling Settlement Office",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༧༩ བལ་ཡུལ་ཚེ་རིང་རྒས་གསོ་ཁང་།",
+    "file_number": "4|179",
+    "name": "Nepal Tsering Elder's Home",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༨༥ སྤོག་ར་དཔལ་འབྱོར་གླིང་འཕྲོད་བསྟེན་སྨན་ཁང་།",
+    "file_number": "4|185",
+    "name": "Nepal Paljorling Primary Health Center",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༨༦ སྤོག་ར་བྱམས་པ་གླིང་འཕྲོད་བསྟེན་སྨན་ཁང་།",
+    "file_number": "4|186",
+    "name": "Nepal Jampaling Primary Health Center",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༠༧ བལ་ཡུལ་རྒྱས་ས་དང་འཕགས་ཤིང་ས་འགོ་ལས་ཁང་།",
+    "file_number": "4|207",
+    "name": "Nepal Kathmandu & Phakshing Settlement Office",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༠༩ བལ་ཡུལ་མཆོད་འཇོར་ས་འགོ་ལས་ཁང་།",
+    "file_number": "4|209",
+    "name": "Nepal Choejor Settlement Office",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༡༦ གློ་སྒྲིག་བྱམས་གླིང་དང་། དཔལ་གླིང་། བཀྲིས་སྒང་ས་འགོ་ལས་ཁང་།",
+    "file_number": "4|216",
+    "name": "Nepal Lodrik Jampaling, Paljorling and Tashigang Settlement Office",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༡༨ བལ་ཡུལ་ཀེ་ལཤ་སྨན་རྩིས་ཚོགས་པ།",
+    "file_number": "4|218",
+    "name": "Nepal Mentse Khang",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༦༡ བལ་ཡུལ་ཤར་ཁུམ་ས་འགོ",
+    "file_number": "4|61",
+    "name": "Nepal Sharkhum Tibetan Settlement Office",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༧༠ ཇོར་པ་ཀྲི་རང་ཚོགས།",
+    "file_number": "4|270",
+    "name": "Nepal Jorpati BRDL",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༧༡ བལ་ཡུལ་མཆོད་རྟེན་རང་ཚོགས།",
+    "file_number": "4|271",
+    "name": "Nepal Boudha BRDL",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༧༢ བལ་ཡུལ་རྒྱལ་ས་རང་ཚོགས།",
+    "file_number": "4|272",
+    "name": "Nepal Kathmandu BRDL",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༧༣ བལ་ཡུལ་འཕགས་ཤིང་རང་ཚོགས།",
+    "file_number": "4|273",
+    "name": "Nepal Pharshing BRDL",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༨༠ བལ་ཡུལ་འཇོ་འཁེལ་རང་ཚོགས།",
+    "file_number": "4|280",
+    "name": "Nepal Jawalakhel BRDL",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༨༤ སྤོག་ར་བཀྲ་ཤིས་གླིང་རང་ཚོགས།",
+    "file_number": "4|284",
+    "name": "Nepal Pokhara Tashiling BRDL",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༨༥ སྤོག་ར་བཀྲིས་དཔལ་འཁྱིལ་རང་ཚོགས།",
+    "file_number": "4|285",
+    "name": "Nepal Pokhara Palkhiel BRDL",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༨༦ སྤོག་ར་དཔལ་འབྱོར་གླིང་རང་ཚོགས།",
+    "file_number": "4|286",
+    "name": "Nepal Pokhara Paljorling BRDL",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༨༧ སྤོག་ར་བྱམས་པ་གླིང་རང་ཚོགས།",
+    "file_number": "4|287",
+    "name": "Nepal Pokhara Jampaling BRDL",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༡༤ བལ་ཡུལ་ནོར་འཛིན་གླིང་རང་ཚོགས།",
+    "file_number": "4|314",
+    "name": "Nepal Norzinling BRDL",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༣༨ ཤར་ཁུམ་བདེ་ལེགས་གླིང་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|338",
+    "name": "Nepal Sharkhum Delekling BRDL",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༣༩ ཤར་ཁུམ་ནགས་ཆེ་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|339",
+    "name": "Nepal Sharkhum Nagche BRDL",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༤༡ ཝ་ལུང་བསམ་འཕེལ་གླིང་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|341",
+    "name": "Nepal Walung Sampheling BRDL",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༤༥ བལ་ཡུལ་མ་ནང་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|345",
+    "name": "Nepal Manang BRDL",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༤༩ ར་སུ་ཝ་དགེ་རྒྱས་གླིང་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|349",
+    "name": "Rasuwa Gegyeling BRDL",
+    "is_active": false,
+    "branch": "Nepal Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༢ མན་སྤར་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|32",
+    "name": "Mainpat Tibetan Settlement Office",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༥༩ མན་སྤར་བོད་མིའི་མཉམ་འབྲེལ།",
+    "file_number": "4|59",
+    "name": "Mainpat Tibetan Refugee Multipurpose Co-operative Society Ltd",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༦༠ ཨོ་རི་ས་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|60",
+    "name": "Orisa Settlement Office",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༦༩ ཨོ་རི་ས་ཕུན་ཚོགས་གླིང་བོད་མིའི་མཉམ་འབྲེལ།",
+    "file_number": "4|69",
+    "name": "Odisha Phuntsokling Multi-Purppose Tibetan Co-operative Society Ltd",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༧༠ ཨོ་རི་ས་ཕུན་གླིང་བོད་མི་རུམ་བཟོ་མཉམ་འབྲེལ།",
+    "file_number": "4|70",
+    "name": "Odisha Phuntsokling Tibetan Handicraft Centre",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༧༧ སྦན་རྡ་་ར་ས་འགོ་དང་སྤྱི་མི་ལས་ཁང་།",
+    "file_number": "4|77",
+    "name": "Bandra Tibetan Settlement Office & Chimi Office",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༧༨ སྦན་རྡ་ར་ནོར་རྒྱས་གླིང་བོད་མིའི་མཉམ་འབྲེལ།",
+    "file_number": "4|78",
+    "name": "Bhandara Norgyeling Tibetan Multi-Purpose Co-operative Society Ltd",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༩༩ ཨོ་རི་ས་ཕུན་ཚོགས་གླིང་སྨན་ཁང་།",
+    "file_number": "4|99",
+    "name": "Odisha Primary Health Center",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༡།༡༣༢ ཨོ་རིས་ཕུན་ཚོགས་གླིང་ས་གནས་གྲོས་ཚོགས།",
+    "file_number": "1|132",
+    "name": "Odisha Phuntsokling LTA",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༧༨ སྦན་རྡ་ར་འཕྲོད་བསྟེན་སྨན་ཁང་།",
+    "file_number": "4|178",
+    "name": "Bhandara Primary Health Center",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༡༧ མན་སྤར་ཕན་བདེ་གླིང་འཕྲོད་བསྟེན་སྨན་ཁང་།",
+    "file_number": "4|217",
+    "name": "Mainpat Phendeyling Primary Health Center",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "།༤།༣༠༤ སྦན་རྡ་ར་རང་ཚོགས།",
+    "file_number": "4|304",
+    "name": "Bhandara BRDL",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༠༥ སྦན་རྡ་ར་སམ་བྷོ་ཊ་སློབ་གྲྭ",
+    "file_number": "4|305",
+    "name": "Bandra STS School",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༠༨ མན་སྤར་སྃ་བྷོ་ཊ་སློབ་གྲྭ",
+    "file_number": "4|308",
+    "name": "Mainpat STS School",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༡༣ མན་སྤར་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|313",
+    "name": "Mainpat BRDL",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༤༦ བློ་བྷར་སིང་ས྄་བྷོ་ཊ་གཞི་རིམ་འཔག་མའི་སློབ་གྲྭ།",
+    "file_number": "4|346",
+    "name": "Lobersing Primary School",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༤༧ ཅན་དྷ་གྷི་རི་སྃ་བྷོ་ཊ་གཞི་རིམ་འཔག་མའི་སློབ་གྲྭ།",
+    "file_number": "4|347",
+    "name": "Chandragiri Primary School",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༤ སྤོན་ཊ་སམ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|4",
+    "name": "Paonta STS School",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༤༨ སྤོན་ཊ་ཆོལ་གསུམ་བཟོ་གྲྭ་",
+    "file_number": "4|48",
+    "name": "Paonta Tibetan Cholsum Industrial Society",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༥༣ ཁམས་ཀཿཐོག་བཟོ་གྲྭ་ ས་ཊོན་བཟོ་གྲྭ་",
+    "file_number": "4|53",
+    "name": "Sataun Kham Kathok Tibetan Society",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༥༧ ལྡེ་ལྡུན་ས་འགོ་དང། འཐུང་ཆུའི་ལས་གཞི།",
+    "file_number": "4|57",
+    "name": "Dehradun Settlement Office & Drinking Water Project",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༥༨ བདེ་སྐྱིད་གླིང་བོད་མིའི་ལག་ཤེས་བཟོ་གྲྭ།",
+    "file_number": "4|58",
+    "name": "Dekyiling Tibetan Handicraft Cum Training & Charitable Society",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༥༢ ལྡེ་ལྡུན་བོད་ཁྱིམ་ལས་རིག་སློབ་གཉེར་ཁང་།",
+    "file_number": "4|152",
+    "name": "Dehradun TCV Tibetan Private Industrial Training Institute (TCV ITI)",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༥༤ བདེ་སྐྱིད་གླིང་སྨན་ཁང་།",
+    "file_number": "4|154",
+    "name": "Dekyiling Primary Health Center",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༦༠ མ་སུ་རི་བོད་ཁྱིམ།",
+    "file_number": "4|160",
+    "name": "THF Mussoorie",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༦༢ མངོན་དགའ་བོད་ཕྲུག་དབང་པོ་སྐྱོན་ཅན་གྱི་སློབ་གྲྭ",
+    "file_number": "4|162",
+    "name": "Ngoenga School for Tibetan Children with Special Needs",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༦༨ རཱཇ་སྤུར་བུ་མེད་མཉམ་ལས་བཟོ་གྲྭ།",
+    "file_number": "4|168",
+    "name": "Rajpur Tibetan Women's Centre",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༧༥ ལྡེ་ལྡུན་བོད་ཁྱིམ་སློབ་གྲྭ།",
+    "file_number": "4|175",
+    "name": "Dehradun Selakui TCV School",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༩༡ སྤུ་རུ་ཝ་ལ་སམ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|191",
+    "name": "Puruwala STS School",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༩༣ བདེ་སྐྱིད་གླིང་སམ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|193",
+    "name": "Dekyiling STS School",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༠༦ བདེ་སྐྱིད་གླིང་ས་འཐུས་ལས་ཁང་།",
+    "file_number": "4|206",
+    "name": "Dekyiling LTA",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༡༡ དོན་གྲུབ་གླིང་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|211",
+    "name": "Dhondupling BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༤༡ མ་སུ་རི་རང་ཚོགས།",
+    "file_number": "4|241",
+    "name": "Mussoorie BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༡༢ གླིང་ཚོང་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|212",
+    "name": "Lingtsong BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༡༣ བདེ་གླིང་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|213",
+    "name": "Dekyiling BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༡༤ སྤོན་ཊ་ཆོལ་གསུམ་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|214",
+    "name": "Paonta Cholsum BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༢༠ ར་ཇི་སྤུར་རང་ཚོགས།",
+    "file_number": "4|220",
+    "name": "Rajpur BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༢༢ ས་ཊོན་ས་འགོ་ལས་ཁང་།",
+    "file_number": "4|222",
+    "name": "Sataun Kathok Tibetan Settlement Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༢༣ ཧར་སྤུར་ས་འགོ་ལས་ཁང་།",
+    "file_number": "4|223",
+    "name": "Herbertpur Doegu Yugyaling Settlement Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༢༤ སྤུར་རུ་ཝ་ལ་ས་འགོ་ལས་ཁང་།",
+    "file_number": "4|224",
+    "name": "Puruwala Sakya Settlement Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༢༥ སྤོན་ཊ་ཆོལ་གསུམ་ས་འགོ་ལས་ཁང་།",
+    "file_number": "4|225",
+    "name": "Paonta Cholsum Settlement Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༣༤ སྤུ་རུ་ཝ་ལ་རང་ཚོགས།",
+    "file_number": "4|234",
+    "name": "Puruwala BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༤༨ ཧ་པ་སྤུར་རང་ཚོགས།",
+    "file_number": "4|248",
+    "name": "Herbertpur BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༤༢ སྤུ་རུ་ཝ་ལ་བཟོ་གྲ",
+    "file_number": "4|242",
+    "name": "Puruwala BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༥༨ ཀམ་ཀཿཐོག་ འཕྲོད་བསྟེན་སྨན་ཁང་།",
+    "file_number": "4|258",
+    "name": "Sataun Kathok Primary Health Center",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༧༥ ཀུམ་རའོ་རང་ཚོགས།",
+    "file_number": "4|275",
+    "name": "Kumrao BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༧༦ ཀུམ་རའོ་འཕྲོད་བསྟེན་སྨན་ཁང་།",
+    "file_number": "4|276",
+    "name": "Kumrao Primary Health Center",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༧༧ ཀུམ་རའོ་ས་འགོ་ལས་ཁུངས།",
+    "file_number": "4|277",
+    "name": "Kumrao Settlement Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༨༣ ཀུམ་རའོ་བོད་མི་བདེ་དོན་ཚོགས་པ།",
+    "file_number": "4|283",
+    "name": "Kumrao Tibetan Welfare Society",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༠༣ ནེ་ནི་ཌལ་རང་ཚོགས།",
+    "file_number": "4|303",
+    "name": "Nanital BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༢༠ ས་ཧ་རན་སྤུར་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|320",
+    "name": "Saharanpur BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༢༩ ཧ་རི་ད་ཝར་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|329",
+    "name": "Haridwar BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༣༤ ས་ལུ་ག་ར་སྤོས་བཟོ་སྡེ་ཚན།",
+    "file_number": "4|334",
+    "name": "Salugara Incense Production Unit (A Unit of TMAI)",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༣༥ འབྲུག་བསྡོད་བོད་མིའི་ལྟ་རྟོག་ལས་ཁུངས།",
+    "file_number": "4|335",
+    "name": "Bhutan Tibetan Welfare Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༣༦ འབྲུག་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|336",
+    "name": "Bhutan BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༣༧ ས་ཊོན་ཁམས་ཀ་ཐོག་སྤྱི་བརྒྱ་སྡེ་ཚན།",
+    "file_number": "4|337",
+    "name": "Sataun Chigyak Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༤༠ སྤོན་ཊ་ཆོལ་གསུམ་སྤྱི་བརྒྱ་ཡིག་ཚང་།",
+    "file_number": "4|340",
+    "name": "Paonta Cholsum Chigyak Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༤༣ ཧར་པ་སྤུར་སྤྱི་བརྒྱ་ཡིག་ཚང་།",
+    "file_number": "4|343",
+    "name": "Herbertpur Chigyak Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༤༨ བདེ་གླིང་གསོ་རིག་སྨན་དཔྱད་ཉམས་ཞིབ་བསྟི་གནས་ཁང་།",
+    "file_number": "4|348",
+    "name": "Dekyiling Sowarigpa",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༥༣ ཧར་པ་སྤུར་བོད་མིའི་མཉམ་སྦྲེལ།",
+    "file_number": "4|353",
+    "name": "Herbertpur Tibetan Joint Co-operative Agriculture Society Ltd",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༦༡ མ་སུ་རི་་སཾ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|361",
+    "name": "Mussoorie Sambhota Tibetan School",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༦༢ ཧར་པ་པུར་སཾ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|362",
+    "name": "Herbertpur Sambhota Tibetan School",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༧ སྒང་ཏོག་བོད་ཀྱི་གསོལ་མགྲོན་ཁང་།",
+    "file_number": "4|27",
+    "name": "Gangtok Hotel Tibet",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༦༣ འབུམ་ལ་བསྟན་སྒང་མཉམ་འབྲེལ།",
+    "file_number": "4|63",
+    "name": "Tenzin Gang Multipurpose Cooperative Society Ltd",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༦༤ ཏི་ཛུ་དར་རྒྱས་གླིང་མཉམ་འབྲེལ།",
+    "file_number": "4|64",
+    "name": "Tezu Dhargayling Tibetan Multipurpose Co-operative Society Ltd",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༦༥ མེའོ་ཆོས་འཕེལ་གླིང་མཉམ་འབྲེལ།",
+    "file_number": "4|65",
+    "name": "Miao Choephelling Tibetan Service Co-operative Society Ltd",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༠༣ འབུམ་ལ་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|103",
+    "name": "Bomdila Settlement Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༠༩ བསྟན་འཛིན་སྒང་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|109",
+    "name": "Tenzingang Settlement Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༡༤ སྒང་ཏོག་ས་གནས་འགོ་འཛིན་ལས་ཁང་དང་སྨན་ཁང་།",
+    "file_number": "4|114",
+    "name": "Gangtok Settlement Office & PHC",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༢༧ བསུ་ན་མདའ་མཉམ་འབྲེལ།",
+    "file_number": "4|127",
+    "name": "Sonada Co-operative Society & School's Hostel",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༤༨ ཏེ་ཛུ་དར་རྒྱས་གླིང་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|148",
+    "name": "Tezu Dhargye Ling Settlement Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༤༩ མེའོ་ཆོས་འཕེལ་གླིང་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|149",
+    "name": "Miao Choephelling Settlement Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༥༨ སྒང་ཏོག་སམ་བྷོ་ཊ་་སློབ་གྲྭ།",
+    "file_number": "4|158",
+    "name": "Gangtok STS",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༥༢ ལྡི་མ་སྤུར་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|352",
+    "name": "Dimapur BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༥༧ སྒང་ཏོག་འཕྲོད་བསྟེན་སྨན་ཁང་།",
+    "file_number": "4|357",
+    "name": "Gangtok Primary Health Center",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༥༨ རྡོ་རྗེ་གླིང་སམ་བྷོ་ཊ།",
+    "file_number": "4|358",
+    "name": "Darjeeling Sambhota Tibetan School",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༥༩ ཀ་སྦུག་སམ་བྷོ་ཊ།",
+    "file_number": "4|359",
+    "name": "Kalimpong Sambhota Tibetan School",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༧༣ ར་ཝང་ལ་ས་འགོ་་དང་ཕ་རན་སི་རོགས་ཚོགས།",
+    "file_number": "4|173",
+    "name": "Ravangla Kunphenling Settlement Office & AET",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༧༦ ར་ཝང་ལ་ཀུན་འཕན་གླིང་མཉམ་འབྲེལ།",
+    "file_number": "4|176",
+    "name": "Ravangla Kunphenling Tibetan Co-operative Society Ltd",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༨༩ ཤི་ལོང་སམ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|189",
+    "name": "Shillong STS School",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༩༠ སྤོག་རི་ཡ་བོང་སམ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|190",
+    "name": "Pokhriabong STS School",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༠༢ ཤི་ལོང་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|202",
+    "name": "Shillong Settlement Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༡༥ རྡོར་གླིང་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|215",
+    "name": "Darjeeling Settlement Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༣༡ སུ་ན་མདའ་ས་འགོ་དང་སྨན་ཁང་།",
+    "file_number": "4|231",
+    "name": "Sonada Tibetan settlement office and Primary Health Care",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༣༥ རང་ཝང་ལ་སྨན་ཁང་།",
+    "file_number": "4|235",
+    "name": "Ravangla Primary Health Center",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༣༦ ཀ་སྦུག་ས་འགོ་ལས་ཁང་།",
+    "file_number": "4|236",
+    "name": "Kalimpong Settlement Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༥༥ སི་ལོང་རང་ཚོགས།",
+    "file_number": "4|255",
+    "name": "Shillong BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༥༩ བསྟན་སྒང་འཕྲོད་བསྟེན་སྨན་ཁང་།",
+    "file_number": "4|259",
+    "name": "Tenzingang Primary Health Center",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༦༠ མེའོ་རང་ཚོགས།",
+    "file_number": "4|260",
+    "name": "Miao BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༦༡ རྡོར་གླིང་རང་ཚོགས།",
+    "file_number": "4|261",
+    "name": "Darjeeling BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༦༦ ཀ་སྤུག་རང་ཚོགས།",
+    "file_number": "4|266",
+    "name": "Kalimpong BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༦༧ ས་ལུ་སྒ་ར་རང་ཚོགས།",
+    "file_number": "4|267",
+    "name": "Salugara BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༩༠ ཀྲུ་ཀྲིང་རང་ཚོགས།",
+    "file_number": "4|290",
+    "name": "Tuting BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༩༡ ཀྲུ་ཀྲིང་ས་འགོ་དང་སྨན་ཁང་།",
+    "file_number": "4|291",
+    "name": "Tuting Tibetan Settlement Office & Primary Health Center",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༤༠ བསུ་ན་མདའ་ས་འགོ་ལས་ཁང་།",
+    "file_number": "4|240",
+    "name": "Sonada Tibetan Settlement Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༤༥ སྒང་ཏོག་རང་བདེན་ཚོགས་ཆུང་།",
+    "file_number": "4|245",
+    "name": "Gangtok BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༥༢ ཏེ་ཛུ་རང་ཚོགས།",
+    "file_number": "4|252",
+    "name": "Tezu BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༥༣ ར་ཝང་ལ་རང་ཚོགས།",
+    "file_number": "4|253",
+    "name": "Ravangla BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༥༤ བསོ་ན་མདའ་རང་ཚོགས།",
+    "file_number": "4|254",
+    "name": "Sonada BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༥༦ བསྟན་སྒང་རང་ཚོགས།",
+    "file_number": "4|256",
+    "name": "Tenzingang BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༠༢ འབུམ་སྡེ་ལ་རང་ཚོགས།",
+    "file_number": "4|302",
+    "name": "Bomdila BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༠༦ བསྟན་སྒང་སམ་བྷོ་ཊ་སློབ་གྲ",
+    "file_number": "4|306",
+    "name": "Tenzingang STS School",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༡༠ ཨོ་ལ་ཝ་རི་རང་ཚོགས།་ཀ་སྤུག",
+    "file_number": "4|310",
+    "name": "Olabari BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༡༡ ཛ་ཡི་སྒང་ས་གནས་རང་ཙོགས། ཀ་སྤུག",
+    "file_number": "4|311",
+    "name": "Jaigaon BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༡༢ ར་ཝང་ལ་སྃ་བྷོ་ཊ་སློབ་གྲྭ",
+    "file_number": "4|312",
+    "name": "Ravangla STS School",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༡༥ མེའོ་སྃ་བྷོ་ཊ་སརྦ་གྲྭ",
+    "file_number": "4|315",
+    "name": "Miao STS",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༡༦ ཏེ་ཛུ་སྃ་བྷོ་ཊ་སློབ་གྲྭ",
+    "file_number": "4|316",
+    "name": "Tezu STS School",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༢༥ མོན་ཏ་དབང་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|325",
+    "name": "Tawang BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༤༢ བསུ་ན་མདའ་སྃ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|342",
+    "name": "Sonada STS School",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༨༡ ལ་དྭགས་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|81",
+    "name": "Ladakh Settlement Office",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༠༨ ལ་དྭགས་བསོད་ནམས་གླིང་མཉམ་འབྲེལ་དང་བཟོ་གྲོ།",
+    "file_number": "4|108",
+    "name": "Ladakh Sonamling Tibetan Refugee Service Co-operative Society Ltd",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༢༣ ལ་དྭགས་འཕྲོད་བསྟེན་སྨན་ཁང་།",
+    "file_number": "4|123",
+    "name": "Ladakh Primary Health Center",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༩༧ ལ་དྭགས་བོད་ཕྲུག་ཁྱིམ་སྡེ།",
+    "file_number": "4|197",
+    "name": "Ladakh TCV School",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༠༤ ལ་དྭགས་ས་གནས་རང་ཚོགས།",
+    "file_number": "4|204",
+    "name": "Ladakh Leh BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༧༨ ལ་དགས་བྱང་ཐང་རང་ཚོགས།",
+    "file_number": "4|278",
+    "name": "Ladakh Jangthang BRDL",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༧༩ ལ་དགས་སྨན་རྩིས་རིག་གཞུང་ལྟེ་གནས་ཁང་།",
+    "file_number": "4|279",
+    "name": "Ladakh Mentse Khang",
+    "is_active": false,
+    "branch": "Dekyiling Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༣ མོན་གོ་འདོད་རྒུ་གླིང་སྨན་ཁང་།",
+    "file_number": "4|33",
+    "name": "Mundgod Duguling Primary Health Center",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༤ ཧོན་སུར་ཕན་བདེ་སྨན་ཁང་།",
+    "file_number": "4|34",
+    "name": "Hunsur Tibetan Phende Hospital Association",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༥ ཀོ་གལ་དོན་ལྡན་གླིང་སྨན་ཁང་།",
+    "file_number": "4|35",
+    "name": "Kollegal Dondenling Primary Health Center",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༧ སྦེལ་ཀོབ་འཚོ་བྱེད་ཁང་གསར་སྨན་ཁང་།",
+    "file_number": "4|37",
+    "name": "Bylakuppe Tso-Jhe Khangsar Charity Hospital Society",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༧༡ སྦེལ་ཀོབ་ལུགས་བསམ་བོད་མིའི་མཉམ་འབྲེལ།",
+    "file_number": "4|71",
+    "name": "Bylakuppe Lugsam Dairy Cooperative",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༧༢ སྦེལ་ཀོབ་བདེ་སྐྱིད་སླར་གསོ་བོད་མིའི་མཉམ་འབྲེལ།",
+    "file_number": "4|72",
+    "name": "Bylakuppe Dickey Larsoe Dairy Cooperative",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༧༣ ཧོན་སུར་རབ་གླིང་བོད་མིའི་མཉམ་འབྲེལ།",
+    "file_number": "4|73",
+    "name": "Hunsur Tibetan Rabgayling Primary Agricultural Credit Co-operative Society Ltd",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༧༤ ཀོ་གལ་དོན་གླིང་བོད་མིའི་མཉམ་འབྲེལ།",
+    "file_number": "4|74",
+    "name": "Kollegal Dhondenling Primary Agricultural Co-operative Society Ltd",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༨༣ མོན་གོ་འདོད་རྒུ་གླིང་བོད་མིའི་མཉམ་འབྲེལ།",
+    "file_number": "4|83",
+    "name": "Mundgod Doeguling Primary Agriculture Co-operative Society Ltd",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༨༤ མོན་གོ་འདོད་རྒུ་གླིང་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|84",
+    "name": "Mundgod Doeguling Settlement Office",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༨༥ སྦེང་ལོར་ལྷོ་སྤྱི་ལས་ཁང་།",
+    "file_number": "4|85",
+    "name": "Bangalore South Zone Chief Representative Office",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༡༨ སྦེལ་ཀོབ་བདེ་སླར་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|118",
+    "name": "Bylakuppe Dickey Larsoe Settlement Office",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༢༡ ཧོན་སུར་རབ་རྒྱས་གླིང་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|121",
+    "name": "Hunsur Rabgayling Settlement Office",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༦༡ ནང་སྲེད་སྦེང་ལོར་ལས་རིགས་སྦྱོང་བརྡར་ཁང་།",
+    "file_number": "4|161",
+    "name": "Bengaluru Institute For Small Trade Learning (Nelamangala)",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༦༦ སྦེལ་ཀོབ་སྐྱེ་ལྡན་སོ་ནམ་ཉམས་ཞིབ་སྦྱོང་བརྡར་ཁང་།",
+    "file_number": "4|166",
+    "name": "Bylakuppe Organic Research & Training Center",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༥༡ སྦེང་ལོར་འགྲོ་ཕན་སྨན་རྩིས་མཐོ་སླབ།",
+    "file_number": "4|351",
+    "name": "Bengaluru Men-Tse-Khang (Sowa Rigpa) College",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༦༧ ཧོན་སུར་འོ་མ་མཉམ་འབྲེལ།",
+    "file_number": "4|167",
+    "name": "Hunsur Gurupura Milk Producers' Co-operative Society Ltd",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༦༩ སྦེལ་ཀོབ་ས་གནས་རང་བདེན་ཚོགས་ཆུང་།",
+    "file_number": "4|169",
+    "name": "Bylakuppe BRDL",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༧༠ སྦེལ་ཀོབ་ལུགས་ཟུང་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|170",
+    "name": "Bylakuppe Lugsung Samdupling Settlement Office",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༧༡ ཀོ་གལ་དོན་ལྡན་གླིང་ས་གནས་འགོ་འཛིན་ལས་ཁང་།",
+    "file_number": "4|171",
+    "name": "Kollegal Dhondenling Settlement Office",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༧༢ ཀོ་གལ་ས་གནས་གྲོས་ཚོགས།",
+    "file_number": "4|172",
+    "name": "Kollegal Local Assembly",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༩༢ སྦེང་ལོར་བོད་ཁྱིམ་སྡོད་ཤག",
+    "file_number": "4|192",
+    "name": "Bangalore TCV Youth Hostel",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༡༩༦ སྦེལ་ཀོབ་བོད་ཕྲུག་སྡོད་ཤག",
+    "file_number": "4|196",
+    "name": "Bylakuppe TCV",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༡༩ སྦེང་ལོར་བོད་ཀྱི་མཐོ་སློབ་ཁང་།",
+    "file_number": "4|219",
+    "name": "Bangalore TCV College",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༤༣ ཧོན་སུར་ས་གནས་འཐུས་ཚོགས།",
+    "file_number": "4|243",
+    "name": "Hunsur LTA",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༦༨ ༸གོང་ས་ཏ྄་ལའི་བླ་མ་སློབ་གཉེར་ཁང་གི་ཨར་པོའོ་ལས་གཞི།",
+    "file_number": "4|268",
+    "name": "Bangalore TCV College Construction",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༦༩ བོད་ཁྱིམ་མཉམ་སྦྲེལ།",
+    "file_number": "4|269",
+    "name": "TCV Credit Co-operative Society Ltd",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༧༤ སྦེལ་ཀོབ་སྤྱི་མཉམ་ཡན་ལག",
+    "file_number": "4|274",
+    "name": "FTCI Bylakuppe Branch",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༨༢ བདེ་སླར་རང་ཚོགས།",
+    "file_number": "4|282",
+    "name": "Bylakuppe Dickey Larsoe BRDL",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༨༨ ཀོ་ལེ་གྷལ་རང་ཚོགས།",
+    "file_number": "4|288",
+    "name": "Kollegal BRDL",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༨༩ ཧོན་སུར་རང་ཚོགས།",
+    "file_number": "4|289",
+    "name": "Hunsur BRDL",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༩༢ མོན་གྷོ་རང་ཚོགས།",
+    "file_number": "4|292",
+    "name": "Mundgod BRDL",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༢༩༨ སྦེང་ལོར་རང་ཚོགས།",
+    "file_number": "4|298",
+    "name": "Bangalore BRDL",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༡༩ མོན་གྷོ་སྃ་བྷོ་ཊ་གཞི་རིམ་བར་མ་དང་འོག་མའི་སློབ་གྲྭ།",
+    "file_number": "4|319",
+    "name": "Mundgod Tibetan Primary School (Unit of Sambhota Tibetan School)",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༢༡ སྦེལ་ཀོབ་སྃ་བྷོ་ཊ་འབྲེལ་མཐུད་ཡིག་ཚང་།",
+    "file_number": "4|321",
+    "name": "Bylakuppe Sambhota Coordinator Office",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༢༢ ལྷོ་ཡན་སྨན་ཁང་ཁག་བཅུའི་སྤྱི་ཁྱབ་ཡིག་ཚང་།",
+    "file_number": "4|322",
+    "name": "South Zone 10 PHC Head Office",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༢༣ སྦེང་ལོར་སྨན་རྩིས་མཐོ་སླབ་ལས་གཞི།",
+    "file_number": "4|323",
+    "name": "Bangalore Mentse Khang Project",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༢༧ སྦེལ་ཀོབ་སྃ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|327",
+    "name": "Bylakuppe STS School",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༢༨ སྦེལ་ཀོབ་བདེ་སྐྱིད་སླར་གསོའི་སྃ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|328",
+    "name": "Bylakuppe Dickey Larsoe STS School",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༣༠ མོན་གྷོ་སྃ་བྷོ་ཊ་གཏན་ཉིན་སློབ་གྲྭ།",
+    "file_number": "4|330",
+    "name": "Mundgod STS (Camp 6)",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༣༡ ཀོ་ལེ་གྷལ་སྃ་བྷོ་ཊ་སློབ་གྲྭ།",
+    "file_number": "4|331",
+    "name": "Kollegal Sambhota Tibetan School",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༣༢ སྦེལ་ཀོབ་བོད་ཕྲུག་ཁྱིམ་སྡེ་སློབ་གྲྭ།",
+    "file_number": "4|332",
+    "name": "Bylakuppe TCV School",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༤།༣༣༣ ཧོན་སུར་སྃ་བྷོ་ཊ་ཉིན་མོའི་སློབ་གྲྭ།",
+    "file_number": "4|333",
+    "name": "Hunsur STS School",
+    "is_active": false,
+    "branch": "South Branch"
+  },
+  {
+    "tibetan_name": "༥།༡ བཀའ་ཡིག་དང་བཀའ་ཤག་ཁྱབ་ཁོངས།",
+    "file_number": "5|1",
+    "name": "Kashag Secretariat (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༢ ཆོས་རིག་ལས་ཁུངས།",
+    "file_number": "5|2",
+    "name": "Department of Religion & Culture (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༣ ནང་སྲིད་དང་ཁྱབ་ཁོངས།",
+    "file_number": "5|3",
+    "name": "Department of Home (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༤ དཔལ་འབྱོར་ལས་ཁུངས་དང་ཁྱབ་ཁོངས།",
+    "file_number": "5|4",
+    "name": "Department of Finance (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༥ ཤེས་རིག་ལས་ཁུངས།",
+    "file_number": "5|5",
+    "name": "Department of Education (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༦ བདེ་སྲུང་ལས་ཁུངས།",
+    "file_number": "5|6",
+    "name": "Department of Security (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༧ ཕྱི་དྲིལ་དང་ཁྱབ་ཁོངས་དང་། སྐུ་ཚབ་དོན་ཁང་ཁག",
+    "file_number": "5|7",
+    "name": "Department of Information and international Relation (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༨ ཆེས་མཐོའི་ཁྲིམས་ཞིབ་ཁང་། ཚོགས་དྲུང་ལས་ཁུངས།",
+    "file_number": "5|8",
+    "name": "Tibetan Supreme Justice Commission & Parliament Secretariat (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༩ འདེམས་བསྐོ་ལྷན་ཁང་།",
+    "file_number": "5|9",
+    "name": "Election Commission (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༡༠ རྩིས་ཞིབ་སྤྱི་ཁྱབ་ལས་ཁང་།",
+    "file_number": "5|10",
+    "name": "Office of the Auditor General (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༡༡ འཕྲོད་བསྟེན་ལས་ཁུངས།",
+    "file_number": "5|11",
+    "name": "Health Department (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༡༢ ལྡི་་ལི་དོན་གཅོད་ཁང་།",
+    "file_number": "5|12",
+    "name": "Tibet Bureau Delhi (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༡༣ འཆར་འགོད་ལྷན་ཁང་།",
+    "file_number": "5|13",
+    "name": "Planing Commission (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༡༤ སྣེ་ལེན་འབྲེལ་འཐུད་ཁང་།",
+    "file_number": "5|14",
+    "name": "Reception Centre (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༡༧ འོས་བསྡུ་ལས་ཁང་།",
+    "file_number": "5|17",
+    "name": "Election Commission (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༡༨ སུད་སི་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "5|18",
+    "name": "Office of Tibet - Geneva Swiss (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༡༩ ཨོ་སི་ཀྲེ་ལི་ཡ་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "5|19",
+    "name": "Office of Tibet - Australia (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༢༠ ཨ་རི་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "5|20",
+    "name": "Office of Tibet - US (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༢༡ ཐེ་ཝན་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "5|21",
+    "name": "Office of Tibet - Taiwan (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༢༢ དབྱིན་ལེན་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "5|22",
+    "name": "Office of Tibet - London (UK) (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༢༣ ཕ་རན་སི་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "5|23",
+    "name": "Office of Tibet - France (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༢༤ ཉི་ཧོང་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "5|24",
+    "name": "Office of Tibet - Japan (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༢༥ རུ་སོག་དོན་ཁང་།",
+    "file_number": "5|25",
+    "name": "Office of Tibet - Russia (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༢༦ ལྡི་ལི་འཕགས་བོད་འབྲེལ་འཐུད་ལས་ཁང་།",
+    "file_number": "5|26",
+    "name": "Indo-Tibetan Coordination Office - Delhi (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༢༧ ལྷོ་ཨ་ཕི་རི་ཀ་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "5|27",
+    "name": "Office of Tibet - South Africa (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༢༨ ལྷོ་ཨ་མི་རི་ཀ་སྐུ་ཚབ་དོན་གཅོད་ཁང་།",
+    "file_number": "5|28",
+    "name": "Office of Tibet - South America (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  },
+  {
+    "tibetan_name": "༥།༢༩ བོད་ཀྱི་སྲིད་བྱུས་ཉམས་ཞིབ་ཁང་།",
+    "file_number": "5|29",
+    "name": "Tibet Policy Institute (Reurring Expenses)",
+    "is_active": false,
+    "branch": "Head Office"
+  }
+]
