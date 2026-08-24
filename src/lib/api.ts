@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, getDocs, doc, setDoc, updateDoc, addDoc, deleteDoc, getDoc, query, where } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, updateDoc, addDoc, deleteDoc, getDoc, query, where, orderBy, limit, startAfter, getCountFromServer, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 
 // ================= Financial Years =================
 export type FinancialYear = { 
@@ -80,7 +80,7 @@ export async function deleteCustomFY(id: string) {
 // ================= Templates =================
 export async function getTemplates() {
   const querySnapshot = await getDocs(collection(db, "templates"));
-  return querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as any));
+  return querySnapshot.docs.map(doc => ({ ...(doc.data() as any), id: doc.id } as any));
 }
 
 export async function saveTemplate(data: any) {
@@ -117,7 +117,7 @@ export async function setDefaultTemplate(id: string) {
 // ================= Users (Admin) =================
 export async function getUsers() {
   const querySnapshot = await getDocs(collection(db, "users"));
-  return querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as any));
+  return querySnapshot.docs.map(doc => ({ ...(doc.data() as any), id: doc.id } as any));
 }
 
 export async function updateUserRole(userId: string, newWeight: number) {
@@ -146,12 +146,21 @@ export async function updateUserNtfyTopic(userId: string, newTopic: string) {
 }
 
 // ================= Projects =================
-export async function getProjects(financialYear?: string) {
-  const querySnapshot = await getDocs(collection(db, "projects"));
-  let projects = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as any));
-  if (financialYear && financialYear !== 'ALL') {
-    projects = projects.filter(p => p.metadata?.financialYear === financialYear);
+export async function getProjects(targetFy: string = 'ALL', execFy: string = 'ALL') {
+  let q: any = collection(db, "projects");
+  
+  if (targetFy !== 'ALL' && execFy !== 'ALL') {
+    q = query(q, where("metadata.financialYear", "==", targetFy), where("metadata.executionFY", "==", execFy));
+  } else if (targetFy !== 'ALL') {
+    q = query(q, where("metadata.financialYear", "==", targetFy));
+  } else if (execFy !== 'ALL') {
+    q = query(q, where("metadata.executionFY", "==", execFy));
   }
+
+  const querySnapshot = await getDocs(q);
+  let projects = querySnapshot.docs.map(doc => ({ ...(doc.data() as any), id: doc.id } as any));
+  
+  // Sort locally to avoid needing a complex composite index in Firestore
   projects.sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
   return projects;
 }

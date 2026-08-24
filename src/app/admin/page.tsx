@@ -59,15 +59,11 @@ export default function AdminDashboard() {
   const [unitStatusFilter, setUnitStatusFilter] = useState<string>('ACTIVE');
   const [unitBranchFilter, setUnitBranchFilter] = useState<string>('ALL');
 
-  useEffect(() => {
-    if (user && user.hierarchy_weight <= 30) {
-      loadInitialData();
-    }
-  }, [user]);
+  const [hasLoadedFilters, setHasLoadedFilters] = useState(false);
 
   useEffect(() => {
     if (user && user.hierarchy_weight <= 30) {
-      fetchProjects();
+      loadInitialData();
     }
   }, [user]);
 
@@ -77,7 +73,14 @@ export default function AdminDashboard() {
     const savedExec = localStorage.getItem('globalExecFy');
     if (savedTarget) setSelectedTargetFyFilter(savedTarget);
     if (savedExec) setSelectedExecFyFilter(savedExec);
+    setHasLoadedFilters(true);
   }, []);
+
+  useEffect(() => {
+    if (user && user.hierarchy_weight <= 30 && hasLoadedFilters) {
+      fetchProjects();
+    }
+  }, [user, selectedTargetFyFilter, selectedExecFyFilter, hasLoadedFilters]);
 
   const handleGlobalTargetFyChange = (val: string) => {
     setSelectedTargetFyFilter(val);
@@ -129,7 +132,7 @@ export default function AdminDashboard() {
   const fetchProjects = async () => {
     setIsProjectsLoading(true);
     try {
-      const data = await getProjects('ALL');
+      const data = await getProjects(selectedTargetFyFilter, selectedExecFyFilter);
       setProjects(data);
     } catch (e) {
       console.error("Failed to fetch projects", e);

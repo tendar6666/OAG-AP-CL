@@ -41,6 +41,12 @@ function HomeContent() {
     localStorage.setItem('globalTargetFy', val);
   };
 
+  useEffect(() => {
+    import('@/lib/api').then(api => {
+      api.getProjects(selectedProjectTargetFy, selectedProjectFy).then(data => setSavedProjects(data || []));
+    });
+  }, [selectedProjectTargetFy, selectedProjectFy]);
+
   // New Section State
   const [unitName, setUnitName] = useState('');
   const [financialYear, setFinancialYear] = useState('');
@@ -122,7 +128,7 @@ function HomeContent() {
          }
       }).catch(err => console.error(err));
       
-      api.getProjects().then(data => setSavedProjects(data || [])).catch(err => console.error(err));
+      api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL').then(data => setSavedProjects(data || [])).catch(err => console.error(err));
       api.getCustomFYs().then(data => setCustomFys(data || [])).catch(err => console.error(err));
       api.getUsers().then(data => setAllUsers(data || [])).catch(err => console.error(err));
       api.getUnits().then(data => {
@@ -264,7 +270,7 @@ function HomeContent() {
       setCurrentProjectStatus(result.status);
       
       alert(isSubmit ? "Audit Program Submitted Successfully!" : "Audit Program Draft Saved!");
-      const newData = await api.getProjects();
+      const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL');
       setSavedProjects(newData || []);
 
       if (isSubmit && finalStatus === 'Pending Support' && assignedDeputyId) {
@@ -362,7 +368,7 @@ function HomeContent() {
              isExtended: false,
              isRevised: false
          }, { action: 'Cancelled Extension', userId: user.id, userName: user.name });
-         const newData = await api.getProjects();
+         const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL');
          setSavedProjects(newData || []);
          setCurrentProjectStatus('Submitted');
          setIsExtendingMode(false);
@@ -383,7 +389,7 @@ function HomeContent() {
              ...originalProject,
              status: 'Draft'
          }, { action: 'Reverted Final Submission', userId: user.id, userName: user.name });
-         const newData = await api.getProjects();
+         const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL');
          setSavedProjects(newData || []);
          setCurrentProjectStatus('Draft');
          alert("Audit Program reverted to Draft.");
@@ -498,7 +504,7 @@ function HomeContent() {
          setCurrentProjectStatus(newStatus);
          alert(successMessage);
          
-         const newData = await api.getProjects();
+         const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL');
          setSavedProjects(newData || []);
       } catch (e) {
          console.error("Failed to request extension", e);
@@ -659,7 +665,7 @@ function HomeContent() {
      try {
        const api = await import('@/lib/api');
        await api.deleteProject(name);
-       const newData = await api.getProjects();
+       const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL');
        setSavedProjects(newData || []);
      } catch (e) {
        alert("Error deleting project");

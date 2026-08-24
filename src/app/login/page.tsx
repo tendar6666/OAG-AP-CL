@@ -1,13 +1,14 @@
 "use client";
 import React, { useState } from 'react';
 import { auth } from '@/lib/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -17,12 +18,14 @@ export default function LoginPage() {
     setError('');
     let fbUser;
     try {
+      await setPersistence(auth, browserLocalPersistence);
       // Attempt login
       const creds = await signInWithEmailAndPassword(auth, testEmail, testPass);
       fbUser = creds.user;
     } catch (err: any) {
       if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
          try {
+            await setPersistence(auth, browserLocalPersistence);
             // Auto register if it doesn't exist
             const creds = await createUserWithEmailAndPassword(auth, testEmail, testPass);
             fbUser = creds.user;
@@ -142,6 +145,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
       } else {
@@ -196,6 +200,19 @@ export default function LoginPage() {
               placeholder="Enter your password"
               required
             />
+          </div>
+          
+          <div className="flex items-center space-x-2 mt-2">
+            <input 
+              type="checkbox" 
+              id="remember" 
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-4 h-4 text-indigo-600 bg-slate-100 border-slate-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600 cursor-pointer"
+            />
+            <label htmlFor="remember" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+              Keep me logged in
+            </label>
           </div>
           
           <button 
