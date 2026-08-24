@@ -49,9 +49,10 @@ function HomeContent() {
 
   // New Section State
   const [unitName, setUnitName] = useState('');
+  const [selectedBranchFilter, setSelectedBranchFilter] = useState('ALL');
   const [financialYear, setFinancialYear] = useState('');
   const [auditorName, setAuditorName] = useState(user.name);
-  const [isRevised, setIsRevised] = useState(false);
+  const [isRevised, setIsRevised] = useState(false); const [isLockedRevised, setIsLockedRevised] = useState(false);
   
   const [savedTemplates, setSavedTemplates] = useState<any[]>([]);
   const [savedProjects, setSavedProjects] = useState<any[]>([]);
@@ -172,7 +173,7 @@ function HomeContent() {
     setSaveModalName(project.name || '');
     setIsExtendingMode(forceExtendMode);
     setHasAlertedExtended(false);
-    setOriginalEndDate(project.metadata?.auditTotals?.endDate || undefined);
+    setOriginalEndDate(project.metadata?.auditTotals?.endDate || undefined); setIsRevised(project.isRevised || false); setIsLockedRevised(!!project.isRevised);
 
     setLoadedGridData(project.gridData);
     setLoadedChecklistData(project.checklistData);
@@ -201,7 +202,7 @@ function HomeContent() {
     setSaveModalOpen(true);
   };
 
-  const executeProjectSave = async (statusTarget: 'Draft' | 'Submitted') => {
+  const executeProjectSave = async (statusTarget: 'Draft' | 'Submitted' | 'DraftSubmitted') => {
     setIsSaving(true);
     console.log("Starting project save process...");
     
@@ -226,20 +227,30 @@ function HomeContent() {
       auditTotals 
     };
 
-    const isSubmit = statusTarget === 'Submitted';
+    const isFinalSubmit = statusTarget === 'Submitted';
+    const isDraftSubmit = statusTarget === 'DraftSubmitted';
+    const generateSubmitDate = isFinalSubmit || isDraftSubmit;
     
     let finalStatus = 'Draft';
-    if (isSubmit) {
+    if (isFinalSubmit) {
       if (user?.hierarchy_weight === 40) {
-         finalStatus = 'Pending Support';
+         finalStatus = assignedDeputyId === 'NA' ? 'Pending Approval' : 'Pending Support';
       } else if (user?.hierarchy_weight === 30) {
          finalStatus = 'Pending Approval';
       } else {
          finalStatus = 'Audited';
       }
+    } else if (isDraftSubmit) {
+      if (user?.hierarchy_weight === 40) {
+         finalStatus = assignedDeputyId === 'NA' ? 'Draft AP & CL Supported' : 'Draft AP & CL Submitted';
+      } else if (user?.hierarchy_weight === 30) {
+         finalStatus = 'Draft AP & CL Supported';
+      } else {
+         finalStatus = 'Draft AP & CL Approved';
+      }
     }
     
-    const submitDate = isSubmit ? new Date().toISOString() : null;
+    const submitDate = generateSubmitDate ? new Date().toISOString() : null;
 
     const cleanGrid = (gridData || []).map((m: any) => ({
         ...m,
@@ -260,7 +271,7 @@ function HomeContent() {
         checklistData: cleanChecklist, 
         metadata: metadataPayload 
       }, {
-        action: isSubmit ? 'Submitted Audit Program' : 'Saved Draft',
+        action: isFinalSubmit ? 'Submitted Audit Program' : (isDraftSubmit ? 'Submitted Draft AP & CL' : 'Saved Draft'),
         userId: user?.id || 'system',
         userName: user?.name || 'System'
       });
@@ -269,30 +280,63 @@ function HomeContent() {
       setCurrentCustomId(result.customId);
       setCurrentProjectStatus(result.status);
       
-      alert(isSubmit ? "Audit Program Submitted Successfully!" : "Audit Program Draft Saved!");
+      alert((isFinalSubmit || isDraftSubmit) ? "Audit Program Submitted Successfully!" : "Audit Program Draft Saved!");
       const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL');
       setSavedProjects(newData || []);
-
-      if (isSubmit && finalStatus === 'Pending Support' && assignedDeputyId) {
-         const deputy = allUsers.find(u => u.id === assignedDeputyId);
-         if (deputy) {
-            const topicId = await api.getOrCreateNtfyTopic(deputy.id, deputy.ntfyTopic);
-            await api.sendNtfyNotification(
-               topicId,
-               `New Audit Program Submitted`,
-               `Field Auditor ${user?.name} has submitted the Audit Program for ${unitName}. Please review and support.`
-            );
-         }
-      } else if (isSubmit && finalStatus === 'Pending Approval' && assignedJointId) {
-         const joint = allUsers.find(u => u.id === assignedJointId);
-         if (joint) {
-            const topicId = await api.getOrCreateNtfyTopic(joint.id, joint.ntfyTopic);
-            await api.sendNtfyNotification(
-               topicId,
-               `New Audit Program Submitted`,
-               `Deputy Secretary ${user?.name} has submitted an Audit Program for ${unitName}. Please review and approve.`
-            );
-         }
+      // Handle Notifications
+      try {
+        if (isFinalSubmit && finalStatus === 'Pending Support' && assignedDeputyId) {
+           const deputy = allUsers.find(u => u.id === assignedDeputyId);
+           if (deputy) {
+              const topicId = await api.getOrCreateNtfyTopic(deputy.id, deputy.ntfyTopic);
+              await api.sendNtfyNotification(
+                 topicId,
+                 `New Audit Program Submitted`,
+                 `Field Auditor ${user?.name} has submitted the Audit Program for ${unitName}. Please review and support.`
+              );
+           }
+        } else if (isFinalSubmit && finalStatus === 'Pending Approval' && assignedJointId) {
+           const joint = allUsers.find(u => u.id === assignedJointId);
+           if (joint) {
+              const topicId = await api.getOrCreateNtfyTopic(joint.id, joint.ntfyTopic);
+              await api.sendNtfyNotification(
+                 topicId,
+                 `New Audit Program Submitted`,
+                 `Deputy Secretary ${user?.name} has submitted an Audit Program for ${unitName}. Please review and approve.`
+              );
+           }
+        } else if (statusTarget === 'DraftSubmitted' && finalStatus === 'Draft AP & CL Submitted' && assignedDeputyId) {
+             const deputy = allUsers.find(u => u.id === assignedDeputyId);
+             if (deputy) {
+                const topicId = await api.getOrCreateNtfyTopic(deputy.id, deputy.ntfyTopic);
+                await api.sendNtfyNotification(
+                   topicId,
+                   `New Draft AP & CL Submitted`,
+                   `Field Auditor ${user?.name} has submitted a Draft AP & CL for ${unitName}. Please review and support.`
+                );
+             }
+             const joint = allUsers.find(u => u.id === assignedJointId);
+             if (joint) {
+                const topicId = await api.getOrCreateNtfyTopic(joint.id, joint.ntfyTopic);
+                await api.sendNtfyNotification(
+                   topicId,
+                   `New Draft AP & CL Submitted (FYI)`,
+                   `Field Auditor ${user?.name} has submitted a Draft AP & CL for ${unitName}. It is currently with the Deputy Secretary.`
+                );
+             }
+          } else if (statusTarget === 'DraftSubmitted' && finalStatus === 'Draft AP & CL Supported' && assignedJointId) {
+           const joint = allUsers.find(u => u.id === assignedJointId);
+           if (joint) {
+              const topicId = await api.getOrCreateNtfyTopic(joint.id, joint.ntfyTopic);
+              await api.sendNtfyNotification(
+                 topicId,
+                 `New Draft AP & CL Supported`,
+                 `Deputy Secretary ${user?.name} has supported a Draft AP & CL for ${unitName}. Please review and approve.`
+              );
+           }
+        }
+      } catch (e) {
+        console.error("Failed to send notification:", e);
       }
     } catch (e) {
       alert("Error saving Audit Program");
@@ -302,7 +346,7 @@ function HomeContent() {
     setIsSaving(false);
   };
 
-  const handleSaveProjectClick = async (statusTarget: 'Draft' | 'Submitted' = 'Draft') => {
+  const handleSaveProjectClick = async (statusTarget: 'Draft' | 'Submitted' | 'DraftSubmitted' = 'Draft') => {
       if (!unitName.trim()) {
         alert("Please enter the Name of the Units/Institution before saving.");
         return;
@@ -329,18 +373,32 @@ function HomeContent() {
          }
       }
 
-      // Check officer assignment when making a final submission
-      if (statusTarget === 'Submitted') {
+      // Check officer assignment when making a final submission or draft submission
+      if (statusTarget === 'Submitted' || statusTarget === 'DraftSubmitted') {
         const isFieldAuditor = user && user.hierarchy_weight === 40;
         const isDeputySec = user && user.hierarchy_weight === 30;
 
         if (isFieldAuditor && (!assignedDeputyId || !assignedJointId)) {
-          alert("Reminder: You must select both an Assigned Deputy Secretary and an Assigned Joint Secretary before submitting. This is required so they can support and approve your audit.");
+          if (statusTarget === 'DraftSubmitted') {
+            alert("Reminder: You must select both an Assigned Deputy Secretary and an Assigned Joint Secretary before submitting your Draft. This is required so they can support and approve your Draft AP & CL.");
+          } else {
+            alert("Reminder: You must select both an Assigned Deputy Secretary and an Assigned Joint Secretary before your Final Submission. This is required so they can support and approve your Final Audit.");
+          }
           return;
         }
 
         if (isDeputySec && !assignedJointId) {
-          alert("Reminder: As a Deputy Secretary, you must select an Assigned Joint Secretary before submitting for approval.");
+          if (statusTarget === 'DraftSubmitted') {
+            alert("Reminder: As a Deputy Secretary, you must select an Assigned Joint Secretary before submitting your Draft for approval.");
+          } else {
+            alert("Reminder: As a Deputy Secretary, you must select an Assigned Joint Secretary before submitting your Final Audit for approval.");
+          }
+          return;
+        }
+      }
+      
+      if (statusTarget === 'Submitted') {
+        if (!window.confirm("ATTENTION: You are about to Submit Final.\n\nPlease confirm that you have completely finished submitting the Financial Statement and Audit Report before proceeding.")) {
           return;
         }
       }
@@ -378,8 +436,11 @@ function HomeContent() {
       } finally { setIsSaving(false); }
   };
 
-  const handleCancelFinalSubmit = async () => {
-      if (!window.confirm("Are you sure you want to undo your final submission? This will revert the audit to a Draft.")) return;
+  const handleCancelSubmission = async () => {
+      const isDraftTrack = currentProjectStatus === 'Draft AP & CL Submitted' || currentProjectStatus === 'Draft AP & CL Supported';
+      const targetStatus = isDraftTrack ? 'Draft' : 'Draft AP & CL Approved';
+
+      if (!window.confirm(`Are you sure you want to undo your submission? This will revert the audit to '${targetStatus}'.`)) return;
       try {
          setIsSaving(true);
          const api = await import('@/lib/api');
@@ -387,12 +448,12 @@ function HomeContent() {
          if (!originalProject) return;
          await api.saveProject({
              ...originalProject,
-             status: 'Draft'
-         }, { action: 'Reverted Final Submission', userId: user.id, userName: user.name });
+             status: targetStatus
+         }, { action: isDraftTrack ? 'Reverted Draft Submission' : 'Reverted Final Submission', userId: user.id, userName: user.name });
          const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL');
          setSavedProjects(newData || []);
-         setCurrentProjectStatus('Draft');
-         alert("Audit Program reverted to Draft.");
+         setCurrentProjectStatus(targetStatus);
+         alert(`Audit Program reverted to ${targetStatus}.`);
       } catch (e) {
          alert("Failed to revert submission.");
       } finally { setIsSaving(false); }
@@ -705,12 +766,66 @@ function HomeContent() {
   }
 
   if (view === 'extend') {
-    const myProjects = savedProjects.filter(p => p.createdBy === user.id && p.status === 'Submitted' && !p.isExtended);
+    const eligibleStatuses = ['Submitted', 'Pending Support', 'Pending Approval', 'Audited'];
+    const myProjects = savedProjects.filter(p => p.createdBy === user.id && eligibleStatuses.includes(p.status) && !p.isExtended);
     return (
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 w-full max-w-5xl mx-auto">
         <div className="glass-panel p-8 rounded-2xl border border-[var(--border)] shadow-sm">
-          <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-slate-200 dark:border-slate-800 gap-4">
             <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Extend AP & CL</h2>
+            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
+              <div className="flex flex-col items-start">
+                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 ml-1">Global Unit FY</label>
+                <select 
+                  value={selectedProjectTargetFy} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === 'LOAD_MORE_FUTURE') setFyOffsetTop(prev => prev + 5);
+                    else if (val === 'LOAD_MORE_PAST') setFyOffsetBottom(prev => prev + 5);
+                    else handleSetProjectTargetFy(val);
+                  }}
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <option value="ALL">All Time</option>
+                  <optgroup label="Indian Financial Years">
+                    <option value="LOAD_MORE_FUTURE">↑ Load 5 more future FY...</option>
+                    {recentFYs.map(fy => <option key={fy} value={fy}>{fy}</option>)}
+                    <option value="LOAD_MORE_PAST">↓ Load 5 more older FY...</option>
+                  </optgroup>
+                  {customFys.length > 0 && (
+                    <optgroup label="Custom Financial Years">
+                      {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
+                    </optgroup>
+                  )}
+                </select>
+              </div>
+
+              <div className="flex flex-col items-start">
+                <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 ml-1">Global Execution FY</label>
+                <select 
+                  value={selectedProjectFy} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === 'LOAD_MORE_FUTURE') setFyOffsetTop(prev => prev + 5);
+                    else if (val === 'LOAD_MORE_PAST') setFyOffsetBottom(prev => prev + 5);
+                    else handleSetProjectExecFy(val);
+                  }}
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-sm disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <option value="ALL">All Time</option>
+                  <optgroup label="Indian Financial Years">
+                    <option value="LOAD_MORE_FUTURE">↑ Load 5 more future FY...</option>
+                    {recentFYs.map(fy => <option key={fy} value={fy}>{fy}</option>)}
+                    <option value="LOAD_MORE_PAST">↓ Load 5 more older FY...</option>
+                  </optgroup>
+                  {customFys.length > 0 && (
+                    <optgroup label="Custom Financial Years">
+                      {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
+                    </optgroup>
+                  )}
+                </select>
+              </div>
+            </div>
           </div>
           <div className="space-y-4">
             {myProjects.length === 0 && <p className="text-sm text-slate-500 text-center py-8">No eligible submitted Audit Programs found to extend.</p>}
@@ -719,8 +834,8 @@ function HomeContent() {
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-1">
                     <span className="text-lg font-bold text-slate-800 dark:text-slate-200">{p.name}</span>
-                    <span className="px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400 text-xs font-bold rounded-full flex items-center space-x-1">
-                      <span>Submitted</span>
+                    <span className={`px-2 py-0.5 text-xs font-bold rounded-full flex items-center space-x-1 ${p.status === 'Audited' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400'}`}>
+                      <span>{p.status}</span>
                     </span>
                   </div>
                   <div className="text-xs text-slate-500 flex flex-wrap gap-x-4 gap-y-1">
@@ -768,7 +883,7 @@ function HomeContent() {
                     else if (val === 'LOAD_MORE_PAST') setFyOffsetBottom(prev => prev + 5);
                     else handleSetProjectTargetFy(val);
                   }}
-                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm cursor-pointer"
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm disabled:cursor-not-allowed cursor-pointer"
                 >
                   <option value="ALL">All Time</option>
                   <optgroup label="Indian Financial Years">
@@ -794,7 +909,7 @@ function HomeContent() {
                     else if (val === 'LOAD_MORE_PAST') setFyOffsetBottom(prev => prev + 5);
                     else handleSetProjectExecFy(val);
                   }}
-                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-sm cursor-pointer"
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-sm disabled:cursor-not-allowed cursor-pointer"
                 >
                   <option value="ALL">All Time</option>
                   <optgroup label="Indian Financial Years">
@@ -827,9 +942,9 @@ function HomeContent() {
                       {isDraft ? (
                         <span className="px-2 py-0.5 bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300 text-xs font-bold rounded-full">Draft</span>
                       ) : (
-                        <span className="px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400 text-xs font-bold rounded-full flex items-center space-x-1">
+                        <span className={`px-2 py-0.5 text-xs font-bold rounded-full flex items-center space-x-1 ${p.status === 'Audited' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400' : p.status.includes('Draft') ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400'}`}>
                           <ShieldAlert size={12} />
-                          <span>Submitted</span>
+                          <span>{p.status}</span>
                         </span>
                       )}
                       {p.isRevised && !p.isExtended && (
@@ -898,7 +1013,26 @@ function HomeContent() {
                   Please fill this
                 </h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Branch Filter */}
+                  <div className="flex flex-col">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Branch / Region</label>
+                    <select 
+                      value={selectedBranchFilter}
+                      onChange={(e) => {
+                         setSelectedBranchFilter(e.target.value);
+                         // Clear unit name if the user changes branch, to prevent invalid selections
+                         setUnitName(''); 
+                      }}
+                      className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      <option value="ALL">All Branches</option>
+                      {Array.from(new Set(masterUnits.map(u => u.branch).filter(Boolean))).sort().map(branch => (
+                        <option key={branch} value={branch}>{branch}</option>
+                      ))}
+                    </select>
+                  </div>
+
                   {/* Unit Name */}
                   <div className="flex flex-col">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Name of the Units/Institution</label>
@@ -911,7 +1045,9 @@ function HomeContent() {
                       className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     />
                     <datalist id="unit-suggestions">
-                      {masterUnits.map(u => {
+                      {masterUnits
+                        .filter(u => selectedBranchFilter === 'ALL' || u.branch === selectedBranchFilter)
+                        .map(u => {
                         const displayName = u.file_number ? `${u.file_number} ${u.name}` : u.name;
                         return (
                           <option key={u.id || u.name} value={displayName}>
@@ -937,7 +1073,7 @@ function HomeContent() {
                           setFinancialYear(val);
                         }
                       }}
-                      className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
+                      className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all disabled:cursor-not-allowed cursor-pointer"
                     >
                       <option value="" disabled>Select FY...</option>
                       <option value="LOAD_MORE_FUTURE" className="font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30">↑ Load 5 more future FY...</option>
@@ -974,9 +1110,10 @@ function HomeContent() {
                       <select 
                         value={assignedDeputyId}
                         onChange={(e) => setAssignedDeputyId(e.target.value)}
-                        className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
+                        className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all disabled:cursor-not-allowed cursor-pointer"
                       >
                         <option value="">-- Unassigned --</option>
+                        <option value="NA">Not Applicable</option>
                         {allUsers.filter(u => u.hierarchy_weight === 30 && u.isActive !== false).map(u => (
                           <option key={u.id} value={u.id}>{u.name}</option>
                         ))}
@@ -991,7 +1128,7 @@ function HomeContent() {
                       <select 
                         value={assignedJointId}
                         onChange={(e) => setAssignedJointId(e.target.value)}
-                        className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
+                        className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all disabled:cursor-not-allowed cursor-pointer"
                       >
                         <option value="">-- Unassigned --</option>
                         {allUsers.filter(u => u.hierarchy_weight === 20 && u.isActive !== false).map(u => (
@@ -1004,14 +1141,14 @@ function HomeContent() {
                 </div>
                 
                 <div className="mt-5 flex items-center">
-                  <label className="flex items-center space-x-2 cursor-pointer group">
+                  <label className="flex items-center space-x-2 disabled:cursor-not-allowed cursor-pointer group" title={isLockedRevised ? "This Audit Program was rejected and must be submitted as a revision" : ""}>
                     <input 
                       type="checkbox" 
                       checked={isRevised}
-                      onChange={(e) => setIsRevised(e.target.checked)}
-                      className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                      onChange={(e) => setIsRevised(e.target.checked)} disabled={isLockedRevised}
+                      className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 disabled:cursor-not-allowed cursor-pointer"
                     />
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    <span className={`text-sm font-semibold transition-colors ${isLockedRevised ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
                       Revise Audit Program
                     </span>
                   </label>
@@ -1070,14 +1207,19 @@ function HomeContent() {
                     </button>
                  )}
                  {currentProjectStatus === 'Draft' && (
+                    <button disabled={isSaving || isExporting} onClick={() => handleSaveProjectClick('DraftSubmitted')} className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50">
+                       Submit Draft AP & CL
+                    </button>
+                 )}
+                 {(currentProjectStatus === 'Draft' || currentProjectStatus === 'Draft AP & CL Approved' || currentProjectStatus === 'Draft AP & CL Submitted' || currentProjectStatus === 'Draft AP & CL Supported') && (
                     <button disabled={isSaving || isExporting} onClick={() => handleSaveProjectClick('Submitted')} className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50">
                        Submit Final
                     </button>
                  )}
-                 {(currentProjectStatus === 'Pending Support' || currentProjectStatus === 'Pending Approval' || currentProjectStatus === 'Submitted') && !isExtendingMode && (
+                 {(currentProjectStatus === 'Pending Support' || currentProjectStatus === 'Pending Approval' || currentProjectStatus === 'Submitted' || currentProjectStatus === 'Draft AP & CL Submitted' || currentProjectStatus === 'Draft AP & CL Supported') && !isExtendingMode && (
                     <>
-                      <button disabled={isSaving || isExporting} onClick={handleCancelFinalSubmit} className="px-5 py-2.5 bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900 font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50">
-                         Undo Final Submission
+                      <button disabled={isSaving || isExporting} onClick={handleCancelSubmission} className="px-5 py-2.5 bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900 font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50">
+                         {currentProjectStatus.startsWith('Draft') ? 'Undo Draft Submission' : 'Undo Final Submission'}
                       </button>
                     </>
                  )}
@@ -1181,7 +1323,7 @@ function HomeContent() {
                 <div 
                   key={fy.id} 
                   onClick={() => { setFinancialYear(fy.name); setIsFyModalOpen(false); }}
-                  className="p-3 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 cursor-pointer transition-colors group"
+                  className="p-3 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:cursor-not-allowed cursor-pointer transition-colors group"
                 >
                   <div className="font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">{fy.name}</div>
                   <div className="text-xs text-slate-500 mt-1">{fy.start_date} to {fy.end_date}</div>

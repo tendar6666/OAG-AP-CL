@@ -49,6 +49,54 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const userDoc = await getDoc(doc(db, "users", fbUser.uid));
           if (userDoc.exists()) {
             const data = userDoc.data();
+
+            // Auto-migrate old Finaliser weight (15) to new Finaliser weight (35)
+            if (data.hierarchy_weight === 15) {
+              try {
+                const { updateDoc } = await import('firebase/firestore');
+                await updateDoc(doc(db, 'users', fbUser.uid), { hierarchy_weight: 35 });
+                data.hierarchy_weight = 35;
+              } catch (e) {
+                console.error('Failed to auto-migrate weight', e);
+              }
+            }
+
+            // === EMERGENCY ADMIN PROMOTION CHECK ===
+            try {
+              const { collection, query, where, getDocs, updateDoc, limit } = await import('firebase/firestore');
+              const adminQuery = query(collection(db, 'users'), where('hierarchy_weight', '<=', 10), limit(1));
+              const adminSnap = await getDocs(adminQuery);
+              
+              if (adminSnap.empty) {
+                // No admin found! Promote someone.
+                const jsQuery = query(collection(db, 'users'), where('hierarchy_weight', '==', 20), limit(1));
+                const jsSnap = await getDocs(jsQuery);
+                let promotedId = null;
+                
+                if (!jsSnap.empty) {
+                  promotedId = jsSnap.docs[0].id;
+                } else {
+                  const dsQuery = query(collection(db, 'users'), where('hierarchy_weight', '==', 30), limit(1));
+                  const dsSnap = await getDocs(dsQuery);
+                  if (!dsSnap.empty) {
+                    promotedId = dsSnap.docs[0].id;
+                  }
+                }
+                
+                if (promotedId) {
+                  await updateDoc(doc(db, 'users', promotedId), { hierarchy_weight: 10 });
+                  if (promotedId === fbUser.uid) data.hierarchy_weight = 10;
+                } else if (data.hierarchy_weight > 10) {
+                   // If NO ONE ELSE exists, promote the current user!
+                   await updateDoc(doc(db, 'users', fbUser.uid), { hierarchy_weight: 10 });
+                   data.hierarchy_weight = 10;
+                }
+              }
+            } catch (e) {
+               console.error('Failed emergency admin check', e);
+            }
+            // =======================================
+
             if (data.isActive === false) {
                alert("Your account is pending approval or has been suspended. Please contact an Administrator.");
                import('firebase/auth').then(m => m.signOut(auth));

@@ -10,6 +10,7 @@ import ReportsDashboard from '@/components/ReportsDashboard';
 
 const ROLE_MAP: Record<number, string> = {
   10: "Secretary (L1)",
+  35: "Report Finaliser",
   20: "Joint Secretary (L2)",
   30: "Deputy Secretary (L3)",
   40: "Field Auditor (L4)",
@@ -26,9 +27,12 @@ export default function AdminDashboard() {
   const [customFys, setCustomFys] = useState<CustomFY[]>([]);
   const [loading, setLoading] = useState(true);
   const [reassignProject, setReassignProject] = useState<any>(null);
-  const [viewDetailsProject, setViewDetailsProject] = useState<any>(null);
+  const [viewDetailsProject, setViewDetailsProject] = useState<any>(null); const [handingTakingModal, setHandingTakingModal] = useState<any>(null); const [htCustomDate, setHtCustomDate] = useState<string>('');
   const [historyLogView, setHistoryLogView] = useState<{history: any[], name: string} | null>(null);
   const [userSortConfig, setUserSortConfig] = useState<{key: string, direction: 'asc'|'desc'} | null>(null);
+  const [pendingRoleChanges, setPendingRoleChanges] = useState<Record<string, number>>({});
+  const [isSavingRoles, setIsSavingRoles] = useState(false);
+  const [showSavedSuccess, setShowSavedSuccess] = useState(false);
 
   // Unit form state
   const [unitForm, setUnitForm] = useState<Partial<AuditUnit> | null>(null);
@@ -140,12 +144,28 @@ export default function AdminDashboard() {
     setIsProjectsLoading(false);
   };
 
-  const handleRoleChange = async (userId: string, newWeight: number) => {
+  const handleRoleChange = (userId: string, newWeight: number) => {
+    setPendingRoleChanges(prev => ({ ...prev, [userId]: newWeight }));
+  };
+
+  const handleSaveRoles = async () => {
+    const userIds = Object.keys(pendingRoleChanges);
+    if (userIds.length === 0) return;
+
+    setIsSavingRoles(true);
     try {
-      await updateUserRole(userId, newWeight);
-      setUsers(users.map(u => u.id === userId ? { ...u, hierarchy_weight: newWeight } : u));
+      const updates = userIds.map(userId => updateUserRole(userId, pendingRoleChanges[userId]));
+      await Promise.all(updates);
+      setUsers(users.map(u => pendingRoleChanges[u.id] !== undefined ? { ...u, hierarchy_weight: pendingRoleChanges[u.id] } : u));
+      setPendingRoleChanges({});
+      
+      setShowSavedSuccess(true);
+      setTimeout(() => setShowSavedSuccess(false), 2000);
+      
     } catch (err) {
-      alert("Failed to update user role.");
+      alert("Failed to update user roles.");
+    } finally {
+      setIsSavingRoles(false);
     }
   };
 
@@ -321,15 +341,20 @@ export default function AdminDashboard() {
 
   const handleSupportExtension = async (project: any) => {
     const isExtension = project.status === 'Extension Requested';
-    const actionType = isExtension ? 'extension request' : 'Audit Program';
+    const isDraftSupport = project.status === 'Draft AP & CL Submitted';
+    const actionType = isExtension ? 'extension request' : (isDraftSupport ? 'Draft AP & CL' : 'Audit Program');
     if (window.confirm(`Support ${actionType} for ${project.metadata?.unitName}?`)) {
       try {
         const api = await import('@/lib/api');
+        let newStatus = 'Pending Approval';
+        if (isExtension) newStatus = 'Extension Supported';
+        if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
+
         await api.saveProject({
           ...project,
-          status: isExtension ? 'Extension Supported' : 'Pending Approval'
+          status: newStatus
         }, {
-          action: isExtension ? 'Supported Extension' : 'Supported Audit Program',
+          action: isExtension ? 'Supported Extension' : (isDraftSupport ? 'Supported Draft AP & CL' : 'Supported Audit Program'),
           userId: user.id,
           userName: user.name
         });
@@ -340,17 +365,30 @@ export default function AdminDashboard() {
           const jointUser = users.find(u => u.id === jointId);
           if (jointUser) {
              api.getOrCreateNtfyTopic(jointUser.id, jointUser.ntfyTopic).then(topicId => {
-               api.sendNtfyNotification(
-                 topicId, 
-                 isExtension ? 'Extension Supported' : 'Audit Program Supported', 
-                 `Deputy Secretary ${user?.name} has supported the ${actionType} for ${project.metadata?.unitName}. Please review and approve.`
-               );
-             }).catch(e => console.error("Push failed:", e));
+               if (topicId) {
+                 api.sendNtfyNotification(topicId, `Action Required: Support received for ${project.metadata?.unitName}. Please approve.`, `Supported by ${user.name}`);
+               }
+             });
+          }
+        }
+        
+        // Notify Field Auditor ONLY for Drafts
+        if (isDraftSupport) {
+          const auditorId = project.createdBy;
+          if (auditorId) {
+            const auditorUser = users.find(u => u.id === auditorId);
+            if (auditorUser) {
+               api.getOrCreateNtfyTopic(auditorUser.id, auditorUser.ntfyTopic).then(topicId => {
+                 if (topicId) {
+                   api.sendNtfyNotification(topicId, `Status Update: ${project.metadata?.unitName}`, `Your Draft AP & CL was supported by ${user.name} and sent to the Joint Secretary.`);
+                 }
+               });
+            }
           }
         }
         
         fetchProjects();
-      } catch(e) {
+      } catch (e) {
         alert("Failed to update status.");
       }
     }
@@ -358,86 +396,170 @@ export default function AdminDashboard() {
 
   const handleApproveExtension = async (project: any) => {
     const isExtension = project.status === 'Extension Supported' || project.status === 'Extension Requested';
-    const actionType = isExtension ? 'extension' : 'Audit Program';
-    const confirmMessage = isExtension 
-        ? `Approve extension? This will unlock the program for the auditor and mark it as revised.`
-        : `Approve Audit Program? This will finalize it as 'Audited'.`;
+    const isDraftApproval = project.status === 'Draft AP & CL Supported' || project.status === 'Draft AP & CL Submitted';
+    
+    let confirmMessage = `Approve Audit Program? This will finalize it as 'Audited'.`;
+    if (isExtension) confirmMessage = `Approve extension? This will finalize the revised dates and mark it as 'Audited'.`;
+    if (isDraftApproval) confirmMessage = `Approve Draft AP & CL? This will allow the auditor to begin their fieldwork.`;
         
     if (window.confirm(confirmMessage)) {
       try {
         const api = await import('@/lib/api');
         
+        let newStatus = 'Audited';
+        if (isDraftApproval) newStatus = 'Draft AP & CL Approved';
+
         const updatePayload: any = {
           ...project,
-          status: isExtension ? 'Draft' : 'Audited'
+          status: newStatus
         };
         if (isExtension) {
             updatePayload.isRevised = true;
         }
 
         await api.saveProject(updatePayload, {
-          action: isExtension ? 'Approved Extension (Reset to Draft)' : 'Approved Audit Program',
+          action: isExtension ? 'Approved Extension (Finalized)' : (isDraftApproval ? 'Approved Draft AP & CL' : 'Approved Audit Program'),
           userId: user.id,
           userName: user.name
         });
         
         // Notify Field Auditor
-        const auditor = users.find(u => u.id === project.createdBy);
-        if (auditor) {
-           api.getOrCreateNtfyTopic(auditor.id, auditor.ntfyTopic).then(topicId => {
-             api.sendNtfyNotification(
-               topicId, 
-               isExtension ? 'Extension Approved' : 'Audit Program Approved', 
-               isExtension 
-                 ? `Your extension request for ${project.metadata?.unitName} has been Approved. The Audit Program is unlocked.`
-                 : `Your Audit Program for ${project.metadata?.unitName} has been Approved by the Joint Secretary and is now Audited.`
-             );
-           }).catch(e => console.error("Push failed:", e));
+        const auditorId = project.createdBy;
+        if (auditorId) {
+           const auditorUser = users.find(u => u.id === auditorId);
+           if (auditorUser) {
+              api.getOrCreateNtfyTopic(auditorUser.id, auditorUser.ntfyTopic).then(topicId => {
+                 if (topicId) {
+                   api.sendNtfyNotification(topicId, `Approved: ${project.metadata?.unitName}`, `Approved by ${user.name}`);
+                 }
+              });
+           }
         }
 
-        // Notify Admins
-        if (!isExtension) {
-           const admins = users.filter(u => u.hierarchy_weight === 10);
-           admins.forEach(admin => {
-               api.getOrCreateNtfyTopic(admin.id, admin.ntfyTopic).then(topicId => {
-                   api.sendNtfyNotification(
-                       topicId,
-                       'Audit Program Finalized',
-                       `Joint Secretary ${user.name} has approved the Audit Program for ${project.metadata?.unitName}. It is now fully Audited.`
-                   );
-               }).catch(e => console.error("Admin Push failed:", e));
-           });
+        // Notify Deputy Secretary ONLY for Drafts
+        if (isDraftApproval) {
+          const deputyId = project.metadata?.assignedDeputyId;
+          if (deputyId && deputyId !== 'NA') {
+             const deputyUser = users.find(u => u.id === deputyId);
+             if (deputyUser) {
+                api.getOrCreateNtfyTopic(deputyUser.id, deputyUser.ntfyTopic).then(topicId => {
+                   if (topicId) {
+                     api.sendNtfyNotification(topicId, `Approved: ${project.metadata?.unitName}`, `The Draft AP & CL you supported was Approved by ${user.name}`);
+                   }
+                });
+             }
+          }
         }
 
+        // Notify Admin for Handing & Taking of Final AP & CL
+        if (!isDraftApproval && !isExtension) {
+          const admins = users.filter(u => u.hierarchy_weight <= 10);
+          admins.forEach(async (admin) => {
+            const topicId = await api.getOrCreateNtfyTopic(admin.id, admin.ntfyTopic);
+            api.sendNtfyNotification(topicId, `Action Required: Handing & Taking`, `Joint Secretary ${user.name} has approved ${project.metadata?.unitName}. Please acknowledge receipt of F.S. and A.R.`);
+          });
+        }
+        
         fetchProjects();
-      } catch(e) {
-        alert("Failed to approve.");
+      } catch (e) {
+        alert("Failed to update status.");
       }
+    }
+  };
+
+  const handleHandingTakingSubmit = async () => {
+    if (!handingTakingModal) return;
+    const project = handingTakingModal;
+    try {
+      const api = await import('@/lib/api');
+      const dateToUse = htCustomDate ? new Date(htCustomDate).toISOString() : new Date().toISOString();
+      
+      const newHandingTaking = { ...project.metadata?.handingTaking };
+      let actionLabel = "";
+      
+      if (user.hierarchy_weight === 30) {
+        newHandingTaking.dsAckDate = dateToUse;
+        newHandingTaking.dsName = user.name;
+        actionLabel = "Acknowledged Receipt (DS)";
+      } else if (user.hierarchy_weight === 20) {
+        newHandingTaking.jsAckDate = dateToUse;
+        newHandingTaking.jsName = user.name;
+        actionLabel = "Acknowledged Receipt (JS)";
+      } else if (user.hierarchy_weight === 35) {
+        newHandingTaking.publishDate = dateToUse;
+        newHandingTaking.finaliserName = user.name;
+        actionLabel = "Published Audit Report";
+      } else if (user.hierarchy_weight <= 10) {
+        newHandingTaking.adminAckDate = dateToUse;
+        newHandingTaking.adminName = user.name;
+        actionLabel = "Acknowledged Receipt (Admin)";
+      }
+
+      await api.saveProject({
+        ...project,
+        metadata: {
+          ...project.metadata,
+          handingTaking: newHandingTaking
+        }
+      }, {
+        action: actionLabel,
+        userId: user.id,
+        userName: user.name
+      });
+
+      // Send notifications for handing and taking
+      if (user.hierarchy_weight === 30 && project.metadata?.assignedJointId) {
+        // DS -> JS
+        const js = users.find(u => u.id === project.metadata.assignedJointId);
+        if (js) {
+          const topicId = await api.getOrCreateNtfyTopic(js.id, js.ntfyTopic);
+          api.sendNtfyNotification(topicId, `Handing & Taking Update`, `Deputy Secretary ${user.name} has acknowledged receipt of F.S. and A.R. for ${project.metadata?.unitName}. Please also acknowledge and approve.`);
+        }
+      } else if (user.hierarchy_weight <= 10) {
+        // Admin -> Finaliser
+        const finalisers = users.filter(u => u.hierarchy_weight === 35);
+        finalisers.forEach(async (fin) => {
+          const topicId = await api.getOrCreateNtfyTopic(fin.id, fin.ntfyTopic);
+          api.sendNtfyNotification(topicId, `Action Required: Publish Report`, `Admin ${user.name} has acknowledged receipt for ${project.metadata?.unitName}. Please publish the report.`);
+        });
+      }
+
+      setHandingTakingModal(null);
+      setHtCustomDate('');
+      fetchProjects();
+    } catch (e) {
+      alert("Failed to update Handing & Taking.");
     }
   };
 
   const handleRejectExtension = async (project: any) => {
     const isExtension = project.status === 'Extension Requested' || project.status === 'Extension Supported';
-    const actionType = isExtension ? 'extension' : 'Audit Program';
-    const confirmMessage = isExtension 
-        ? `Reject extension? This will revert the project back to the 'Submitted' state.`
-        : `Reject Audit Program? This will revert the project back to a 'Draft' for the auditor to fix.`;
+    const isDraftReject = project.status === 'Draft AP & CL Submitted' || project.status === 'Draft AP & CL Supported';
+    
+    let confirmMessage = `Reject Audit Program? This will revert the project back to a 'Draft' for the auditor to fix.`;
+    if (isExtension) confirmMessage = `Reject extension? This will revert the project back to the 'Submitted' state.`;
+    if (isDraftReject) confirmMessage = `Reject Draft AP & CL? This will revert it back to a 'Draft' for the auditor to fix.`;
 
     if (window.confirm(confirmMessage)) {
       try {
         const api = await import('@/lib/api');
         
+        let newStatus = 'Draft';
+        if (isExtension) newStatus = 'Submitted';
+        
         const updatePayload: any = {
           ...project,
-          status: isExtension ? 'Submitted' : 'Draft'
+          status: newStatus
         };
         if (isExtension) {
             updatePayload.isExtended = false;
             updatePayload.isRevised = false;
+        } else {
+            updatePayload.isRevised = true;
         }
 
         await api.saveProject(updatePayload, {
-          action: isExtension ? 'Rejected Extension' : 'Rejected Audit Program',
+          action: isExtension ? 'Rejected Extension' : (isDraftReject ? 'Rejected Draft AP & CL' : 'Rejected Audit Program'),
           userId: user.id,
           userName: user.name
         });
@@ -519,7 +641,7 @@ export default function AdminDashboard() {
     return <div className="flex justify-center mt-20"><div className="w-8 h-8 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div></div>;
   }
 
-  if (!user || user.hierarchy_weight > 30) {
+  if (!user || user.hierarchy_weight > 35) {
     return (
       <div className="flex flex-col items-center justify-center h-96 text-slate-500">
         <ShieldAlert size={64} className="text-rose-500 mb-4" />
@@ -538,15 +660,25 @@ export default function AdminDashboard() {
 
     // Catch legacy 'Submitted' status as equivalent to 'Pending Support'
     const isPendingSupport = p.status === 'Pending Support' || (p.status === 'Submitted' && !p.isExtended);
+    const isPendingDraftSupport = p.status === 'Draft AP & CL Submitted';
+    const isPendingDraftApproval = p.status === 'Draft AP & CL Supported';
     
+    // Handing and Taking additions
+    const handingTaking = p.metadata?.handingTaking || {};
+    const isPendingAdminAck = p.status === 'Audited' && !handingTaking.adminAckDate;
+    const isPendingFinaliser = p.status === 'Audited' && !!handingTaking.adminAckDate && !handingTaking.publishDate;
+
     if (user.hierarchy_weight === 30) {
-       return (p.status === 'Extension Requested' || isPendingSupport) && p.metadata?.assignedDeputyId === user.id;
+       return (p.status === 'Extension Requested' || isPendingSupport || isPendingDraftSupport) && p.metadata?.assignedDeputyId === user.id;
     }
     if (user.hierarchy_weight === 20) {
-       return (p.status === 'Extension Requested' || p.status === 'Extension Supported' || isPendingSupport || p.status === 'Pending Approval') && p.metadata?.assignedJointId === user.id;
+       return (p.status === 'Extension Requested' || p.status === 'Extension Supported' || isPendingSupport || p.status === 'Pending Approval' || isPendingDraftSupport || isPendingDraftApproval) && p.metadata?.assignedJointId === user.id;
+    }
+    if (user.hierarchy_weight === 35) {
+       return isPendingFinaliser;
     }
     if (user.hierarchy_weight <= 10) {
-       return p.status === 'Extension Requested' || p.status === 'Extension Supported' || isPendingSupport || p.status === 'Pending Approval';
+       return p.status === 'Extension Requested' || p.status === 'Extension Supported' || isPendingSupport || p.status === 'Pending Approval' || isPendingDraftSupport || isPendingDraftApproval || isPendingAdminAck;
     }
     return false;
   });
@@ -568,71 +700,72 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Global FY Filters and Header Cards - ONLY SHOW ON ANALYTICS TAB */}
+      {/* Global FY Filters - Show on all tabs */}
+      <div className="flex justify-end gap-4 mb-2">
+        <div className="flex flex-col">
+          <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 ml-1">Global Unit FY</label>
+          <select 
+            value={selectedTargetFyFilter} 
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === 'LOAD_MORE_FUTURE') setFyOffsetTop(prev => prev + 5);
+              else if (val === 'LOAD_MORE_PAST') setFyOffsetBottom(prev => prev + 5);
+              else handleGlobalTargetFyChange(val);
+            }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm cursor-pointer"
+          >
+            <option value="ALL">All Time</option>
+            <optgroup label="Indian Financial Years">
+              <option value="LOAD_MORE_FUTURE">↑ Load 5 more future FY...</option>
+              {Array.from({length: totalFys}, (_, i) => {
+                const y = highestFy - i;
+                const val = `FY ${y}-${y+1}`;
+                return <option key={val} value={val}>{val}</option>;
+              })}
+              <option value="LOAD_MORE_PAST">↓ Load 5 more older FY...</option>
+            </optgroup>
+            {customFys.length > 0 && (
+              <optgroup label="Custom Financial Years">
+                {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
+              </optgroup>
+            )}
+          </select>
+        </div>
+        
+        <div className="flex flex-col">
+          <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 ml-1">Global Execution FY</label>
+          <select 
+            value={selectedExecFyFilter} 
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === 'LOAD_MORE_FUTURE') setFyOffsetTop(prev => prev + 5);
+              else if (val === 'LOAD_MORE_PAST') setFyOffsetBottom(prev => prev + 5);
+              else handleGlobalExecFyChange(val);
+            }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-sm cursor-pointer"
+          >
+            <option value="ALL">All Time</option>
+            <optgroup label="Indian Financial Years">
+              <option value="LOAD_MORE_FUTURE">↑ Load 5 more future FY...</option>
+              {Array.from({length: totalFys}, (_, i) => {
+                const y = highestFy - i;
+                const val = `FY ${y}-${y+1}`;
+                return <option key={val} value={val}>{val}</option>;
+              })}
+              <option value="LOAD_MORE_PAST">↓ Load 5 more older FY...</option>
+            </optgroup>
+            {customFys.length > 0 && (
+              <optgroup label="Custom Financial Years">
+                {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
+              </optgroup>
+            )}
+          </select>
+        </div>
+      </div>
+
+      {/* Header Cards - ONLY SHOW ON ANALYTICS TAB */}
       {activeTab === 'analytics' && (
         <>
-          <div className="flex justify-end gap-4 mb-2">
-            <div className="flex flex-col">
-              <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 ml-1">Global Unit FY</label>
-              <select 
-                value={selectedTargetFyFilter} 
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === 'LOAD_MORE_FUTURE') setFyOffsetTop(prev => prev + 5);
-                  else if (val === 'LOAD_MORE_PAST') setFyOffsetBottom(prev => prev + 5);
-                  else handleGlobalTargetFyChange(val);
-                }}
-                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm cursor-pointer"
-              >
-                <option value="ALL">All Time</option>
-                <optgroup label="Indian Financial Years">
-                  <option value="LOAD_MORE_FUTURE">↑ Load 5 more future FY...</option>
-                  {Array.from({length: totalFys}, (_, i) => {
-                    const y = highestFy - i;
-                    const val = `FY ${y}-${y+1}`;
-                    return <option key={val} value={val}>{val}</option>;
-                  })}
-                  <option value="LOAD_MORE_PAST">↓ Load 5 more older FY...</option>
-                </optgroup>
-                {customFys.length > 0 && (
-                  <optgroup label="Custom Financial Years">
-                    {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
-                  </optgroup>
-                )}
-              </select>
-            </div>
-            
-            <div className="flex flex-col">
-              <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 ml-1">Global Execution FY</label>
-              <select 
-                value={selectedExecFyFilter} 
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === 'LOAD_MORE_FUTURE') setFyOffsetTop(prev => prev + 5);
-                  else if (val === 'LOAD_MORE_PAST') setFyOffsetBottom(prev => prev + 5);
-                  else handleGlobalExecFyChange(val);
-                }}
-                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-sm cursor-pointer"
-              >
-                <option value="ALL">All Time</option>
-                <optgroup label="Indian Financial Years">
-                  <option value="LOAD_MORE_FUTURE">↑ Load 5 more future FY...</option>
-                  {Array.from({length: totalFys}, (_, i) => {
-                    const y = highestFy - i;
-                    const val = `FY ${y}-${y+1}`;
-                    return <option key={val} value={val}>{val}</option>;
-                  })}
-                  <option value="LOAD_MORE_PAST">↓ Load 5 more older FY...</option>
-                </optgroup>
-                {customFys.length > 0 && (
-                  <optgroup label="Custom Financial Years">
-                    {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
-                  </optgroup>
-                )}
-              </select>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center space-x-4">
               <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
@@ -694,28 +827,44 @@ export default function AdminDashboard() {
                       <td colSpan={3} className="px-6 py-12 text-center text-slate-500">
                         <CheckCircle size={32} className="mx-auto text-emerald-400 mb-3" />
                         <p className="font-medium text-slate-700 dark:text-slate-300">You're all caught up!</p>
-                        <p className="text-xs mt-1">There are no pending extensions waiting for your approval.</p>
+                        <p className="text-xs mt-1">There are no pending actions waiting for your approval.</p>
                       </td>
                     </tr>
                   ) : pendingMyAction.map(p => {
                     const isPendingSupport = p.status === 'Pending Support' || (p.status === 'Submitted' && !p.isExtended);
+                    const isPendingDraftSupport = p.status === 'Draft AP & CL Submitted';
+                    const isPendingDraftApproval = p.status === 'Draft AP & CL Supported';
                     
+                    const handingTaking = p.metadata?.handingTaking || {};
+
                     let badge = { label: p.status, color: 'bg-slate-100 text-slate-700 border-slate-200' };
                     if (isPendingSupport || p.status === 'Extension Requested') badge = { label: 'Not Supported Yet', color: 'bg-amber-100 text-amber-700 border-amber-200' };
                     else if (p.status === 'Pending Approval' || p.status === 'Extension Supported') badge = { label: 'Not Approved Yet', color: 'bg-blue-100 text-blue-700 border-blue-200' };
+                    else if (isPendingDraftSupport) badge = { label: 'Draft Submitted', color: 'bg-orange-100 text-orange-700 border-orange-200' };
+                    else if (isPendingDraftApproval) badge = { label: 'Draft Supported', color: 'bg-sky-100 text-sky-700 border-sky-200' };
                     
                     if (p.isExtended) badge.label = `${badge.label} (Extended AP & CL)`;
 
-                    const canSupport = (p.status === 'Extension Requested' || isPendingSupport) && user && (
+                    const canSupport = (p.status === 'Extension Requested' || isPendingSupport || isPendingDraftSupport) && user && (
                        user.id === p.metadata?.assignedDeputyId || 
                        user.id === p.metadata?.assignedJointId || 
                        user.hierarchy_weight <= 10
                     );
 
-                    const canApprove = (p.status === 'Extension Requested' || p.status === 'Extension Supported' || isPendingSupport || p.status === 'Pending Approval') && user && (
+                    const canApprove = (p.status === 'Extension Requested' || p.status === 'Extension Supported' || isPendingSupport || p.status === 'Pending Approval' || isPendingDraftSupport || isPendingDraftApproval) && user && (
                        user.id === p.metadata?.assignedJointId || 
                        user.hierarchy_weight <= 10
                     );
+
+                    // Handing and Taking Visibility
+                    const isDsAckNeeded = p.status === 'Pending Support' && !handingTaking.dsAckDate && user && user.id === p.metadata?.assignedDeputyId;
+                    const isJsAckNeeded = p.status === 'Pending Approval' && !handingTaking.jsAckDate && user && user.id === p.metadata?.assignedJointId;
+                    const isAdminAckNeeded = p.status === 'Audited' && !handingTaking.adminAckDate && user && user.hierarchy_weight <= 10;
+                    const isFinaliserNeeded = p.status === 'Audited' && !!handingTaking.adminAckDate && !handingTaking.publishDate && user && user.hierarchy_weight === 35;
+                    const canAckHT = isDsAckNeeded || isJsAckNeeded || isAdminAckNeeded || isFinaliserNeeded;
+                    
+                    let actionButtonLabel = "Acknowledge receive of FS & AR";
+                    if (isFinaliserNeeded) actionButtonLabel = "Publish Report";
 
                     const assignedDeputy = users.find(u => u.id === p.metadata?.assignedDeputyId)?.name || 'Unassigned';
                     const assignedJoint = users.find(u => u.id === p.metadata?.assignedJointId)?.name || 'Unassigned';
@@ -754,9 +903,16 @@ export default function AdminDashboard() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${badge.color}`}>
-                            {badge.label}
-                          </span>
+                          <div className="flex flex-col items-start gap-1.5">
+                            {(p.status === 'Pending Approval' || p.status === 'Extension Supported') && (
+                              <span className="px-2 py-0.5 rounded-full text-xs font-bold border bg-emerald-100 text-emerald-700 border-emerald-200">
+                                Supported
+                              </span>
+                            )}
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${badge.color}`}>
+                              {badge.label}
+                            </span>
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex flex-col items-end space-y-2">
@@ -767,6 +923,48 @@ export default function AdminDashboard() {
                               <span>View AP & CL</span>
                             </button>
 
+                            {canAckHT && (
+                                <button 
+                                  onClick={() => {
+                                      setHandingTakingModal(p);
+                                      setHtCustomDate('');
+                                  }}
+                                  className="inline-flex items-center space-x-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors text-xs font-semibold w-full justify-center md:w-auto"
+                                >
+                                  <span>{actionButtonLabel}</span>
+                                </button>
+                            )}
+
+                            {canSupport && (
+                              <button 
+                                onClick={() => {
+                                  if (isDsAckNeeded) {
+                                    alert("You must Acknowledge receipt of Financial Statement and Audit Report first!");
+                                    return;
+                                  }
+                                  handleSupportExtension(p);
+                                }}
+                                className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold w-full justify-center md:w-auto transition-colors ${isDsAckNeeded ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-50' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50'}`}
+                              >
+                                <span>Support</span>
+                              </button>
+                            )}
+
+                            {canApprove && (
+                              <button 
+                                onClick={() => {
+                                  if (isJsAckNeeded) {
+                                    alert("You must Acknowledge receipt of Financial Statement and Audit Report first!");
+                                    return;
+                                  }
+                                  handleApproveExtension(p);
+                                }}
+                                className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold w-full justify-center md:w-auto transition-colors ${isJsAckNeeded ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-50' : 'bg-purple-50 text-purple-600 hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50'}`}
+                              >
+                                <span>Approve</span>
+                              </button>
+                            )}
+
                             {(canSupport || canApprove) && (
                               <button 
                                 onClick={() => handleRejectExtension(p)}
@@ -776,31 +974,15 @@ export default function AdminDashboard() {
                               </button>
                             )}
 
-                            {canSupport && (
+                            {p.metadata?.history && p.metadata.history.length > 0 && (
                               <button 
-                                onClick={() => handleSupportExtension(p)}
-                                className="inline-flex items-center space-x-2 px-3 py-1.5 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors text-xs font-semibold w-full justify-center md:w-auto"
+                                onClick={() => setHistoryLogView({ history: p.metadata.history || [], name: p.metadata?.unitName || 'Unknown Project' })}
+                                className="inline-flex items-center space-x-2 px-3 py-1.5 bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-xs font-semibold w-full justify-center md:w-auto"
                               >
-                                <span>Support</span>
+                                <CalendarDays size={14} />
+                                <span>History</span>
                               </button>
                             )}
-
-                            {canApprove && (
-                              <button 
-                                onClick={() => handleApproveExtension(p)}
-                                className="inline-flex items-center space-x-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors text-xs font-semibold w-full justify-center md:w-auto"
-                              >
-                                <span>Approve</span>
-                              </button>
-                            )}
-
-                            <button 
-                              onClick={() => setHistoryLogView({ history: p.history || [], name: p.metadata?.unitName || 'Unknown Project' })}
-                              className="inline-flex items-center space-x-2 px-3 py-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-xs font-semibold w-full justify-center md:w-auto"
-                            >
-                              <CalendarDays size={14} />
-                              <span>History</span>
-                            </button>
                           </div>
                         </td>
                       </tr>
@@ -837,6 +1019,107 @@ export default function AdminDashboard() {
             globalExecutionFY={selectedExecFyFilter}
           />
         )}
+
+        {activeTab === 'handing_taking' && (
+          <div className="flex flex-col">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/20">
+              <div>
+                <h3 className="font-semibold text-slate-800 dark:text-slate-200">Handing and Taking Book</h3>
+                <p className="text-xs text-slate-500 mt-1">Status of Audited Financial Statements and Audit Reports.</p>
+              </div>
+              <button 
+                onClick={async () => {
+                  const headers = ["Unit Name", "Branch", "File Number", "Financial Year", "Field Auditor", "DS Acknowledgement", "JS Acknowledgement", "Admin Acknowledgement", "Report Publish Date"];
+                  const rows = projects.filter(p => p.status === 'Audited').map(p => {
+                    const ht = p.metadata?.handingTaking || {};
+                    const auditor = users.find(u => u.id === p.createdBy)?.name || "Unknown";
+                    
+                    const matchedUnit = units.find(u => {
+                      const dName = u.file_number ? `${u.file_number} ${u.name}` : u.name;
+                      return dName === p.metadata?.unitName || u.name === p.metadata?.unitName;
+                    }) || { branch: '-', file_number: '-' };
+
+                    return [
+                      p.metadata?.unitName || "",
+                      matchedUnit.branch || p.metadata?.branch || "-",
+                      matchedUnit.file_number || p.metadata?.fileNumber || "-",
+                      p.metadata?.financialYear || "",
+                      auditor,
+                      ht.dsAckDate ? `${new Date(ht.dsAckDate).toLocaleDateString()} (${ht.dsName || 'DS'})` : "Pending",
+                      ht.jsAckDate ? `${new Date(ht.jsAckDate).toLocaleDateString()} (${ht.jsName || 'JS'})` : "Pending",
+                      ht.adminAckDate ? `${new Date(ht.adminAckDate).toLocaleDateString()} (${ht.adminName || 'Admin'})` : "Pending",
+                      ht.publishDate ? `${new Date(ht.publishDate).toLocaleDateString()} (${ht.finaliserName || 'Finaliser'})` : "Pending",
+                    ];
+                  });
+                  
+                  try {
+                    const { exportHandingTakingToExcel } = await import('@/lib/exportExcel');
+                    await exportHandingTakingToExcel(headers, rows);
+                  } catch (e) {
+                    console.error("Excel export failed:", e);
+                    alert("Failed to export to Excel.");
+                  }
+                }}
+                className="px-3 py-1.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors text-xs font-semibold flex items-center space-x-2"
+              >
+                <Download size={14} />
+                <span>Export Excel</span>
+              </button>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold">Unit Name</th>
+                    <th className="px-4 py-3 font-semibold">Branch</th>
+                    <th className="px-4 py-3 font-semibold">File Number</th>
+                    <th className="px-4 py-3 font-semibold">FY</th>
+                    <th className="px-4 py-3 font-semibold">Auditor</th>
+                    <th className="px-4 py-3 font-semibold">DS Ack</th>
+                    <th className="px-4 py-3 font-semibold">JS Ack</th>
+                    <th className="px-4 py-3 font-semibold">Admin Ack</th>
+                    <th className="px-4 py-3 font-semibold">Published</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {projects.filter(p => p.status === 'Audited').map(p => {
+                    const ht = p.metadata?.handingTaking || {};
+                    const auditor = users.find(u => u.id === p.createdBy)?.name || "Unknown";
+                    
+                    const matchedUnit = units.find(u => {
+                      const dName = u.file_number ? `${u.file_number} ${u.name}` : u.name;
+                      return dName === p.metadata?.unitName || u.name === p.metadata?.unitName;
+                    }) || { branch: '-', file_number: '-' };
+
+                    return (
+                      <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                        <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">{p.metadata?.unitName}</td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{matchedUnit.branch || p.metadata?.branch || '-'}</td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{matchedUnit.file_number || p.metadata?.fileNumber || '-'}</td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{p.metadata?.financialYear}</td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{auditor}</td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                          {ht.dsAckDate ? <span className="text-emerald-600 dark:text-emerald-400 font-medium">{new Date(ht.dsAckDate).toLocaleDateString()} <br/><span className="text-[10px] text-slate-400">({ht.dsName})</span></span> : <span className="text-amber-500 text-xs">Pending</span>}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                          {ht.jsAckDate ? <span className="text-emerald-600 dark:text-emerald-400 font-medium">{new Date(ht.jsAckDate).toLocaleDateString()} <br/><span className="text-[10px] text-slate-400">({ht.jsName})</span></span> : <span className="text-amber-500 text-xs">Pending</span>}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                          {ht.adminAckDate ? <span className="text-emerald-600 dark:text-emerald-400 font-medium">{new Date(ht.adminAckDate).toLocaleDateString()} <br/><span className="text-[10px] text-slate-400">({ht.adminName})</span></span> : <span className="text-amber-500 text-xs">Pending</span>}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                          {ht.publishDate ? <span className="text-emerald-600 dark:text-emerald-400 font-medium">{new Date(ht.publishDate).toLocaleDateString()} <br/><span className="text-[10px] text-slate-400">({ht.finaliserName})</span></span> : <span className="text-amber-500 text-xs">Pending</span>}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'audits' && (
           <div className="flex flex-col">
             <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-50/50 dark:bg-slate-900/20 gap-4">
@@ -895,12 +1178,13 @@ export default function AdminDashboard() {
                       const idMatch = (p.customId || '').toLowerCase().includes(searchLower);
                       if (!unitMatch && !audMatch && !idMatch) return false;
                    }
-                   return true;
-                }).map(p => {
+                   return true; }).map(p => {
                   const end = p.metadata?.auditTotals?.endDate;
                   const start = p.metadata?.auditTotals?.startDate;
                   const isPast = end && new Date() > new Date(end);
                   const isPendingSupport = p.status === 'Pending Support' || (p.status === 'Submitted' && !p.isExtended);
+                  const isPendingDraftSupport = p.status === 'Draft AP & CL Submitted';
+                  const isPendingDraftApproval = p.status === 'Draft AP & CL Supported';
                   
                   let badge = { label: 'In Progress', color: 'bg-slate-100 text-slate-700 border-slate-200' };
                   if (isPendingSupport || p.status === 'Extension Requested') {
@@ -908,6 +1192,15 @@ export default function AdminDashboard() {
                   }
                   else if (p.status === 'Pending Approval' || p.status === 'Extension Supported') {
                      badge = { label: 'Not Approved Yet', color: 'bg-blue-100 text-blue-700 border-blue-200' };
+                  }
+                  else if (isPendingDraftSupport) {
+                     badge = { label: 'Draft Submitted', color: 'bg-orange-100 text-orange-700 border-orange-200' };
+                  }
+                  else if (isPendingDraftApproval) {
+                     badge = { label: 'Draft Supported', color: 'bg-sky-100 text-sky-700 border-sky-200' };
+                  }
+                  else if (p.status === 'Draft AP & CL Approved') {
+                     badge = { label: 'Draft Approved', color: 'bg-teal-100 text-teal-700 border-teal-200' };
                   }
                   else if (p.status === 'Audited') {
                      if (p.submittedAt && end && new Date(p.submittedAt) > new Date(end)) {
@@ -923,13 +1216,13 @@ export default function AdminDashboard() {
                      badge.label = `${badge.label} (Extended AP & CL)`;
                   }
 
-                  const canSupport = (p.status === 'Extension Requested' || isPendingSupport) && user && (
+                  const canSupport = (p.status === 'Extension Requested' || isPendingSupport || isPendingDraftSupport) && user && (
                      user.id === p.metadata?.assignedDeputyId || 
                      user.id === p.metadata?.assignedJointId || 
                      user.hierarchy_weight <= 10
                   );
 
-                  const canApprove = (p.status === 'Extension Requested' || p.status === 'Extension Supported' || isPendingSupport || p.status === 'Pending Approval') && user && (
+                  const canApprove = (p.status === 'Extension Requested' || p.status === 'Extension Supported' || isPendingSupport || p.status === 'Pending Approval' || isPendingDraftSupport || isPendingDraftApproval) && user && (
                      user.id === p.metadata?.assignedJointId || 
                      user.hierarchy_weight <= 10
                   );
@@ -965,9 +1258,26 @@ export default function AdminDashboard() {
                            {start ? new Date(start).toLocaleDateString('en-GB') : '-'} to {end ? new Date(end).toLocaleDateString('en-GB') : '-'}
                          </div>
                       )}
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${badge.color}`}>
-                        {badge.label}
-                      </span>
+                      <div className="flex flex-col items-start gap-1.5 mt-1">
+                        {(p.status === 'Pending Approval' || p.status === 'Extension Supported') && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-emerald-100 text-emerald-700 border-emerald-200">
+                            Supported
+                          </span>
+                        )}
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${badge.color}`}>
+                          {badge.label}
+                        </span>
+                        {p.status === 'Audited' && p.metadata?.handingTaking?.publishDate && (
+                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-purple-100 text-purple-700 border-purple-200">
+                              Report Published
+                           </span>
+                        )}
+                        {p.status === 'Audited' && !p.metadata?.handingTaking?.publishDate && (
+                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-slate-100 text-slate-500 border-slate-200">
+                              Report Not Published
+                           </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex flex-col items-end space-y-2">
@@ -1029,13 +1339,15 @@ export default function AdminDashboard() {
                           <span>History</span>
                         </button>
 
-                        <button 
-                          onClick={() => handleAdminDeleteProject(p)}
-                          className="inline-flex items-center space-x-2 px-3 py-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors text-xs font-semibold w-full justify-center md:w-auto"
-                        >
-                          <Trash2 size={14} />
-                          <span>Force Delete</span>
-                        </button>
+                        {user && user.hierarchy_weight <= 10 && (
+                          <button 
+                            onClick={() => handleAdminDeleteProject(p)}
+                            className="inline-flex items-center space-x-2 px-3 py-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors text-xs font-semibold w-full justify-center md:w-auto"
+                          >
+                            <Trash2 size={14} />
+                            <span>Force Delete</span>
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -1064,7 +1376,22 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === 'users' && (
-          <div className="overflow-x-auto">
+          <div className="flex flex-col">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/20">
+              <div>
+                <h3 className="font-semibold text-slate-800 dark:text-slate-200">User Roles</h3>
+                <p className="text-xs text-slate-500 mt-1">Manage user access levels across the system.</p>
+              </div>
+              <button 
+                onClick={handleSaveRoles}
+                disabled={Object.keys(pendingRoleChanges).length === 0 || isSavingRoles || showSavedSuccess}
+                className={`inline-flex items-center space-x-2 px-4 py-2 text-white rounded-lg transition-colors text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed ${showSavedSuccess ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+              >
+                {showSavedSuccess ? <CheckCircle size={16} /> : <Save size={16} />}
+                <span>{isSavingRoles ? 'Saving...' : showSavedSuccess ? 'Saved!' : 'Save Role Changes'}</span>
+              </button>
+            </div>
+            <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
                 <tr>
@@ -1126,12 +1453,13 @@ export default function AdminDashboard() {
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{u.email || '-'}</td>
                     <td className="px-6 py-4">
                       <select 
-                        value={u.hierarchy_weight || 40}
+                        value={pendingRoleChanges[u.id] !== undefined ? pendingRoleChanges[u.id] : (u.hierarchy_weight || 40)}
                         onChange={(e) => handleRoleChange(u.id, Number(e.target.value))}
-                        disabled={user && user.hierarchy_weight > 10}
-                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded px-3 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:opacity-50"
+                        disabled={(user && user.hierarchy_weight > 10) || (user && user.id === u.id)}
+                        className={`bg-white dark:bg-slate-900 border ${pendingRoleChanges[u.id] !== undefined ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-slate-200 dark:border-slate-700'} text-slate-700 dark:text-slate-300 rounded px-3 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:opacity-50 transition-colors`}
                       >
                         <option value={10}>Secretary (L1)</option>
+                        <option value={35}>Report Finaliser</option>
                         <option value={20}>Joint Secretary (L2)</option>
                         <option value={30}>Deputy Secretary (L3)</option>
                         <option value={40}>Field Auditor (L4)</option>
@@ -1199,6 +1527,7 @@ export default function AdminDashboard() {
                 ))}
               </tbody>
             </table>
+          </div>
           </div>
         )}
 
@@ -1570,6 +1899,49 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {handingTakingModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+              {user?.hierarchy_weight === 35 ? 'Publish Report' : 'Acknowledge Receipt'}
+            </h3>
+            <p className="text-sm text-slate-500 mb-6 border-b border-slate-100 dark:border-slate-700 pb-4">
+              {user?.hierarchy_weight === 35 
+                ? `Publish Audit Report for ${handingTakingModal.metadata?.unitName}.` 
+                : `Acknowledge the receipt of Financial Statement and Audit Report for ${handingTakingModal.metadata?.unitName}.`}
+            </p>
+            
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Acknowledgement Date</label>
+                <input 
+                  type="date" 
+                  value={htCustomDate}
+                  onChange={e => setHtCustomDate(e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+                <p className="text-xs text-slate-500 mt-2 italic">Leave empty to use today's date automatically.</p>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+              <button 
+                onClick={() => setHandingTakingModal(null)}
+                className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors font-medium text-sm"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleHandingTakingSubmit}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors shadow-sm font-medium text-sm"
+              >
+                {user?.hierarchy_weight === 35 ? 'Publish Report' : (htCustomDate ? 'Acknowledge Custom Date' : 'Acknowledge Now')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* VIEW DETAILS MODAL */}
       {viewDetailsProject && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -1580,7 +1952,7 @@ export default function AdminDashboard() {
             <div className="flex-1 overflow-y-auto pr-2 space-y-6">
               <div>
                 <h4 className="text-md font-bold text-slate-800 dark:text-slate-200 mb-3 border-b pb-2 border-slate-200 dark:border-slate-700">Audit Procedures</h4>
-                {(!viewDetailsProject.gridData || viewDetailsProject.gridData.length === 0) ? (
+                {(!Array.isArray(viewDetailsProject.gridData) || viewDetailsProject.gridData.length === 0) ? (
                    <p className="text-sm text-slate-500">No procedures recorded.</p>
                 ) : (
                    <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
@@ -1602,7 +1974,7 @@ export default function AdminDashboard() {
                                <td className="px-4 py-3 text-center text-xs whitespace-nowrap">{row.actual_days || '-'}</td>
                                <td className="px-4 py-3 text-xs whitespace-nowrap">{row.start_date ? new Date(row.start_date).toLocaleDateString('en-GB') : '-'} to {row.end_date ? new Date(row.end_date).toLocaleDateString('en-GB') : '-'}</td>
                              </tr>
-                             {row.subs && row.subs.map((sub: any, subI: number) => (
+                             {Array.isArray(row.subs) && row.subs.map((sub: any, subI: number) => (
                                <tr key={`${i}-${subI}`} className="border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/50">
                                  <td className="px-4 py-2 text-right pr-6 text-slate-400"></td>
                                  <td className="px-4 py-2 pl-4 break-words text-slate-600 dark:text-slate-400 border-l-2 border-indigo-200 dark:border-indigo-900/50 ml-4 inline-block my-1">- {sub.procedure_name || '-'}</td>
@@ -1620,7 +1992,7 @@ export default function AdminDashboard() {
 
               <div>
                 <h4 className="text-md font-bold text-slate-800 dark:text-slate-200 mb-3 border-b pb-2 border-slate-200 dark:border-slate-700">Checklist</h4>
-                {(!viewDetailsProject.checklistData || !viewDetailsProject.checklistData.items || viewDetailsProject.checklistData.items.length === 0) ? (
+                {(!viewDetailsProject.checklistData || !Array.isArray(viewDetailsProject.checklistData.items) || viewDetailsProject.checklistData.items.length === 0) ? (
                    <p className="text-sm text-slate-500">No checklist items recorded.</p>
                 ) : (
                    <div className="space-y-4">
@@ -1647,9 +2019,9 @@ export default function AdminDashboard() {
                     let autoHol = 0;
                     let manualHol = 0;
 
-                    if (viewDetailsProject.gridData) {
+                    if (Array.isArray(viewDetailsProject.gridData)) {
                       viewDetailsProject.gridData.forEach((row: any) => {
-                        if (!row.subs || row.subs.length === 0) {
+                        if (!Array.isArray(row.subs) || row.subs.length === 0) {
                           totalAct += Number(row.actual_days || 0);
                           autoHol += Number(row.auto_nw_days || 0);
                           manualHol += Number(row.manual_leave_days || 0);

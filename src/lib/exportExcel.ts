@@ -282,3 +282,33 @@ export async function exportToExcel(payload: any) {
   const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
   saveAs(blob, filename);
 }
+
+export async function exportHandingTakingToExcel(headers: string[], rows: any[][]) {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Handing & Taking Book');
+
+  // Add Headers
+  const headerRow = ws.addRow(headers);
+  headerRow.font = { bold: true };
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFF3F4F6' } // Light gray background
+  };
+  headerRow.border = {
+    bottom: { style: 'thin' }
+  };
+
+  // Add Rows
+  rows.forEach(r => ws.addRow(r));
+
+  // Auto-fit columns
+  ws.columns.forEach(column => {
+    column.width = 20;
+    column.alignment = { vertical: 'middle', wrapText: true };
+  });
+
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  saveAs(blob, 'Handing_Taking_Book.xlsx');
+}

@@ -42,7 +42,7 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
       </div>
       
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-        {user.hierarchy_weight <= 30 && (
+        {user.hierarchy_weight <= 35 && (
           <div className="mb-4">
             <button 
               onClick={() => {
@@ -53,7 +53,12 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
             >
               <div className="flex items-center space-x-3">
                 <ShieldAlert size={20} />
-                <span>Admin Dashboard</span>
+                <span>
+                  {user.hierarchy_weight <= 10 ? 'Admin Dashboard' : 
+                   user.hierarchy_weight === 35 ? 'Finaliser Dashboard' : 
+                   user.hierarchy_weight === 20 ? 'Joint Sec Dashboard' : 
+                   user.hierarchy_weight === 30 ? 'Deputy Sec Dashboard' : 'Dashboard'}
+                </span>
               </div>
               <span className="text-lg font-bold">{isAdminExpanded ? '−' : '+'}</span>
             </button>
@@ -62,6 +67,9 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
               <div className="pl-9 mt-1 space-y-1">
                 <Link href="/admin?tab=actions" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'actions' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                   My Assigned Actions
+                </Link>
+                <Link href="/admin?tab=handing_taking" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'handing_taking' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                  Handing & Taking Book
                 </Link>
                 <Link href="/admin?tab=analytics" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'analytics' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                   System Analytics
@@ -191,7 +199,7 @@ const NotificationsDropdown = () => {
      }
      
      if (user.hierarchy_weight === 30) { // Deputy Sec
-        const pendingSupport = projects.filter(p => (p.status === 'Extension Requested' || p.status === 'Pending Support') && p.metadata?.assignedDeputyId === user.id);
+        const pendingSupport = projects.filter(p => (p.status === 'Extension Requested' || p.status === 'Pending Support' || p.status === 'Draft AP & CL Submitted') && p.metadata?.assignedDeputyId === user.id);
         if (pendingSupport.length > 0) {
            notifs.push({
               id: 'pending_support',
@@ -204,7 +212,7 @@ const NotificationsDropdown = () => {
      }
      
      if (user.hierarchy_weight === 20) { // Joint Sec
-        const pendingApproval = projects.filter(p => (p.status === 'Extension Supported' || p.status === 'Pending Approval') && p.metadata?.assignedJointId === user.id);
+        const pendingApproval = projects.filter(p => (p.status === 'Extension Supported' || p.status === 'Pending Approval' || p.status === 'Draft AP & CL Supported') && p.metadata?.assignedJointId === user.id);
         if (pendingApproval.length > 0) {
            notifs.push({
               id: 'pending_approval',
@@ -216,8 +224,21 @@ const NotificationsDropdown = () => {
         }
      }
 
+     if (user.hierarchy_weight === 35) { // Report Finaliser
+        const pendingFinaliser = projects.filter(p => p.status === 'Audited' && p.metadata?.handingTaking?.adminAckDate && !p.metadata?.handingTaking?.publishDate);
+        if (pendingFinaliser.length > 0) {
+           notifs.push({
+              id: 'pending_finaliser',
+              title: 'Reports to Publish',
+              desc: `You have ${pendingFinaliser.length} reports waiting to be published.`,
+              color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-400',
+              link: '/admin?tab=actions'
+           });
+        }
+     }
+
      if (user.hierarchy_weight <= 10) { // Admin / Sec
-        const pendingAny = projects.filter(p => p.status === 'Extension Requested' || p.status === 'Extension Supported' || p.status === 'Pending Support' || p.status === 'Pending Approval');
+        const pendingAny = projects.filter(p => p.status === 'Extension Requested' || p.status === 'Extension Supported' || p.status === 'Pending Support' || p.status === 'Pending Approval' || p.status === 'Draft AP & CL Submitted' || p.status === 'Draft AP & CL Supported');
         if (pendingAny.length > 0) {
            notifs.push({
               id: 'pending_any',
@@ -383,27 +404,27 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
 
 export const Shell = ({ children }: { children: React.ReactNode }) => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
-  const [showSplash, setShowSplash] = React.useState(true);
+  
+  const [showSplash, setShowSplash] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      return !sessionStorage.getItem('hasSeenSplash');
+    }
+    return true; // Default for SSR
+  });
+  
+  const [isMounted, setIsMounted] = React.useState(false);
   const pathname = usePathname();
 
   React.useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 2500);
+    setIsMounted(true);
+    if (!showSplash) return;
+    
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+      sessionStorage.setItem('hasSeenSplash', 'true');
+    }, 2000);
     return () => clearTimeout(timer);
-  }, []);
-
-  if (showSplash && pathname !== '/login') {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-white dark:bg-slate-900 flex-col animate-out fade-out duration-500">
-        <img src="/logo.png" alt="OAG Logo" className="w-48 h-48 mb-8 object-contain animate-pulse" />
-        <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 text-center max-w-2xl">
-          Welcome to Office of Auditor General's AP and CL
-        </h1>
-        <div className="mt-12">
-            <div className="w-10 h-10 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
-        </div>
-      </div>
-    );
-  }
+  }, [showSplash]);
 
   if (pathname === '/login') {
     return (
@@ -415,7 +436,21 @@ export const Shell = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthProvider>
-      <div className="flex h-screen overflow-hidden w-full">
+      {/* Splash Screen Overlay */}
+      {showSplash && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white dark:bg-slate-900 flex-col animate-out fade-out duration-500" suppressHydrationWarning>
+          <img src="/logo.png" alt="OAG Logo" className="w-48 h-48 mb-8 object-contain animate-pulse" />
+          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 text-center max-w-2xl">
+            Welcome to Office of Auditor General's AP and CL
+          </h1>
+          <div className="mt-12">
+              <div className="w-10 h-10 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
+          </div>
+        </div>
+      )}
+
+      {/* Main App Content - Only render if not showing splash, or render behind it */}
+      <div className={`flex h-screen overflow-hidden w-full ${showSplash ? 'opacity-0 pointer-events-none' : 'opacity-100 transition-opacity duration-500'}`}>
         <React.Suspense fallback={<aside className="w-64 glass-panel border-r border-[var(--border)] hidden md:block"></aside>}>
           <Sidebar isOpen={isSidebarOpen} />
         </React.Suspense>

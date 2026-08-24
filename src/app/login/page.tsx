@@ -63,25 +63,15 @@ export default function LoginPage() {
       }
     }
     
-    // Always enforce the weight in Dev mode just in case it got corrupted
+    // Just ensure the user doc exists and is active
     if (fbUser) {
        try {
          const { doc, setDoc } = await import('firebase/firestore');
          const { db } = await import('@/lib/firebase');
-         const dummyMap: Record<number, string> = {
-            10: "Admin (Secretary)",
-            20: "Joint Secretary (L2)",
-            30: "Deputy Secretary (L3)",
-            40: "Field Auditor (L4)"
-         };
-         let baseName = dummyMap[targetWeight] || "User";
-         let name = `${baseName} - ${testEmail.split('@')[0]}`;
          
          await setDoc(doc(db, "users", fbUser.uid), {
             id: fbUser.uid,
             email: testEmail,
-            name: name,
-            hierarchy_weight: targetWeight,
             isActive: true
          }, { merge: true });
        } catch (e) {}
