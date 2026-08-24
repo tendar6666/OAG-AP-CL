@@ -42,7 +42,7 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
       </div>
       
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-        {user.hierarchy_weight <= 35 && (
+        {user.hierarchy_weight <= 30 && (
           <div className="mb-4">
             <button 
               onClick={() => {
@@ -55,7 +55,7 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
                 <ShieldAlert size={20} />
                 <span>
                   {user.hierarchy_weight <= 10 ? 'Admin Dashboard' : 
-                   user.hierarchy_weight === 35 ? 'Finaliser Dashboard' : 
+                   user.hierarchy_weight === 25 ? 'Finaliser Dashboard' : 
                    user.hierarchy_weight === 20 ? 'Joint Sec Dashboard' : 
                    user.hierarchy_weight === 30 ? 'Deputy Sec Dashboard' : 'Dashboard'}
                 </span>
@@ -224,7 +224,7 @@ const NotificationsDropdown = () => {
         }
      }
 
-     if (user.hierarchy_weight === 35) { // Report Finaliser
+     if (user.hierarchy_weight === 25) { // Report Finaliser
         const pendingFinaliser = projects.filter(p => p.status === 'Audited' && p.metadata?.handingTaking?.adminAckDate && !p.metadata?.handingTaking?.publishDate);
         if (pendingFinaliser.length > 0) {
            notifs.push({

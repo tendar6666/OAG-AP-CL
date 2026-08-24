@@ -10,7 +10,7 @@ import ReportsDashboard from '@/components/ReportsDashboard';
 
 const ROLE_MAP: Record<number, string> = {
   10: "Secretary (L1)",
-  35: "Report Finaliser",
+  25: "Report Finaliser",
   20: "Joint Secretary (L2)",
   30: "Deputy Secretary (L3)",
   40: "Field Auditor (L4)",
@@ -485,7 +485,7 @@ export default function AdminDashboard() {
         newHandingTaking.jsAckDate = dateToUse;
         newHandingTaking.jsName = user.name;
         actionLabel = "Acknowledged Receipt (JS)";
-      } else if (user.hierarchy_weight === 35) {
+      } else if (user.hierarchy_weight === 25) {
         newHandingTaking.publishDate = dateToUse;
         newHandingTaking.finaliserName = user.name;
         actionLabel = "Published Audit Report";
@@ -517,7 +517,7 @@ export default function AdminDashboard() {
         }
       } else if (user.hierarchy_weight <= 10) {
         // Admin -> Finaliser
-        const finalisers = users.filter(u => u.hierarchy_weight === 35);
+        const finalisers = users.filter(u => u.hierarchy_weight === 25);
         finalisers.forEach(async (fin) => {
           const topicId = await api.getOrCreateNtfyTopic(fin.id, fin.ntfyTopic);
           api.sendNtfyNotification(topicId, `Action Required: Publish Report`, `Admin ${user.name} has acknowledged receipt for ${project.metadata?.unitName}. Please publish the report.`);
@@ -641,7 +641,7 @@ export default function AdminDashboard() {
     return <div className="flex justify-center mt-20"><div className="w-8 h-8 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div></div>;
   }
 
-  if (!user || user.hierarchy_weight > 35) {
+  if (!user || user.hierarchy_weight > 30) {
     return (
       <div className="flex flex-col items-center justify-center h-96 text-slate-500">
         <ShieldAlert size={64} className="text-rose-500 mb-4" />
@@ -674,7 +674,7 @@ export default function AdminDashboard() {
     if (user.hierarchy_weight === 20) {
        return (p.status === 'Extension Requested' || p.status === 'Extension Supported' || isPendingSupport || p.status === 'Pending Approval' || isPendingDraftSupport || isPendingDraftApproval) && p.metadata?.assignedJointId === user.id;
     }
-    if (user.hierarchy_weight === 35) {
+    if (user.hierarchy_weight === 25) {
        return isPendingFinaliser;
     }
     if (user.hierarchy_weight <= 10) {
@@ -860,7 +860,7 @@ export default function AdminDashboard() {
                     const isDsAckNeeded = p.status === 'Pending Support' && !handingTaking.dsAckDate && user && user.id === p.metadata?.assignedDeputyId;
                     const isJsAckNeeded = p.status === 'Pending Approval' && !handingTaking.jsAckDate && user && user.id === p.metadata?.assignedJointId;
                     const isAdminAckNeeded = p.status === 'Audited' && !handingTaking.adminAckDate && user && user.hierarchy_weight <= 10;
-                    const isFinaliserNeeded = p.status === 'Audited' && !!handingTaking.adminAckDate && !handingTaking.publishDate && user && user.hierarchy_weight === 35;
+                    const isFinaliserNeeded = p.status === 'Audited' && !!handingTaking.adminAckDate && !handingTaking.publishDate && user && user.hierarchy_weight === 25;
                     const canAckHT = isDsAckNeeded || isJsAckNeeded || isAdminAckNeeded || isFinaliserNeeded;
                     
                     let actionButtonLabel = "Acknowledge receive of FS & AR";
@@ -1459,7 +1459,7 @@ export default function AdminDashboard() {
                         className={`bg-white dark:bg-slate-900 border ${pendingRoleChanges[u.id] !== undefined ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-slate-200 dark:border-slate-700'} text-slate-700 dark:text-slate-300 rounded px-3 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:opacity-50 transition-colors`}
                       >
                         <option value={10}>Secretary (L1)</option>
-                        <option value={35}>Report Finaliser</option>
+                        <option value={25}>Report Finaliser</option>
                         <option value={20}>Joint Secretary (L2)</option>
                         <option value={30}>Deputy Secretary (L3)</option>
                         <option value={40}>Field Auditor (L4)</option>
@@ -1903,10 +1903,10 @@ export default function AdminDashboard() {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
             <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-              {user?.hierarchy_weight === 35 ? 'Publish Report' : 'Acknowledge Receipt'}
+              {user?.hierarchy_weight === 25 ? 'Publish Report' : 'Acknowledge Receipt'}
             </h3>
             <p className="text-sm text-slate-500 mb-6 border-b border-slate-100 dark:border-slate-700 pb-4">
-              {user?.hierarchy_weight === 35 
+              {user?.hierarchy_weight === 25 
                 ? `Publish Audit Report for ${handingTakingModal.metadata?.unitName}.` 
                 : `Acknowledge the receipt of Financial Statement and Audit Report for ${handingTakingModal.metadata?.unitName}.`}
             </p>
@@ -1935,7 +1935,7 @@ export default function AdminDashboard() {
                 onClick={handleHandingTakingSubmit}
                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors shadow-sm font-medium text-sm"
               >
-                {user?.hierarchy_weight === 35 ? 'Publish Report' : (htCustomDate ? 'Acknowledge Custom Date' : 'Acknowledge Now')}
+                {user?.hierarchy_weight === 25 ? 'Publish Report' : (htCustomDate ? 'Acknowledge Custom Date' : 'Acknowledge Now')}
               </button>
             </div>
           </div>

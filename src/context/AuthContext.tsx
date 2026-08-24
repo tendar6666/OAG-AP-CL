@@ -51,11 +51,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const data = userDoc.data();
 
             // Auto-migrate old Finaliser weight (15) to new Finaliser weight (35)
-            if (data.hierarchy_weight === 15) {
+            if (data.hierarchy_weight === 15 || data.hierarchy_weight === 35) {
               try {
                 const { updateDoc } = await import('firebase/firestore');
-                await updateDoc(doc(db, 'users', fbUser.uid), { hierarchy_weight: 35 });
-                data.hierarchy_weight = 35;
+                await updateDoc(doc(db, 'users', fbUser.uid), { hierarchy_weight: 25 });
+                data.hierarchy_weight = 25;
               } catch (e) {
                 console.error('Failed to auto-migrate weight', e);
               }
