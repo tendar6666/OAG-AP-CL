@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { AuthProvider, useAuth, UserRole } from '@/context/AuthContext';
-import { FileText, FolderHeart, Calendar, Settings, Bell, UserCircle, FileSpreadsheet, ShieldAlert, LogOut, Sun, Moon, Menu } from 'lucide-react';
+import { FileText, FolderHeart, Calendar, Settings, Bell, UserCircle, FileSpreadsheet, ShieldAlert, LogOut, Sun, Moon, Menu, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useTheme } from '@/context/ThemeContext';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
@@ -387,8 +387,9 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
       </div>
       
       <div className="flex items-center space-x-4 md:space-x-6">
-        <button 
-          onClick={toggleTheme}
+        <button onClick={() => window.location.reload()} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800" title="Refresh Data"><RefreshCw size={20} /></button>
+          <button 
+            onClick={toggleTheme}
           className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
           title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
         >

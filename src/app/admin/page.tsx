@@ -16,6 +16,34 @@ const ROLE_MAP: Record<number, string> = {
   40: "Field Auditor (L4)",
 };
 
+export function getStatusBadge(p: any) {
+  const isPendingSupport = p.status === 'Pending Support' || (p.status === 'Submitted' && !p.isExtended);
+  const isPendingDraftSupport = p.status === 'Draft AP & CL Submitted';
+  const isPendingDraftApproval = p.status === 'Draft AP & CL Supported';
+  
+  if (p.status === 'Draft') return { label: 'Draft', color: 'bg-slate-100 text-slate-700 border-slate-200' };
+  if (isPendingDraftSupport) return { label: 'Draft Submitted', color: 'bg-orange-100 text-orange-700 border-orange-200' };
+  if (isPendingDraftApproval) return { label: 'Draft Support Pending', color: 'bg-sky-100 text-sky-700 border-sky-200' };
+  if (p.status === 'Draft AP & CL Approved') return { label: 'Draft Approved', color: 'bg-teal-100 text-teal-700 border-teal-200' };
+  
+  if (p.status === 'Extension Requested') return { label: 'Extension Submitted', color: 'bg-amber-100 text-amber-700 border-amber-200' };
+  if (p.status === 'Extension Supported') return { label: 'Extension Support', color: 'bg-blue-100 text-blue-700 border-blue-200' };
+  if (p.status === 'Extended (Approved)') return { label: 'Extension Approved', color: 'bg-teal-100 text-teal-700 border-teal-200' };
+  
+  if (isPendingSupport) return { label: 'Final Submitted', color: 'bg-amber-100 text-amber-700 border-amber-200' };
+  if (p.status === 'Pending Approval') return { label: 'Final Supported', color: 'bg-blue-100 text-blue-700 border-blue-200' };
+  
+  if (p.status === 'Audited') {
+    return { label: 'Final Approved', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
+  }
+  
+  const end = p.metadata?.auditTotals?.endDate;
+  const isPast = end && new Date() > new Date(end);
+  if (isPast && p.status === 'Draft') return { label: 'Overdue (Draft)', color: 'bg-rose-100 text-rose-700 border-rose-200' };
+  
+  return { label: p.status || 'In Progress', color: 'bg-slate-100 text-slate-700 border-slate-200' };
+}
+
 export default function AdminDashboard() {
   const { user, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
@@ -346,13 +374,18 @@ export default function AdminDashboard() {
     if (window.confirm(`Support ${actionType} for ${project.metadata?.unitName}?`)) {
       try {
         const api = await import('@/lib/api');
-        let newStatus = 'Pending Approval';
+let newStatus = project.status;
+          if (!project.metadata?.jsApproved) {
+              newStatus = 'Pending Approval';
         if (isExtension) newStatus = 'Extension Supported';
-        if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
+if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
+          }
+          const newMetadata = { ...project.metadata, dsSupported: true };
 
         await api.saveProject({
           ...project,
-          status: newStatus
+            status: newStatus,
+            metadata: newMetadata
         }, {
           action: isExtension ? 'Supported Extension' : (isDraftSupport ? 'Supported Draft AP & CL' : 'Supported Audit Program'),
           userId: user.id,
@@ -408,13 +441,18 @@ export default function AdminDashboard() {
         
         let newStatus = 'Audited';
         if (isDraftApproval) newStatus = 'Draft AP & CL Approved';
+        if (isExtension) newStatus = 'Extended (Approved)';
+
+        const newMetadata = { ...project.metadata, jsApproved: true };
 
         const updatePayload: any = {
           ...project,
-          status: newStatus
+          status: newStatus,
+          metadata: newMetadata
         };
         if (isExtension) {
             updatePayload.isRevised = true;
+            updatePayload.isExtended = true;
         }
 
         await api.saveProject(updatePayload, {
@@ -669,10 +707,26 @@ export default function AdminDashboard() {
     const isPendingFinaliser = p.status === 'Audited' && !!handingTaking.adminAckDate && !handingTaking.publishDate;
 
     if (user.hierarchy_weight === 30) {
+       if (p.metadata?.dsSupported !== undefined) {
+           const isActionable = p.status !== 'Draft' && !p.status.includes('Rejected');
+           return isActionable && p.metadata.dsSupported === false && p.metadata?.assignedDeputyId === user.id;
+       }
+       if (p.metadata?.dsSupported !== undefined) {
+           const isActionable = p.status !== 'Draft' && !p.status.includes('Rejected');
+           return isActionable && p.metadata.dsSupported === false && p.metadata?.assignedDeputyId === user.id;
+       }
        return (p.status === 'Extension Requested' || isPendingSupport || isPendingDraftSupport) && p.metadata?.assignedDeputyId === user.id;
     }
     if (user.hierarchy_weight === 20) {
-       return (p.status === 'Extension Requested' || p.status === 'Extension Supported' || isPendingSupport || p.status === 'Pending Approval' || isPendingDraftSupport || isPendingDraftApproval) && p.metadata?.assignedJointId === user.id;
+       if (p.metadata?.jsApproved !== undefined) {
+           const isActionable = p.status !== 'Draft' && !p.status.includes('Rejected');
+           return isActionable && p.metadata.jsApproved === false && p.metadata?.assignedJointId === user.id;
+       }
+       if (p.metadata?.jsApproved !== undefined) {
+           const isActionable = p.status !== 'Draft' && !p.status.includes('Rejected');
+           return isActionable && p.metadata.jsApproved === false && p.metadata?.assignedJointId === user.id;
+       }
+       return (p.status === 'Extension Supported' || p.status === 'Pending Approval' || isPendingDraftApproval || p.status === 'Extension Requested' || isPendingSupport || isPendingDraftSupport) && p.metadata?.assignedJointId === user.id;
     }
     if (user.hierarchy_weight === 25) {
        return isPendingFinaliser;
@@ -837,29 +891,23 @@ export default function AdminDashboard() {
                     
                     const handingTaking = p.metadata?.handingTaking || {};
 
-                    let badge = { label: p.status, color: 'bg-slate-100 text-slate-700 border-slate-200' };
-                    if (isPendingSupport || p.status === 'Extension Requested') badge = { label: 'Not Supported Yet', color: 'bg-amber-100 text-amber-700 border-amber-200' };
-                    else if (p.status === 'Pending Approval' || p.status === 'Extension Supported') badge = { label: 'Not Approved Yet', color: 'bg-blue-100 text-blue-700 border-blue-200' };
-                    else if (isPendingDraftSupport) badge = { label: 'Draft Submitted', color: 'bg-orange-100 text-orange-700 border-orange-200' };
-                    else if (isPendingDraftApproval) badge = { label: 'Draft Supported', color: 'bg-sky-100 text-sky-700 border-sky-200' };
-                    
-                    if (p.isExtended) badge.label = `${badge.label} (Extended AP & CL)`;
+                    let badge = getStatusBadge(p);
 
-                    const canSupport = (p.status === 'Extension Requested' || isPendingSupport || isPendingDraftSupport) && user && (
+                    const canSupport = (p.metadata?.dsSupported === false || p.status === 'Extension Requested' || isPendingSupport || isPendingDraftSupport) && user && (
                        user.id === p.metadata?.assignedDeputyId || 
-                       user.id === p.metadata?.assignedJointId || 
+                        
                        user.hierarchy_weight <= 10
                     );
 
-                    const canApprove = (p.status === 'Extension Requested' || p.status === 'Extension Supported' || isPendingSupport || p.status === 'Pending Approval' || isPendingDraftSupport || isPendingDraftApproval) && user && (
+                    const canApprove = (p.metadata?.jsApproved === false || p.status === 'Extension Supported' || p.status === 'Pending Approval' || isPendingDraftApproval || p.status === 'Extension Requested' || isPendingSupport || isPendingDraftSupport) && user && (
                        user.id === p.metadata?.assignedJointId || 
                        user.hierarchy_weight <= 10
                     );
 
                     // Handing and Taking Visibility
                     const isDsAckNeeded = p.status === 'Pending Support' && !handingTaking.dsAckDate && user && user.id === p.metadata?.assignedDeputyId;
-                    const isJsAckNeeded = p.status === 'Pending Approval' && !handingTaking.jsAckDate && user && user.id === p.metadata?.assignedJointId;
-                    const isAdminAckNeeded = p.status === 'Audited' && !handingTaking.adminAckDate && user && user.hierarchy_weight <= 10;
+                    const isJsAckNeeded = (p.status === 'Pending Approval' || p.status === 'Pending Support') && !handingTaking.jsAckDate && user && user.id === p.metadata?.assignedJointId;
+                    const isAdminAckNeeded = (p.status === 'Audited' || p.status === 'Pending Approval' || p.status === 'Pending Support') && !handingTaking.adminAckDate && user && user.hierarchy_weight <= 10;
                     const isFinaliserNeeded = p.status === 'Audited' && !!handingTaking.adminAckDate && !handingTaking.publishDate && user && user.hierarchy_weight === 25;
                     const canAckHT = isDsAckNeeded || isJsAckNeeded || isAdminAckNeeded || isFinaliserNeeded;
                     
@@ -953,13 +1001,13 @@ export default function AdminDashboard() {
                             {canApprove && (
                               <button 
                                 onClick={() => {
-                                  if (isJsAckNeeded) {
-                                    alert("You must Acknowledge receipt of Financial Statement and Audit Report first!");
-                                    return;
-                                  }
+                                  if (isJsAckNeeded || isAdminAckNeeded) {
+                                      alert("You must Acknowledge receipt of Financial Statement and Audit Report first!");
+                                      return;
+                                    }
                                   handleApproveExtension(p);
                                 }}
-                                className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold w-full justify-center md:w-auto transition-colors ${isJsAckNeeded ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-50' : 'bg-purple-50 text-purple-600 hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50'}`}
+                                className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold w-full justify-center md:w-auto transition-colors ${(isJsAckNeeded || isAdminAckNeeded) ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-50' : 'bg-purple-50 text-purple-600 hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50'}`}
                               >
                                 <span>Approve</span>
                               </button>
@@ -1170,7 +1218,13 @@ export default function AdminDashboard() {
                 {projects.filter(p => {
                    if (selectedExecFyFilter !== 'ALL' && p.metadata?.executionFY !== selectedExecFyFilter) return false;
                    if (selectedTargetFyFilter !== 'ALL' && p.metadata?.financialYear !== selectedTargetFyFilter) return false;
-                   if (projectStatusFilter !== 'ALL' && p.status !== projectStatusFilter) return false;
+                   if (projectStatusFilter !== 'ALL') {
+    if (projectStatusFilter === 'Pending Support' && (p.status === 'Pending Support' || (p.status === 'Submitted' && !p.isExtended))) {
+        // match legacy
+    } else if (p.status !== projectStatusFilter) {
+        return false;
+    }
+}
                    if (projectSearchTerm) {
                       const searchLower = projectSearchTerm.toLowerCase();
                       const unitMatch = (p.metadata?.unitName || '').toLowerCase().includes(searchLower);
@@ -1186,43 +1240,15 @@ export default function AdminDashboard() {
                   const isPendingDraftSupport = p.status === 'Draft AP & CL Submitted';
                   const isPendingDraftApproval = p.status === 'Draft AP & CL Supported';
                   
-                  let badge = { label: 'In Progress', color: 'bg-slate-100 text-slate-700 border-slate-200' };
-                  if (isPendingSupport || p.status === 'Extension Requested') {
-                     badge = { label: 'Not Supported Yet', color: 'bg-amber-100 text-amber-700 border-amber-200' };
-                  }
-                  else if (p.status === 'Pending Approval' || p.status === 'Extension Supported') {
-                     badge = { label: 'Not Approved Yet', color: 'bg-blue-100 text-blue-700 border-blue-200' };
-                  }
-                  else if (isPendingDraftSupport) {
-                     badge = { label: 'Draft Submitted', color: 'bg-orange-100 text-orange-700 border-orange-200' };
-                  }
-                  else if (isPendingDraftApproval) {
-                     badge = { label: 'Draft Supported', color: 'bg-sky-100 text-sky-700 border-sky-200' };
-                  }
-                  else if (p.status === 'Draft AP & CL Approved') {
-                     badge = { label: 'Draft Approved', color: 'bg-teal-100 text-teal-700 border-teal-200' };
-                  }
-                  else if (p.status === 'Audited') {
-                     if (p.submittedAt && end && new Date(p.submittedAt) > new Date(end)) {
-                        badge = { label: 'Audited (Late)', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
-                     } else {
-                        badge = { label: 'Audited (On Time)', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
-                     }
-                  } else if (isPast) {
-                     badge = { label: 'Overdue (Draft)', color: 'bg-rose-100 text-rose-700 border-rose-200' };
-                  }
+                  let badge = getStatusBadge(p);
 
-                  if (p.isExtended) {
-                     badge.label = `${badge.label} (Extended AP & CL)`;
-                  }
-
-                  const canSupport = (p.status === 'Extension Requested' || isPendingSupport || isPendingDraftSupport) && user && (
+                  const canSupport = (p.metadata?.dsSupported === false || p.status === 'Extension Requested' || isPendingSupport || isPendingDraftSupport) && user && (
                      user.id === p.metadata?.assignedDeputyId || 
-                     user.id === p.metadata?.assignedJointId || 
+                      
                      user.hierarchy_weight <= 10
                   );
 
-                  const canApprove = (p.status === 'Extension Requested' || p.status === 'Extension Supported' || isPendingSupport || p.status === 'Pending Approval' || isPendingDraftSupport || isPendingDraftApproval) && user && (
+                  const canApprove = (p.metadata?.jsApproved === false || p.status === 'Extension Supported' || p.status === 'Pending Approval' || isPendingDraftApproval || p.status === 'Extension Requested' || isPendingSupport || isPendingDraftSupport) && user && (
                      user.id === p.metadata?.assignedJointId || 
                      user.hierarchy_weight <= 10
                   );
@@ -1230,8 +1256,13 @@ export default function AdminDashboard() {
                   const assignedDeputy = users.find(u => u.id === p.metadata?.assignedDeputyId)?.name || 'Unassigned';
                   const assignedJoint = users.find(u => u.id === p.metadata?.assignedJointId)?.name || 'Unassigned';
 
-                  return (
-                  <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    const handingTaking = p.metadata?.handingTaking || {};
+                    const isDsAckNeeded = p.status === 'Pending Support' && !handingTaking.dsAckDate && user && user.id === p.metadata?.assignedDeputyId;
+                    const isJsAckNeeded = (p.status === 'Pending Approval' || p.status === 'Pending Support') && !handingTaking.jsAckDate && user && user.id === p.metadata?.assignedJointId;
+                    const isAdminAckNeeded = (p.status === 'Audited' || p.status === 'Pending Approval' || p.status === 'Pending Support') && !handingTaking.adminAckDate && user && user.hierarchy_weight <= 10;
+
+                    return (
+                    <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-bold text-slate-800 dark:text-slate-200 mb-1">{p.metadata?.unitName || 'Unknown'} {p.metadata?.financialYear || ''}</div>
                       <div className="text-xs text-slate-500 mb-1">ID: {p.customId || p.id} • Auditor: {p.metadata?.auditorName || '-'}</div>
@@ -1315,8 +1346,14 @@ export default function AdminDashboard() {
 
                         {canApprove && (
                           <button 
-                            onClick={() => handleApproveExtension(p)}
-                            className="inline-flex items-center space-x-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors text-xs font-semibold w-full justify-center md:w-auto"
+                            onClick={() => {
+                              if (isJsAckNeeded || isAdminAckNeeded) {
+                                alert("You must Acknowledge receipt of Financial Statement and Audit Report first!");
+                                return;
+                              }
+                              handleApproveExtension(p);
+                            }}
+                            className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold w-full justify-center md:w-auto transition-colors ${(isJsAckNeeded || isAdminAckNeeded) ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-50' : 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50'}`}
                           >
                             <span>Approve Extension</span>
                           </button>
@@ -1359,7 +1396,13 @@ export default function AdminDashboard() {
               {projects.filter(p => {
                  if (selectedExecFyFilter !== 'ALL' && p.metadata?.executionFY !== selectedExecFyFilter) return false;
                  if (selectedTargetFyFilter !== 'ALL' && p.metadata?.financialYear !== selectedTargetFyFilter) return false;
-                 if (projectStatusFilter !== 'ALL' && p.status !== projectStatusFilter) return false;
+                 if (projectStatusFilter !== 'ALL') {
+    if (projectStatusFilter === 'Pending Support' && (p.status === 'Pending Support' || (p.status === 'Submitted' && !p.isExtended))) {
+        // match legacy
+    } else if (p.status !== projectStatusFilter) {
+        return false;
+    }
+}
                  if (projectSearchTerm) {
                     const searchLower = projectSearchTerm.toLowerCase();
                     const unitMatch = (p.metadata?.unitName || '').toLowerCase().includes(searchLower);
@@ -1946,8 +1989,38 @@ export default function AdminDashboard() {
       {viewDetailsProject && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-4xl w-full p-6 border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
-            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-1">AP & CL Details</h3>
-            <p className="text-sm text-slate-500 mb-6">{viewDetailsProject.metadata?.unitName}</p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-1">AP & CL Details</h3>
+                <p className="text-sm text-slate-500">
+                  {viewDetailsProject.metadata?.unitName}
+                  {viewDetailsProject.metadata?.auditorName && (
+                    <span className="ml-4 font-semibold text-indigo-600 dark:text-indigo-400">
+                      Auditor: {viewDetailsProject.metadata?.auditorName}
+                    </span>
+                  )}
+                </p>
+              </div>
+              {viewDetailsProject.metadata?.auditTotals && (
+                <div className="flex space-x-6 bg-slate-50 dark:bg-slate-900/50 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <div className="flex flex-col">
+                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Start Date</span>
+                     <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                       <CalendarDays size={14} className="text-indigo-500" />
+                       {viewDetailsProject.metadata.auditTotals.startDate ? new Date(viewDetailsProject.metadata.auditTotals.startDate).toLocaleDateString('en-GB') : '-'}
+                     </span>
+                  </div>
+                  <div className="w-px bg-slate-200 dark:bg-slate-700"></div>
+                  <div className="flex flex-col">
+                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">End Date</span>
+                     <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                       <CalendarDays size={14} className="text-amber-500" />
+                       {viewDetailsProject.metadata.auditTotals.endDate ? new Date(viewDetailsProject.metadata.auditTotals.endDate).toLocaleDateString('en-GB') : '-'}
+                     </span>
+                  </div>
+                </div>
+              )}
+            </div>
             
             <div className="flex-1 overflow-y-auto pr-2 space-y-6">
               <div>

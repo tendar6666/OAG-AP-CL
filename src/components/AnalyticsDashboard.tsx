@@ -90,7 +90,7 @@ export default function AnalyticsDashboard({
            const pName = (p.metadata?.unitName || '').trim().toLowerCase();
            const uName = (u.name || '').trim().toLowerCase();
            const fNum = (u.file_number || '').trim().toLowerCase();
-           return pName === uName || (fNum && pName === `${fNum} ${uName}`) || pName.includes(uName);
+           return pName === uName || (fNum && pName === `${fNum} ${uName}`);
          });
          if (!hasProjectForAuditor) return false;
       }
@@ -117,7 +117,7 @@ export default function AnalyticsDashboard({
         const unit = units.find(u => {
           const uName = (u.name || '').trim().toLowerCase();
           const fNum = (u.file_number || '').trim().toLowerCase();
-          return pName === uName || (fNum && pName === `${fNum} ${uName}`) || pName.includes(uName);
+          return pName === uName || (fNum && pName === `${fNum} ${uName}`);
         });
         
         if (filterBranch !== 'ALL' && unit?.branch !== filterBranch) return false;
@@ -134,8 +134,7 @@ export default function AnalyticsDashboard({
         const uName = (unit.name || '').trim().toLowerCase();
         const fNum = (unit.file_number || '').trim().toLowerCase();
         return pName === uName || 
-               (fNum && pName === `${fNum} ${uName}`) ||
-               pName.includes(uName);
+               (fNum && pName === `${fNum} ${uName}`);
       });
 
       if (projectsForUnit.length === 0) {

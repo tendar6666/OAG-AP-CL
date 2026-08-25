@@ -11,6 +11,19 @@ import { ShieldAlert } from 'lucide-react';
 
 const API_BASE = process.env.NODE_ENV === 'development' ? 'http://127.0.0.1:8000' : '';
 
+const Pagination = ({ page, setPage, total, itemsPerPage }: any) => {
+  const totalPages = Math.ceil(total / itemsPerPage);
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex justify-center items-center space-x-2 mt-6">
+      <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors">Prev</button>
+      <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Page {page} of {totalPages}</span>
+      <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors">Next</button>
+    </div>
+  );
+};
+
+
 function HomeContent() {
   const { user, setUser } = useAuth();
   const canSeeOverall = user.hierarchy_weight <= 20;
@@ -55,7 +68,14 @@ function HomeContent() {
   const [isRevised, setIsRevised] = useState(false); const [isLockedRevised, setIsLockedRevised] = useState(false);
   
   const [savedTemplates, setSavedTemplates] = useState<any[]>([]);
+  const [templateFilter, setTemplateFilter] = useState<'all' | 'public' | 'private'>('all');
   const [savedProjects, setSavedProjects] = useState<any[]>([]);
+  
+  // Pagination States
+  const [extendPage, setExtendPage] = useState(1);
+  const [projectPage, setProjectPage] = useState(1);
+  const [templatePage, setTemplatePage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
   
   const gridRef = React.useRef<any>(null);
   const checklistRef = React.useRef<any>(null);
@@ -64,7 +84,7 @@ function HomeContent() {
   const [loadedChecklistData, setLoadedChecklistData] = useState<any>(null);
   const [loadedTotals, setLoadedTotals] = useState<any>(null);
   const [syncedGridData, setSyncedGridData] = useState<any[]>([]);
-  const hasLoadedRef = React.useRef(false);
+  
 
   // Save Modal State
   const [saveModalOpen, setSaveModalOpen] = useState(false);
@@ -118,8 +138,8 @@ function HomeContent() {
       api.getTemplates().then(data => {
          setSavedTemplates(data || []);
          const defaultTemplate = data?.find((t: any) => t.isDefault);
-         if (defaultTemplate && !hasLoadedRef.current) {
-            hasLoadedRef.current = true;
+         const hasPendingLoad = sessionStorage.getItem('pendingLoadConsumed');
+         if (defaultTemplate && !hasPendingLoad) {
             setLoadedGridData(defaultTemplate.gridData);
             setLoadedChecklistData(defaultTemplate.checklistData);
             if(defaultTemplate.metadata) {
@@ -127,6 +147,7 @@ function HomeContent() {
                if (defaultTemplate.metadata.financialYear) setFinancialYear(defaultTemplate.metadata.financialYear);
             }
          }
+         sessionStorage.removeItem('pendingLoadConsumed');
       }).catch(err => console.error(err));
       
       api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL').then(data => setSavedProjects(data || [])).catch(err => console.error(err));
@@ -139,60 +160,79 @@ function HomeContent() {
     });
   }, []);
 
+  useEffect(() => {
+    if (!view) {
+       const pendingRaw = sessionStorage.getItem('pendingLoad');
+       if (pendingRaw) {
+          sessionStorage.removeItem('pendingLoad');
+          sessionStorage.setItem('pendingLoadConsumed', '1');
+          const pending = JSON.parse(pendingRaw);
+          
+          if (pending.type === 'project') {
+             const p = pending.data;
+             const force = pending.forceExtend || false;
+             
+             const isAudited = p.status === 'Audited';
+               setCurrentProjectId(isAudited ? null : p.id);
+               setCurrentTemplateId(null);
+               setCurrentCustomId(isAudited ? null : (p.customId || null));
+               setCurrentProjectStatus(isAudited ? 'Draft' : (p.status || 'Draft'));
+               setSaveModalName(isAudited ? `${p.name || ''} (Copy)` : (p.name || ''));
+               setIsExtendingMode(force);
+               setHasAlertedExtended(false);
+               setOriginalEndDate(isAudited ? undefined : (p.metadata?.auditTotals?.endDate || undefined));
+               setIsRevised(isAudited ? false : (p.isRevised || false));
+               setIsLockedRevised(isAudited ? false : !!p.isRevised);
+
+             setLoadedGridData(p.gridData);
+             setLoadedChecklistData(p.checklistData);
+             if(p.metadata) {
+                  if (p.metadata.auditTotals) setLoadedTotals(p.metadata.auditTotals);
+                  else setLoadedTotals(null);
+                setUnitName(p.metadata.unitName || '');
+                setAuditorName(p.metadata.auditorName || user.name);
+                if (p.metadata.financialYear) setFinancialYear(p.metadata.financialYear);
+                setAssignedDeputyId(p.metadata.assignedDeputyId || '');
+                setAssignedJointId(p.metadata.assignedJointId || '');
+             }
+             
+             if (force) {
+                 alert("Please change the Audit End Date to your new extended date in the Audit Procedure grid.");
+                 setActiveTab('schedule');
+             }
+          } else if (pending.type === 'template') {
+             const t = pending.data;
+             
+             setCurrentTemplateId(t.id);
+             setCurrentProjectId(null);
+             setCurrentCustomId(null);
+             setCurrentProjectStatus('Draft');
+             setSaveModalName(t.name || '');
+
+             setLoadedGridData(t.gridData);
+             setLoadedChecklistData(t.checklistData);
+             if(t.metadata) {
+                  if (t.metadata.auditTotals) setLoadedTotals(t.metadata.auditTotals);
+                  else setLoadedTotals(null);
+                setUnitName(t.metadata.unitName || '');
+                setAuditorName(t.metadata.auditorName || user.name);
+                if (t.metadata.financialYear) setFinancialYear(t.metadata.financialYear);
+             }
+          }
+       }
+    }
+  }, [view]);
+
+
   const loadTemplate = (template: any) => {
     if (!window.confirm("Please save your current AP and Checklist first. If you proceed, current data will be lost. Proceed?")) return;
-    hasLoadedRef.current = true;
-    
-    setCurrentTemplateId(template.id);
-    setCurrentProjectId(null);
-    setCurrentCustomId(null);
-    setCurrentProjectStatus('Draft');
-    setSaveModalName(template.name || '');
-
-    setLoadedGridData(template.gridData);
-    setLoadedChecklistData(template.checklistData);
-    if(template.metadata) {
-         if (template.metadata.auditTotals) setLoadedTotals(template.metadata.auditTotals);
-         else setLoadedTotals(null);
-       setUnitName(template.metadata.unitName || '');
-       setAuditorName(template.metadata.auditorName || user.name);
-       if (template.metadata.financialYear) setFinancialYear(template.metadata.financialYear);
-    }
+    sessionStorage.setItem('pendingLoad', JSON.stringify({ type: 'template', data: template }));
     router.push('/');
   };
 
   const loadProject = (project: any, forceExtendMode: boolean = false) => {
     if (!window.confirm("Please save your current AP and Checklist first. If you proceed, current data will be lost. Proceed?")) return;
-    hasLoadedRef.current = true;
-    
-    // Set project tracking IDs
-    setCurrentProjectId(project.id);
-    setCurrentTemplateId(null);
-    setCurrentCustomId(project.customId || null);
-    setCurrentProjectStatus(project.status || 'Draft');
-    setSaveModalName(project.name || '');
-    setIsExtendingMode(forceExtendMode);
-    setHasAlertedExtended(false);
-    setOriginalEndDate(project.metadata?.auditTotals?.endDate || undefined); setIsRevised(project.isRevised || false); setIsLockedRevised(!!project.isRevised);
-
-    setLoadedGridData(project.gridData);
-    setLoadedChecklistData(project.checklistData);
-    if(project.metadata) {
-         if (project.metadata.auditTotals) setLoadedTotals(project.metadata.auditTotals);
-         else setLoadedTotals(null);
-       setUnitName(project.metadata.unitName || '');
-       setAuditorName(project.metadata.auditorName || user.name);
-       if (project.metadata.financialYear) setFinancialYear(project.metadata.financialYear);
-       setAssignedDeputyId(project.metadata.assignedDeputyId || '');
-       setAssignedJointId(project.metadata.assignedJointId || '');
-    }
-    
-    if (forceExtendMode) {
-        alert("Please change the Audit End Date to your new extended date in the Audit Procedure grid.");
-        setActiveTab('schedule');
-    }
-    
-    // Switch view to procedure editor
+    sessionStorage.setItem('pendingLoad', JSON.stringify({ type: 'project', data: project, forceExtend: forceExtendMode }));
     router.push('/');
   };
 
@@ -217,7 +257,7 @@ function HomeContent() {
     const executionDateToUse = auditTotals?.endDate || auditTotals?.startDate || new Date().toISOString();
     const executionFY = getIndianFY(executionDateToUse);
 
-    const metadataPayload = { 
+    const metadataPayload: any = { 
       unitName, 
       auditorName, 
       financialYear, 
@@ -226,6 +266,10 @@ function HomeContent() {
       assignedJointId,
       auditTotals 
     };
+    if (statusTarget === 'Submitted' || statusTarget === 'DraftSubmitted') {
+      metadataPayload.dsSupported = false;
+      metadataPayload.jsApproved = false;
+    }
 
     const isFinalSubmit = statusTarget === 'Submitted';
     const isDraftSubmit = statusTarget === 'DraftSubmitted';
@@ -437,7 +481,7 @@ function HomeContent() {
   };
 
   const handleCancelSubmission = async () => {
-      const isDraftTrack = currentProjectStatus === 'Draft AP & CL Submitted' || currentProjectStatus === 'Draft AP & CL Supported';
+      const isDraftTrack = currentProjectStatus === 'Draft AP & CL Submitted' || currentProjectStatus === 'Draft AP & CL Supported' || currentProjectStatus === 'Draft AP & CL Approved' || currentProjectStatus === 'Extended (Approved)';
       const targetStatus = isDraftTrack ? 'Draft' : 'Draft AP & CL Approved';
 
       if (!window.confirm(`Are you sure you want to undo your submission? This will revert the audit to '${targetStatus}'.`)) return;
@@ -510,6 +554,15 @@ function HomeContent() {
          const executionDateToUse = auditTotals?.endDate || auditTotals?.startDate || new Date().toISOString();
          const executionFY = getIndianFY(executionDateToUse);
 
+         const currentGridData = gridRef.current?.getData() || [];
+         const currentChecklistData = checklistRef.current?.getData() || [];
+         
+         const cleanGrid = (currentGridData || []).map((m: any) => ({
+             ...m,
+             subs: (m.subs || []).map((s: any) => ({...s}))
+         }));
+         const cleanChecklist = currentChecklistData ? JSON.parse(JSON.stringify(currentChecklistData)) : { items: [] };
+
          const payload = {
             id: currentProjectId,
             customId: currentCustomId,
@@ -517,6 +570,8 @@ function HomeContent() {
             status: newStatus,
             isExtended: true,
             isRevised: true,
+            gridData: cleanGrid,
+            checklistData: cleanChecklist,
             metadata: {
               unitName,
               auditorName,
@@ -525,7 +580,9 @@ function HomeContent() {
               assignedDeputyId,
               assignedJointId,
               auditTotals,
-              originalEndDate
+              originalEndDate,
+              dsSupported: false,
+              jsApproved: false
             }
          };
          
@@ -675,7 +732,7 @@ function HomeContent() {
         
         try {
           const result = await api.saveTemplate({ 
-            id: currentTemplateId, 
+             
             name, 
             visibility: templateVisibility,
             createdBy: user.id,
@@ -734,14 +791,30 @@ function HomeContent() {
   };
 
   if (view === 'templates') {
+    const filteredTemplates = savedTemplates.filter(t => {
+      if (templateFilter === 'all') return true;
+      if (templateFilter === 'public') return t.visibility === 'public';
+      if (templateFilter === 'private') return t.visibility === 'private' || !t.visibility; // default to private if undefined
+      return true;
+    });
+
+    const paginatedTemplates = filteredTemplates.slice((templatePage - 1) * ITEMS_PER_PAGE, templatePage * ITEMS_PER_PAGE);
+
     return (
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 w-full max-w-4xl mx-auto">
         <div className="glass-panel p-8 rounded-2xl border border-[var(--border)] shadow-sm">
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">Saved Templates</h2>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4 border-b border-slate-200 dark:border-slate-800 gap-4">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Saved Templates</h2>
+            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+              <button onClick={() => setTemplateFilter('all')} className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${templateFilter === 'all' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>All</button>
+              <button onClick={() => setTemplateFilter('public')} className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${templateFilter === 'public' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>Public</button>
+              <button onClick={() => setTemplateFilter('private')} className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${templateFilter === 'private' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>Private</button>
+            </div>
+          </div>
           <div className="space-y-4">
-            {savedTemplates.length === 0 && <p className="text-sm text-slate-500">No templates saved.</p>}
-            {savedTemplates.map(t => (
-              <div key={t.name} className={`flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border ${t.isDefault ? 'border-amber-400 dark:border-amber-500 shadow-sm' : 'border-slate-200 dark:border-slate-700'} hover:shadow-md transition-all`}>
+            {filteredTemplates.length === 0 && <p className="text-sm text-slate-500">No templates found for this filter.</p>}
+            {paginatedTemplates.map(t => (
+              <div key={t.id || t.name} className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border ${t.isDefault ? 'border-amber-400 dark:border-amber-500 shadow-sm' : 'border-slate-200 dark:border-slate-700'} hover:shadow-md transition-all gap-4`}>
                 <div className="flex items-center space-x-3 flex-1">
                   <button 
                     onClick={() => setDefaultTemplate(t.id)}
@@ -755,19 +828,30 @@ function HomeContent() {
                 </div>
                 <div className="flex space-x-3">
                   <button onClick={() => loadTemplate(t)} className="px-4 py-2 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-400 font-bold rounded-lg hover:bg-indigo-200 transition-colors">Load</button>
-                  <button onClick={() => deleteTemplate(t.id)} className="px-4 py-2 bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400 font-bold rounded-lg hover:bg-rose-200 transition-colors">Delete</button>
+                  {!(t.visibility === 'public' && user?.hierarchy_weight === 40) && (
+                    <button onClick={() => deleteTemplate(t.id)} className="px-4 py-2 bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400 font-bold rounded-lg hover:bg-rose-200 transition-colors">Delete</button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
+          <Pagination page={templatePage} setPage={setTemplatePage} total={filteredTemplates.length} itemsPerPage={ITEMS_PER_PAGE} />
         </div>
       </div>
     );
   }
 
   if (view === 'extend') {
-    const eligibleStatuses = ['Submitted', 'Pending Support', 'Pending Approval', 'Audited'];
-    const myProjects = savedProjects.filter(p => p.createdBy === user.id && eligibleStatuses.includes(p.status) && !p.isExtended);
+    const eligibleStatuses = ['Submitted', 'Pending Support', 'Pending Approval', 'Audited', 'Draft AP & CL Submitted', 'Draft AP & CL Supported', 'Draft AP & CL Approved'];
+    const sortedProjects = savedProjects
+      .filter(p => p.createdBy === user.id && eligibleStatuses.includes(p.status) && !p.isExtended)
+      .sort((a, b) => {
+         const dateA = a.submittedAt || a.updatedAt || a.createdAt || '';
+         const dateB = b.submittedAt || b.updatedAt || b.createdAt || '';
+         return new Date(dateB).getTime() - new Date(dateA).getTime();
+      });
+    const myProjects = sortedProjects.slice((extendPage - 1) * ITEMS_PER_PAGE, extendPage * ITEMS_PER_PAGE);
+    
     return (
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 w-full max-w-5xl mx-auto">
         <div className="glass-panel p-8 rounded-2xl border border-[var(--border)] shadow-sm">
@@ -852,6 +936,7 @@ function HomeContent() {
               </div>
             ))}
           </div>
+          <Pagination page={extendPage} setPage={setExtendPage} total={sortedProjects.length} itemsPerPage={ITEMS_PER_PAGE} />
         </div>
       </div>
     );
@@ -866,6 +951,8 @@ function HomeContent() {
       if (selectedProjectFy !== 'ALL' && p.metadata?.executionFY !== selectedProjectFy) return false;
       return true;
     });
+
+    const paginatedProjects = filteredProjects.slice((projectPage - 1) * ITEMS_PER_PAGE, projectPage * ITEMS_PER_PAGE);
 
     return (
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 w-full max-w-5xl mx-auto">
@@ -931,7 +1018,7 @@ function HomeContent() {
             {myProjects.length === 0 && <p className="text-sm text-slate-500 text-center py-8">You haven't saved any Audit Programs yet.</p>}
             {myProjects.length > 0 && filteredProjects.length === 0 && <p className="text-sm text-slate-500 text-center py-8">No Audit Programs found for this Financial Year.</p>}
             
-            {filteredProjects.map(p => {
+            {paginatedProjects.map(p => {
               const isDraft = p.status === 'Draft';
               
               return (
@@ -963,7 +1050,7 @@ function HomeContent() {
                   
                   <div className="flex space-x-3 w-full md:w-auto">
                     <button onClick={() => loadProject(p)} className="flex-1 md:flex-none px-4 py-2 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-400 font-bold rounded-lg hover:bg-indigo-200 transition-colors">
-                      {isDraft ? 'Resume Draft' : 'View'}
+                      {p.status === 'Audited' ? 'Use as Template' : 'Continue'}
                     </button>
                     {isDraft && !p.isExtended && !p.isRevised && (
                       <button onClick={() => deleteProject(p.id)} className="px-4 py-2 bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400 font-bold rounded-lg hover:bg-rose-200 transition-colors">
@@ -972,13 +1059,13 @@ function HomeContent() {
                     )}
                   </div>
                 </div>
-              );
-            })}
+              );})}
+            </div>
+            <Pagination page={projectPage} setPage={setProjectPage} total={filteredProjects.length} itemsPerPage={ITEMS_PER_PAGE} />
           </div>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -1178,8 +1265,10 @@ function HomeContent() {
             
 
             <div className={activeTab === 'schedule' && view !== 'calendar' ? 'block' : 'hidden'}>
-              <AuditProgramGrid 
-                isSubmitted={currentProjectStatus === 'Submitted' || currentProjectStatus === 'Extension Requested' || currentProjectStatus === 'Extension Supported'} 
+              <AuditProgramGrid key={"grid-"+(currentProjectId || 'new')+(isExtendingMode?'-ext':'')} 
+                isSubmitted={(currentProjectStatus === 'Submitted' || currentProjectStatus === 'Extension Requested' || currentProjectStatus === 'Extension Supported') && !isExtendingMode} 
+                isStartDateDisabled={currentProjectStatus === 'Draft AP & CL Approved' || currentProjectStatus === 'Extended (Approved)' || isExtendingMode}
+                isEndDateDisabled={(currentProjectStatus === 'Draft AP & CL Approved' || currentProjectStatus === 'Extended (Approved)') && !isExtendingMode}
                 minEndDate={isExtendingMode ? originalEndDate : undefined}
                 onEndDateExtended={() => {
                   if (!hasAlertedExtended) {
@@ -1196,7 +1285,7 @@ function HomeContent() {
               />
             </div>
             <div className={activeTab === 'checklist' && view !== 'calendar' ? 'block' : 'hidden'}>
-              <ChecklistGrid auditTotals={auditTotals} ref={checklistRef} loadedData={loadedChecklistData} unitName={unitName} auditorName={auditorName} financialYear={financialYear} />
+              <ChecklistGrid key={"chk-"+(currentProjectId || 'new')+(isExtendingMode?'-ext':'')} auditTotals={auditTotals} ref={checklistRef} loadedData={loadedChecklistData} unitName={unitName} auditorName={auditorName} financialYear={financialYear} />
               <div className="mt-8 flex justify-end items-center space-x-4 max-w-4xl mx-auto w-full">
                  <button disabled={isSaving || isExporting} onClick={handleSaveTemplateClick} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50">
                     Save Template
@@ -1211,7 +1300,7 @@ function HomeContent() {
                        Submit Draft AP & CL
                     </button>
                  )}
-                 {(currentProjectStatus === 'Draft' || currentProjectStatus === 'Draft AP & CL Approved' || currentProjectStatus === 'Draft AP & CL Submitted' || currentProjectStatus === 'Draft AP & CL Supported') && (
+                 {(currentProjectStatus === 'Draft' || currentProjectStatus === 'Draft AP & CL Approved' || currentProjectStatus === 'Extended (Approved)' || currentProjectStatus === 'Draft AP & CL Submitted' || currentProjectStatus === 'Draft AP & CL Supported') && !isExtendingMode && (
                     <button disabled={isSaving || isExporting} onClick={() => handleSaveProjectClick('Submitted')} className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50">
                        Submit Final
                     </button>
@@ -1223,7 +1312,7 @@ function HomeContent() {
                       </button>
                     </>
                  )}
-                 {(currentProjectStatus === 'Pending Support' || currentProjectStatus === 'Pending Approval' || currentProjectStatus === 'Submitted' || currentProjectStatus === 'Audited') && isExtendingMode && (
+                 {(currentProjectStatus === 'Pending Support' || currentProjectStatus === 'Pending Approval' || currentProjectStatus === 'Submitted' || currentProjectStatus === 'Audited' || currentProjectStatus === 'Draft AP & CL Submitted' || currentProjectStatus === 'Draft AP & CL Supported' || currentProjectStatus === 'Draft AP & CL Approved' || currentProjectStatus === 'Extended (Approved)') && isExtendingMode && (
                     <button disabled={isSaving || isExporting} onClick={handleRequestExtension} className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50">
                        Submit Extension Request
                     </button>
@@ -1345,6 +1434,7 @@ function HomeContent() {
             <div className="mt-8 flex justify-end">
               <button onClick={() => setIsFyModalOpen(false)} className="px-5 py-2.5 rounded-lg font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Close</button>
             </div>
+            
           </div>
         </div>
       )}

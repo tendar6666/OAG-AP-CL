@@ -245,18 +245,10 @@ const SortableRow = ({ item, isMain, updateData, addLeave, deleteItem, totalAllo
     handleChange('actual_days', newVal);
   };
 
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-    }
-  }, [localVal.procedure_name]);
-
   const actualDaysDisabled = (totalAllocatedGlobalDays - globalCalendarDays) <= 0 && (Number(item.actual_days) || 0) === 0;
 
   return (
-    <div ref={setNodeRef} style={style} className={`grid grid-cols-[auto_1fr_70px_70px_95px_95px_60px_140px_30px] gap-2 items-center p-2 border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 ${isMain ? 'bg-slate-50 dark:bg-slate-800/40' : 'pl-8'}`}>
+    <div ref={setNodeRef} style={style} className={`grid grid-cols-[auto_1fr_80px_80px_110px_110px_90px_180px_30px] gap-2 items-center p-2 border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/20 ${isMain ? 'bg-slate-50 dark:bg-slate-800/40' : 'pl-8'}`}>
       
       {/* Drag Handle */}
       <div {...attributes} {...listeners} className="cursor-grab text-slate-400 hover:text-indigo-500 px-1">
@@ -264,19 +256,18 @@ const SortableRow = ({ item, isMain, updateData, addLeave, deleteItem, totalAllo
       </div>
 
       {/* Procedure Name */}
-      <div className="flex items-start space-x-2">
+      <div className="flex items-center space-x-2">
          {indexText && (
-             <span className={`min-w-[1.5rem] mt-1 font-medium ${isMain ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400'}`}>
+             <span className={`min-w-[1.5rem] font-medium ${isMain ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400'}`}>
                 {indexText}
              </span>
          )}
-         <textarea 
-           ref={textareaRef}
-           rows={1}
+         <input 
+           type="text" 
            value={localVal.procedure_name || ''} 
            onChange={e => handleChange('procedure_name', e.target.value)}
            onBlur={() => handleBlur('procedure_name')}
-           className={`w-full resize-none overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 rounded px-2 py-1 focus:outline-none transition-colors leading-relaxed ${isMain ? 'font-bold text-slate-800 dark:text-slate-100' : 'text-slate-700 dark:text-slate-300'}`}
+           className={`w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 rounded px-2 py-1 focus:outline-none transition-colors ${isMain ? 'font-bold text-slate-800 dark:text-slate-100' : 'text-slate-700 dark:text-slate-300'}`}
          />
       </div>
 
@@ -284,14 +275,14 @@ const SortableRow = ({ item, isMain, updateData, addLeave, deleteItem, totalAllo
       {isMain ? (
           <div className="w-14"></div>
       ) : (
-          <input type="number" step="0.5" value={localVal.approximate_days || ''} onChange={e => handleChange('approximate_days', Math.max(0, Number(e.target.value)))} onBlur={() => handleBlur('approximate_days')} className="w-14 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 rounded px-1 py-1 text-sm focus:outline-none" />
+          <input type="number" step="0.5" value={localVal.approximate_days === 0 ? '' : localVal.approximate_days} onChange={e => handleChange('approximate_days', Math.max(0, Number(e.target.value)))} onBlur={() => handleBlur('approximate_days')} className="w-14 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 rounded px-1 py-1 text-sm focus:outline-none" />
       )}
       
       {/* Actual Days */}
       {isMain ? (
           <div className="w-14"></div>
       ) : (
-          <input type="number" step="0.5" value={localVal.actual_days || ''} onChange={actualDaysHandler} onBlur={() => handleBlur('actual_days')} disabled={actualDaysDisabled} className={`w-14 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 rounded px-1 py-1 text-sm focus:outline-none ${actualDaysDisabled ? 'opacity-50 cursor-not-allowed bg-slate-200 dark:bg-slate-700/50' : ''}`} />
+          <input type="number" step="0.5" value={localVal.actual_days === 0 ? '' : localVal.actual_days} onChange={actualDaysHandler} onBlur={() => handleBlur('actual_days')} disabled={actualDaysDisabled} className={`w-14 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 rounded px-1 py-1 text-sm focus:outline-none ${actualDaysDisabled ? 'opacity-50 cursor-not-allowed bg-slate-200 dark:bg-slate-700/50' : ''}`} />
       )}
 
       {/* Start Date */}
@@ -332,7 +323,7 @@ const SortableRow = ({ item, isMain, updateData, addLeave, deleteItem, totalAllo
 // ---------------------------
 // Main Component
 // ---------------------------
-const AuditProgramGrid = React.forwardRef(({ isSubmitted, minEndDate, onEndDateExtended, loadedTotals, onTotalsCalculated, loadedData, onDataChange, onProceed }: { isSubmitted?: boolean, minEndDate?: string, onEndDateExtended?: () => void, loadedTotals?: any, onTotalsCalculated?: (t: AuditTotals) => void, loadedData?: any, onDataChange?: (data: MainProcedure[]) => void, onProceed?: () => void }, ref) => {
+const AuditProgramGrid = React.forwardRef(({ isSubmitted, isStartDateDisabled, isEndDateDisabled, minEndDate, onEndDateExtended, loadedTotals, onTotalsCalculated, loadedData, onDataChange, onProceed }: { isSubmitted?: boolean, isStartDateDisabled?: boolean, isEndDateDisabled?: boolean, minEndDate?: string, onEndDateExtended?: () => void, loadedTotals?: any, onTotalsCalculated?: (t: AuditTotals) => void, loadedData?: any, onDataChange?: (data: MainProcedure[]) => void, onProceed?: () => void }, ref) => {
   const [globalStartDate, setGlobalStartDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
   const [globalEndDate, setGlobalEndDate] = useState(() => format(addDays(new Date(), 30), 'yyyy-MM-dd'));
   
@@ -626,7 +617,21 @@ const AuditProgramGrid = React.forwardRef(({ isSubmitted, minEndDate, onEndDateE
       <div className="p-5 border-b border-[var(--border)] flex flex-wrap justify-between items-center bg-white/40 dark:bg-slate-800/40 gap-4">
         <div className="flex flex-col space-y-2">
           <div>
-            <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-lg">Audit Program Grid</h3>
+            <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-lg flex items-center gap-3">
+              Audit Program Grid
+              {!isSubmitted && (
+                <button 
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to load a new AP Grid? WARNING: This will overwrite your current Audit Program Grid progress!')) {
+                      setData(JSON.parse(JSON.stringify(initialData)));
+                    }
+                  }}
+                  className="text-xs px-3 py-1 bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-900/40 dark:text-rose-400 dark:hover:bg-rose-900/60 rounded-full font-bold transition-colors"
+                >
+                  Load new AP Grid
+                </button>
+              )}
+            </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Fill the &quot;Day Taken&quot; column &amp; procedure automatically calculate weekends. Drag using the handle to reorder.
             </p>
@@ -641,10 +646,9 @@ const AuditProgramGrid = React.forwardRef(({ isSubmitted, minEndDate, onEndDateE
                 <input 
                   type="date" 
                   value={globalStartDate}
+                  disabled={isSubmitted || isStartDateDisabled}
                   onChange={(e) => setGlobalStartDate(e.target.value)}
-                  disabled={isSubmitted}
-                  className={`text-sm font-medium bg-transparent outline-none focus:text-indigo-600 ${isSubmitted ? 'opacity-60 cursor-not-allowed' : ''}`}
-                  title={isSubmitted ? "Start date is frozen after submission" : ""}
+                  className="text-sm font-medium bg-transparent outline-none focus:text-indigo-600"
                 />
              </div>
            </div>
@@ -658,15 +662,16 @@ const AuditProgramGrid = React.forwardRef(({ isSubmitted, minEndDate, onEndDateE
                 <input 
                   type="date" 
                   value={globalEndDate}
-                  min={minEndDate}
-                  onChange={(e) => {
-                    const newDate = e.target.value;
-                    setGlobalEndDate(newDate);
-                    if (minEndDate && newDate > minEndDate) {
-                       if (onEndDateExtended) onEndDateExtended();
-                    }
-                  }}
-                  className="text-sm font-medium bg-transparent outline-none focus:text-indigo-600"
+                    min={minEndDate}
+                    disabled={isSubmitted || isEndDateDisabled}
+                    onChange={(e) => {
+                      const newDate = e.target.value;
+                      setGlobalEndDate(newDate);
+                      if (minEndDate && newDate > minEndDate) {
+                         if (onEndDateExtended) onEndDateExtended();
+                      }
+                    }}
+                    className={`text-sm font-medium bg-transparent outline-none focus:text-indigo-600 ${(isSubmitted || isEndDateDisabled) ? 'opacity-60 cursor-not-allowed' : ''}`}
                 />
              </div>
            </div>
@@ -682,7 +687,7 @@ const AuditProgramGrid = React.forwardRef(({ isSubmitted, minEndDate, onEndDateE
       
       <div className="overflow-auto flex-1 p-4">
         <div className="min-w-[900px]">
-          <div className="grid grid-cols-[auto_1fr_70px_70px_95px_95px_60px_140px_30px] gap-2 items-center px-2 py-3 bg-slate-100 dark:bg-slate-800 rounded-t-lg font-semibold text-xs text-slate-600 dark:text-slate-300 uppercase tracking-wider shadow-sm sticky top-0 z-10">
+          <div className="grid grid-cols-[auto_1fr_80px_80px_110px_110px_90px_180px_30px] gap-2 items-center px-2 py-3 bg-slate-100 dark:bg-slate-800 rounded-t-lg font-semibold text-xs text-slate-600 dark:text-slate-300 uppercase tracking-wider shadow-sm sticky top-0 z-10">
             <div className="w-[26px]"></div>
             <div>Audit Procedure</div>
             <div className="text-center" title="Approximate Days Allocations by Audit Manager">Approx Day</div>
