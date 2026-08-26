@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useSearchParams } from 'next/navigation';
-import { getUsers, updateUserRole, getProjects, getUnits, createUnit, updateUnit, deleteUnit, getCustomFYs, createCustomFY, deleteCustomFY, AuditUnit, CustomFY } from '@/lib/api';
-import { Users, FileSpreadsheet, ShieldAlert, Download, Save, Building2, Plus, Edit2, Trash2, CalendarDays, Ban, CheckCircle, Search, Filter, RefreshCw } from 'lucide-react';
+import { getUsers, updateUserRole, getProjects, getUnits, createUnit, updateUnit, deleteUnit, getCustomFYs, createCustomFY, deleteCustomFY, getUnitTypes, createUnitType, updateUnitType, deleteUnitType, AuditUnit, CustomFY, UnitType } from '@/lib/api';
+import { Users, FileSpreadsheet, ShieldAlert, Download, Save, Building2, Plus, Edit2, Trash2, CalendarDays, Ban, CheckCircle, Search, Filter, RefreshCw, ChevronRight, ChevronDown, Folder, FolderOpen, Network } from 'lucide-react';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import ReportsDashboard from '@/components/ReportsDashboard';
 
@@ -45,6 +45,240 @@ export function getStatusBadge(p: any) {
 }
 
 export default function AdminDashboard() {
+
+  const [unitTypeFilter, setUnitTypeFilter] = useState('ALL');
+
+  const toggleHierarchyNode = (id: string) => {
+     setHierarchyExpanded(prev => ({...prev, [id]: !prev[id]}));
+  };
+
+  const expandAllHierarchy = () => {
+     const allIds: Record<string, boolean> = {};
+     unitTypes.forEach(ut => allIds[ut.id!] = true);
+     allIds['__UNCATEGORIZED__'] = true;
+     if (hwGroupByBranch) {
+        ['Head Office', 'Dekyiling Branch', 'Nepal Branch', 'South Branch'].forEach(b => allIds['__BRANCH__'+b] = true);
+     }
+     setHierarchyExpanded(allIds);
+  };
+
+  const collapseAllHierarchy = () => {
+     setHierarchyExpanded({});
+  };
+
+  
+  const renderUnitForm = (isInline = false) => {
+     if (!unitForm) return null;
+     return (
+        <div className={isInline ? "p-4 bg-indigo-50/30 dark:bg-indigo-900/10 shadow-inner" : "p-6 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700"}>
+          {!isInline && <h4 className="font-semibold mb-4 text-slate-800 dark:text-slate-200">New Unit</h4>}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">File Number</label>
+              <input 
+                type="text" 
+                value={unitForm.file_number || ''} 
+                onChange={e => setUnitForm({...unitForm, file_number: e.target.value})}
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Unit Name (English)</label>
+              <input 
+                type="text" 
+                value={unitForm.name || ''} 
+                onChange={e => setUnitForm({...unitForm, name: e.target.value})}
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Tibetan Name</label>
+              <input 
+                type="text" 
+                value={unitForm.tibetan_name || ''} 
+                onChange={e => setUnitForm({...unitForm, tibetan_name: e.target.value})}
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Branch / Section</label>
+              <select
+                value={unitForm.branch || 'Head Office'}
+                onChange={e => setUnitForm({...unitForm, branch: e.target.value})}
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              >
+                <option value="Head Office">Head Office</option>
+                <option value="Dekyiling Branch">Dekyiling Branch</option>
+                <option value="Nepal Branch">Nepal Branch</option>
+                <option value="South Branch">South Branch</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Unit Type</label>
+              <select
+                value={unitForm.unit_type_id || ''}
+                onChange={e => {
+                   if (e.target.value === 'CREATE_NEW') {
+                      setShowManageUnitTypes(true);
+                   } else {
+                      setUnitForm({...unitForm, unit_type_id: e.target.value || null});
+                   }
+                }}
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              >
+                <option value="CREATE_NEW" className="font-bold text-indigo-600">+ Create Unit Type</option>
+                <option value="">-- Uncategorized --</option>
+                {renderParentOptions(null, 0)}
+                  </select>
+            </div>
+            <div className="flex items-center pt-5">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={unitForm.is_active !== false} 
+                  onChange={e => setUnitForm({...unitForm, is_active: e.target.checked})}
+                  className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                />
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Active Unit</span>
+              </label>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Active From FY</label>
+              <select
+                value={unitForm.active_from_fy || ''}
+                onChange={e => setUnitForm({...unitForm, active_from_fy: e.target.value || undefined})}
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              >
+                <option value="">-- No specific start year --</option>
+                {Array.from({length: 10}, (_, i) => {
+                  const y = new Date().getFullYear() - 5 + i;
+                  return `FY ${y}-${y+1}`;
+                }).map(fy => <option key={fy} value={fy}>{fy}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="mt-4 flex space-x-3">
+            <button onClick={saveUnit} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center space-x-1">
+              <Save size={16}/> <span>Save</span>
+            </button>
+            <button onClick={() => setUnitForm(null)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+              Cancel
+            </button>
+          </div>
+        </div>
+     );
+  };
+
+  const renderParentOptions = (parentId: string | null, depth: number): any[] => {
+     return unitTypes.filter(ut => ut.parent_id === parentId).flatMap(ut => {
+         if (ut.id === unitTypeForm?.id) return [];
+         const indent = Array(depth).fill('\u00A0\u00A0\u00A0\u00A0').join('');
+         const arrow = depth > 0 ? '\u21B3 ' : '';
+         return [
+            <option key={ut.id} value={ut.id as string}>{indent + arrow + ut.name}</option>,
+            ...renderParentOptions(ut.id as string, depth + 1)
+         ];
+     });
+  };
+
+  const renderModalCategory = (type: UnitType, depth: number) => {
+     const childrenTypes = unitTypes.filter(ut => ut.parent_id === type.id);
+     const expanded = !!hierarchyExpanded[type.id!];
+
+     return (
+       <div key={type.id} className="flex flex-col mb-1">
+          <div 
+             onDoubleClick={() => setUnitTypeForm({...unitTypeForm, parent_id: type.id as string})}
+             className="flex justify-between group items-center py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded pr-2 cursor-pointer select-none"
+             title="Double click to set as Parent Category"
+          >
+             <div style={{ paddingLeft: `${depth * 20}px` }} className="flex items-center space-x-2 w-full pr-4">
+                 <button onClick={() => toggleHierarchyNode(type.id!)} className="w-4 h-4 flex items-center justify-center text-slate-400 hover:text-slate-600 focus:outline-none">
+                    {childrenTypes.length > 0 ? (
+                       expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />
+                    ) : <span className="w-1 h-1 rounded-full bg-slate-300"></span>}
+                 </button>
+                 <span className={`${depth === 0 ? 'font-semibold text-slate-700 dark:text-slate-200' : 'text-slate-600 dark:text-slate-400'} text-sm`}>{type.name}</span>
+             </div>
+             <div className="hidden group-hover:flex space-x-2">
+                <button onClick={() => setUnitTypeForm({...type})} className="text-xs font-semibold text-blue-500 hover:text-blue-700 hover:underline">Edit</button>
+                <button onClick={() => handleDeleteUnitType(type.id as string)} className="text-xs font-semibold text-rose-500 hover:text-rose-700 hover:underline">Del</button>
+             </div>
+          </div>
+          
+          {expanded && childrenTypes.length > 0 && (
+             <div className="flex flex-col">
+                {childrenTypes.map(child => renderModalCategory(child, depth + 1))}
+             </div>
+          )}
+       </div>
+     );
+  };
+
+  const renderHierarchyNode = (type: UnitType, depth: number, branchContext?: string) => {
+     const childrenTypes = unitTypes.filter(ut => ut.parent_id === type.id);
+     const myUnits = units.filter(u => u.unit_type_id === type.id && (!branchContext || (u.branch || 'Head Office') === branchContext));
+     
+     const filteredMyUnits = myUnits.filter(u => {
+        if (hwStatusFilter === 'ACTIVE' && u.is_active === false) return false;
+        if (hwStatusFilter === 'INACTIVE' && u.is_active !== false) return false;
+        return true;
+     });
+
+     const expanded = !!hierarchyExpanded[type.id!];
+
+     const hasVisibleContent = (ut: UnitType): boolean => {
+         const utUnits = units.filter(u => u.unit_type_id === ut.id && (!branchContext || (u.branch || 'Head Office') === branchContext)).filter(u => {
+            if (hwStatusFilter === 'ACTIVE' && u.is_active === false) return false;
+            if (hwStatusFilter === 'INACTIVE' && u.is_active !== false) return false;
+            return true;
+         });
+         if (utUnits.length > 0) return true;
+         const utChildren = unitTypes.filter(c => c.parent_id === ut.id);
+         return utChildren.some(hasVisibleContent);
+     };
+
+     if (!hasVisibleContent(type)) return null;
+
+     return (
+       <div key={type.id} className="flex flex-col">
+          {hwShowTypes && (
+            <div className="flex items-center py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md cursor-pointer group" onClick={() => toggleHierarchyNode(type.id!)}>
+              <div style={{ paddingLeft: `${depth * 20}px` }} className="flex items-center space-x-2 w-full pr-4">
+                 <div className="w-4 h-4 flex items-center justify-center text-slate-400">
+                    {childrenTypes.length > 0 || filteredMyUnits.length > 0 ? (
+                       expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />
+                    ) : <span className="w-1 h-1 rounded-full bg-slate-300"></span>}
+                 </div>
+                 <div className="text-indigo-500">
+                    {expanded ? <FolderOpen size={16} /> : <Folder size={16} />}
+                 </div>
+                 <span className="font-semibold text-slate-700 dark:text-slate-200 text-sm">{type.name}</span>
+                 <span className="text-xs text-slate-400 ml-auto group-hover:text-indigo-400">
+                    {childrenTypes.length > 0 ? `${childrenTypes.length} sub-groups` : ''} {filteredMyUnits.length > 0 ? `${filteredMyUnits.length} units` : ''}
+                 </span>
+              </div>
+            </div>
+          )}
+          
+          {(!hwShowTypes || expanded) && (
+             <div className="flex flex-col">
+                {hwShowUnits && filteredMyUnits.map(u => (
+                   <div key={u.id} className="flex items-center py-1 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md">
+                      <div style={{ paddingLeft: `${(depth + (hwShowTypes ? 1 : 0)) * 20 + 24}px` }} className="flex items-center space-x-2">
+                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                         <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">{u.name} {u.tibetan_name && <span className="text-xs text-slate-400 opacity-70 ml-1">({u.tibetan_name})</span>}</span>
+                         <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">{u.file_number}</span>
+                      </div>
+                   </div>
+                ))}
+                {childrenTypes.map(child => renderHierarchyNode(child, depth + (hwShowTypes ? 1 : 0), branchContext))}
+             </div>
+          )}
+       </div>
+     );
+  };
+
   const { user, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
   const activeTab = searchParams.get('tab') || 'actions';
@@ -52,6 +286,18 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [units, setUnits] = useState<AuditUnit[]>([]);
+  const [unitTypes, setUnitTypes] = useState<UnitType[]>([]);
+  const [unitTypeForm, setUnitTypeForm] = useState<Partial<UnitType> | null>(null);
+  const [isSavingUnitType, setIsSavingUnitType] = useState(false);
+  const [showManageUnitTypes, setShowManageUnitTypes] = useState(false);
+  
+  // Hierarchy View state
+  const [unitsTab, setUnitsTab] = useState<'list' | 'hierarchy'>('list');
+  const [hierarchyExpanded, setHierarchyExpanded] = useState<Record<string, boolean>>({});
+  const [hwShowTypes, setHwShowTypes] = useState(true);
+  const [hwShowUnits, setHwShowUnits] = useState(true);
+  const [hwGroupByBranch, setHwGroupByBranch] = useState(false);
+  const [hwStatusFilter, setHwStatusFilter] = useState('ALL');
   const [customFys, setCustomFys] = useState<CustomFY[]>([]);
   const [loading, setLoading] = useState(true);
   const [reassignProject, setReassignProject] = useState<any>(null);
@@ -84,6 +330,7 @@ export default function AdminDashboard() {
 
   const [projectSearchTerm, setProjectSearchTerm] = useState<string>('');
   const [projectStatusFilter, setProjectStatusFilter] = useState<string>('ALL');
+  const [projectTypeFilter, setProjectTypeFilter] = useState<string>('ALL');
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
 
   // Unit filters
@@ -132,6 +379,10 @@ export default function AdminDashboard() {
     // Branch Filter
     if (unitBranchFilter !== 'ALL' && (u.branch || 'Head Office') !== unitBranchFilter) return false;
     
+    // Type Filter
+    if (unitTypeFilter === 'UNCATEGORIZED' && u.unit_type_id) return false;
+    if (unitTypeFilter !== 'ALL' && unitTypeFilter !== 'UNCATEGORIZED' && u.unit_type_id !== unitTypeFilter) return false;
+
     // Search Term Filter
     if (unitSearchTerm) {
       const search = unitSearchTerm.toLowerCase();
@@ -147,14 +398,16 @@ export default function AdminDashboard() {
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      const [usersData, unitsData, fysData] = await Promise.all([
-        getUsers(),
-        getUnits(),
-        getCustomFYs()
-      ]);
-      setUsers(usersData);
-      setUnits(unitsData);
-      setCustomFys(fysData as any);
+      const [usersData, unitsData, fysData, unitTypesData] = await Promise.all([
+          getUsers(),
+          getUnits(),
+          getCustomFYs(),
+          getUnitTypes()
+        ]);
+        setUsers(usersData);
+        setUnits(unitsData);
+        setCustomFys(fysData as any);
+        setUnitTypes(unitTypesData);
     } catch (err) {
       console.error("Failed to load initial admin data", err);
     }
@@ -166,7 +419,7 @@ export default function AdminDashboard() {
     try {
       const data = await getProjects(selectedTargetFyFilter, selectedExecFyFilter);
       setProjects(data);
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to fetch projects", e);
     }
     setIsProjectsLoading(false);
@@ -205,7 +458,7 @@ export default function AdminDashboard() {
         checklistData: project.checklistData || { items: [] },
         metadata: project.metadata
       });
-    } catch (e) {
+    } catch (e: any) {
       console.error("Export failed:", e);
       alert("Export failed.");
     }
@@ -226,7 +479,7 @@ export default function AdminDashboard() {
         setUnits([...units, newUnit]);
       }
       setUnitForm(null);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
       alert("Failed to save unit.");
     }
@@ -248,7 +501,7 @@ export default function AdminDashboard() {
       try {
         await deleteUnit(unit.id!);
         setUnits(units.filter(u => u.id !== unit.id));
-      } catch (e) {
+      } catch (e: any) {
         console.error(e);
         alert("Failed to delete unit.");
       }
@@ -262,7 +515,7 @@ export default function AdminDashboard() {
         const newTopic = 'oag-audit-' + Math.random().toString(36).substring(2, 10);
         await api.updateUserNtfyTopic(userId, newTopic);
         setUsers(users.map(u => u.id === userId ? { ...u, ntfyTopic: newTopic } : u));
-      } catch (e) {
+      } catch (e: any) {
         console.error(e);
         alert("Failed to regenerate channel.");
       }
@@ -282,7 +535,7 @@ export default function AdminDashboard() {
         const api = await import('@/lib/api');
         await api.deleteUserAccount(userId);
         setUsers(users.filter(u => u.id !== userId));
-      } catch (e) {
+      } catch (e: any) {
         console.error(e);
         alert("Failed to delete user.");
       }
@@ -314,7 +567,7 @@ export default function AdminDashboard() {
         const api = await import('@/lib/api');
         await api.toggleUserActive(userId, newStatus);
         setUsers(users.map(u => u.id === userId ? { ...u, isActive: newStatus } : u));
-      } catch (e) {
+      } catch (e: any) {
         console.error(e);
         alert(`Failed to ${action} user.`);
       }
@@ -361,7 +614,7 @@ export default function AdminDashboard() {
       });
       alert('Project marked as audited via admin override.');
       fetchProjects();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
       alert('Failed to execute admin override.');
     }
@@ -421,7 +674,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         }
         
         fetchProjects();
-      } catch (e) {
+      } catch (e: any) {
         alert("Failed to update status.");
       }
     }
@@ -499,9 +752,54 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         }
         
         fetchProjects();
-      } catch (e) {
+      } catch (e: any) {
         alert("Failed to update status.");
       }
+    }
+  };
+
+  
+  const handleSaveUnitType = async () => {
+    if (!unitTypeForm || !unitTypeForm.name) return;
+    setIsSavingUnitType(true);
+    try {
+      if (unitTypeForm.id) {
+        await updateUnitType(unitTypeForm.id as string, { name: unitTypeForm.name, parent_id: unitTypeForm.parent_id || null });
+      } else {
+        await createUnitType({ name: unitTypeForm.name, parent_id: unitTypeForm.parent_id || null });
+      }
+      const fresh = await getUnitTypes();
+      setUnitTypes(fresh);
+      setUnitTypeForm(null);
+    } catch (e: any) {
+      alert('Error saving unit type: ' + e.message);
+    }
+    setIsSavingUnitType(false);
+  };
+
+  const handleDeleteUnitType = async (id: string) => {
+    const assignedCount = units.filter(u => u.unit_type_id === id).length;
+    if (assignedCount > 0) {
+       if (!window.confirm("Warning: This category is assigned to " + assignedCount + " units. Deleting it will move them to 'Uncategorized'. Proceed?")) return;
+    } else {
+       if (!window.confirm('Delete this category?')) return;
+    }
+
+    try {
+       await deleteUnitType(id as string);
+       if (assignedCount > 0) {
+          // Unassign affected units
+          const affected = units.filter(u => u.unit_type_id === id);
+          for (const u of affected) {
+              await updateUnit(u.id as string, { unit_type_id: undefined });
+          }
+          const freshUnits = await getUnits();
+          setUnits(freshUnits);
+      }
+      const freshTypes = await getUnitTypes();
+      setUnitTypes(freshTypes);
+    } catch (e: any) {
+      alert('Error deleting unit type: ' + e.message);
     }
   };
 
@@ -565,7 +863,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
       setHandingTakingModal(null);
       setHtCustomDate('');
       fetchProjects();
-    } catch (e) {
+    } catch (e: any) {
       alert("Failed to update Handing & Taking.");
     }
   };
@@ -617,7 +915,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         }
 
         fetchProjects();
-      } catch(e) {
+      } catch (e: any) {
         alert("Failed to reject.");
       }
     }
@@ -629,7 +927,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         const api = await import('@/lib/api');
         await api.deleteProject(project.id);
         fetchProjects();
-      } catch (e) {
+      } catch (e: any) {
         alert("Failed to delete project.");
       }
     }
@@ -641,7 +939,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         const api = await import('@/lib/api');
         await api.deleteProject(project.id);
         fetchProjects();
-      } catch (e) {
+      } catch (e: any) {
         alert("Failed to remove override.");
       }
     }
@@ -657,7 +955,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
       const newFy = await createCustomFY(fyForm as Omit<CustomFY, 'id'>);
       setCustomFys([...customFys, newFy]);
       setFyForm(null);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
       alert("Failed to save financial year.");
     }
@@ -669,7 +967,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
       try {
         await deleteCustomFY(id);
         setCustomFys(customFys.filter(f => f.id !== id));
-      } catch (e) {
+      } catch (e: any) {
         alert("Failed to delete financial year.");
       }
     }
@@ -1013,9 +1311,9 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                               </button>
                             )}
 
-                            {(canSupport || canApprove) && (
-                              <button 
-                                onClick={() => handleRejectExtension(p)}
+                            {(canSupport || canApprove) && !p.metadata?.jsApproved && (
+                                <button 
+                                  onClick={() => handleRejectExtension(p)}
                                 className="inline-flex items-center space-x-2 px-3 py-1.5 bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors text-xs font-semibold w-full justify-center md:w-auto"
                               >
                                 <span>Reject</span>
@@ -1043,8 +1341,9 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         )}
         {activeTab === 'analytics' && (
           <AnalyticsDashboard 
-            projects={projects} 
-            units={units} 
+              projects={projects} 
+              units={units} 
+              unitTypes={unitTypes} 
             recentFYs={Array.from({length: totalFys}, (_, i) => {
               const y = highestFy - i;
               return `FY ${y}-${y+1}`;
@@ -1103,7 +1402,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                   try {
                     const { exportHandingTakingToExcel } = await import('@/lib/exportExcel');
                     await exportHandingTakingToExcel(headers, rows);
-                  } catch (e) {
+                  } catch (e: any) {
                     console.error("Excel export failed:", e);
                     alert("Failed to export to Excel.");
                   }
@@ -1187,6 +1486,15 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                 </div>
                 
                 <select
+                  value={projectTypeFilter}
+                  onChange={(e) => setProjectTypeFilter(e.target.value)}
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all w-full md:w-36"
+                >
+                  <option value="ALL">All Categories</option>
+                  <option value="UNCATEGORIZED">Uncategorized</option>
+                  {renderParentOptions(null, 0)}
+                </select>
+                <select
                   value={projectStatusFilter}
                   onChange={(e) => setProjectStatusFilter(e.target.value)}
                   className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all w-full md:w-36"
@@ -1225,6 +1533,11 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         return false;
     }
 }
+                   if (projectTypeFilter !== 'ALL') {
+                      const matchedUnit = units.find(u => u.name === p.metadata?.unitName);
+                      if (projectTypeFilter === 'UNCATEGORIZED' && matchedUnit?.unit_type_id) return false;
+                      if (projectTypeFilter !== 'UNCATEGORIZED' && matchedUnit?.unit_type_id !== projectTypeFilter) return false;
+                   }
                    if (projectSearchTerm) {
                       const searchLower = projectSearchTerm.toLowerCase();
                       const unitMatch = (p.metadata?.unitName || '').toLowerCase().includes(searchLower);
@@ -1577,7 +1890,13 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         {activeTab === 'units' && (
           <div className="flex flex-col">
             <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-50/50 dark:bg-slate-900/20 gap-4">
-              <h3 className="font-semibold text-slate-800 dark:text-slate-200">Registered Units</h3>
+              <div className="flex items-center space-x-4">
+                 <h3 className="font-semibold text-slate-800 dark:text-slate-200">Registered Units</h3>
+                 <div className="flex bg-slate-200 dark:bg-slate-800 rounded-lg p-1">
+                    <button onClick={() => setUnitsTab('list')} className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${unitsTab === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'}`}>List View</button>
+                    <button onClick={() => setUnitsTab('hierarchy')} className={`px-3 py-1 text-xs font-medium rounded-md transition-colors flex items-center space-x-1 ${unitsTab === 'hierarchy' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'}`}><Network size={12} /><span>Mind Map</span></button>
+                 </div>
+              </div>
               
               <div className="flex flex-col md:flex-row items-center space-x-0 md:space-x-3 space-y-3 md:space-y-0 w-full md:w-auto">
                 <div className="relative w-full md:w-48">
@@ -1592,6 +1911,15 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-9 pr-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                   />
                 </div>
+                <select
+                    value={unitTypeFilter}
+                    onChange={(e) => setUnitTypeFilter(e.target.value)}
+                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all w-full md:w-auto"
+                >
+                    <option value="ALL">All Categories</option>
+                    <option value="UNCATEGORIZED">Uncategorized</option>
+                    {unitTypes.map(ut => <option key={ut.id} value={ut.id as string}>{ut.name}</option>)}
+                </select>
                 
                 <select 
                   value={unitBranchFilter} 
@@ -1628,90 +1956,9 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
               </div>
             </div>
 
-            {unitForm && (
-              <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                <h4 className="font-semibold mb-4 text-slate-800 dark:text-slate-200">{unitForm.id ? 'Edit Unit' : 'New Unit'}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">File Number</label>
-                    <input 
-                      type="text" 
-                      value={unitForm.file_number || ''} 
-                      onChange={e => setUnitForm({...unitForm, file_number: e.target.value})}
-                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Unit Name (English)</label>
-                    <input 
-                      type="text" 
-                      value={unitForm.name || ''} 
-                      onChange={e => setUnitForm({...unitForm, name: e.target.value})}
-                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Tibetan Name</label>
-                    <input 
-                      type="text" 
-                      value={unitForm.tibetan_name || ''} 
-                      onChange={e => setUnitForm({...unitForm, tibetan_name: e.target.value})}
-                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Branch / Section</label>
-                    <select
-                      value={unitForm.branch || 'Head Office'}
-                      onChange={e => setUnitForm({...unitForm, branch: e.target.value})}
-                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-                    >
-                      <option value="Head Office">Head Office</option>
-                      <option value="Dekyiling Branch">Dekyiling Branch</option>
-                      <option value="Nepal Branch">Nepal Branch</option>
-                      <option value="South Branch">South Branch</option>
-                    </select>
-                  </div>
-                  <div className="flex items-center pt-5">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={unitForm.is_active !== false} 
-                        onChange={e => setUnitForm({...unitForm, is_active: e.target.checked})}
-                        className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4"
-                      />
-                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Active Unit</span>
-                    </label>
-                  </div>
-                  {unitForm.is_active !== false && (
-                    <div>
-                      <label className="block text-xs font-medium text-slate-500 mb-1">Active From FY</label>
-                      <select
-                        value={unitForm.active_from_fy || ''}
-                        onChange={e => setUnitForm({...unitForm, active_from_fy: e.target.value})}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-                      >
-                        <option value="">-- No specific start year --</option>
-                        {Array.from({length: totalFys}, (_, i) => {
-                          const y = highestFy - i;
-                          const val = `FY ${y}-${y+1}`;
-                          return <option key={val} value={val}>{val}</option>;
-                        })}
-                      </select>
-                    </div>
-                  )}
-                </div>
-                <div className="mt-4 flex space-x-3">
-                  <button onClick={saveUnit} disabled={isSavingUnit} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-sm font-medium">
-                    {isSavingUnit ? 'Saving...' : 'Save Unit'}
-                  </button>
-                  <button onClick={() => setUnitForm(null)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 rounded text-sm font-medium">
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
+            {unitForm && !unitForm.id && renderUnitForm(false)}
 
+            {unitsTab === 'list' && (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
@@ -1720,7 +1967,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     <th className="px-6 py-4 font-semibold">Unit Names</th>
                     <th className="px-6 py-4 font-semibold">Branch</th>
                     <th className="px-6 py-4 font-semibold">Status</th>
-                    <th className="px-6 py-4 font-semibold">Active From</th>
+                    <th className="px-6 py-4 font-semibold">Unit Type</th>
                     <th className="px-6 py-4 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
@@ -1730,7 +1977,8 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                       <td colSpan={6} className="px-6 py-8 text-center text-slate-500">No units match your filters.</td>
                     </tr>
                   ) : filteredUnits.map(u => (
-                    <tr key={u.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${u.is_active === false ? 'opacity-60' : ''}`}>
+                    <React.Fragment key={u.id}>
+                    <tr className={`hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${u.is_active === false ? 'opacity-60' : ''} ${unitForm?.id === u.id ? 'bg-indigo-50/30 dark:bg-indigo-900/10' : ''}`}>
                       <td className="px-6 py-4 font-medium text-slate-800 dark:text-slate-200">{u.file_number}</td>
                       <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
                         <div className="font-semibold">{u.name}</div>
@@ -1743,7 +1991,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                         </span>
                       </td>
                       <td className="px-6 py-4 text-slate-600 dark:text-slate-400 text-xs font-medium">
-                        {u.is_active !== false ? (u.active_from_fy || 'All Time') : '-'}
+                        {u.unit_type_id ? unitTypes.find(ut => ut.id === u.unit_type_id)?.name || 'Unknown' : 'Uncategorized'}
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
                         <button 
@@ -1762,6 +2010,14 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                         </button>
                       </td>
                     </tr>
+                    {unitForm?.id === u.id && (
+                       <tr>
+                          <td colSpan={6} className="p-0 border-b border-indigo-100 dark:border-indigo-900/30">
+                             {renderUnitForm(true)}
+                          </td>
+                       </tr>
+                    )}
+                    </React.Fragment>
                   ))}
                   {units.length === 0 && (
                     <tr>
@@ -1771,6 +2027,155 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                 </tbody>
               </table>
             </div>
+            )}
+        
+            {unitsTab === 'hierarchy' && (
+               <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 min-h-[500px]">
+                  <div className="flex flex-wrap items-center gap-4 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                     <div className="flex space-x-2">
+                        <button onClick={expandAllHierarchy} className="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg">Expand All</button>
+                        <button onClick={collapseAllHierarchy} className="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg">Collapse All</button>
+                     </div>
+                     <div className="flex items-center space-x-4 border-l border-slate-200 dark:border-slate-700 pl-4">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                           <input type="checkbox" checked={hwShowTypes} onChange={e => setHwShowTypes(e.target.checked)} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                           <span className="text-sm text-slate-600 font-medium">Categories</span>
+                        </label>
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                           <input type="checkbox" checked={hwShowUnits} onChange={e => setHwShowUnits(e.target.checked)} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                           <span className="text-sm text-slate-600 font-medium">Units</span>
+                        </label>
+                        <label className="flex items-center space-x-2 cursor-pointer border-l border-slate-200 dark:border-slate-700 pl-4">
+                           <input type="checkbox" checked={hwGroupByBranch} onChange={e => setHwGroupByBranch(e.target.checked)} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                           <span className="text-sm text-slate-600 font-medium">Group by Branch</span>
+                        </label>
+                     </div>
+                     <select value={hwStatusFilter} onChange={e => setHwStatusFilter(e.target.value)} className="ml-auto bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs outline-none">
+                        <option value="ALL">All Status</option>
+                        <option value="ACTIVE">Active Only</option>
+                        <option value="INACTIVE">Inactive Only</option>
+                     </select>
+                  </div>
+                  
+                  <div className="flex flex-col space-y-4">
+                     {/* Rendering root categories */}
+                     {hwGroupByBranch ? (
+                        ['Head Office', 'Dekyiling Branch', 'Nepal Branch', 'South Branch'].map(branch => {
+                            // Filter units by branch, then see if they have categories
+                            const branchUnits = units.filter(u => (u.branch || 'Head Office') === branch);
+                            const hasActiveUnits = branchUnits.some(u => hwStatusFilter === 'ALL' || (hwStatusFilter === 'ACTIVE' && u.is_active !== false) || (hwStatusFilter === 'INACTIVE' && u.is_active === false));
+                            if (!hasActiveUnits) return null;
+                            const bExpanded = !!hierarchyExpanded['__BRANCH__'+branch];
+                            
+                            return (
+                               <div key={branch} className="flex flex-col mb-2">
+                                  <div className="flex items-center py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md cursor-pointer group bg-slate-50/50 dark:bg-slate-800/20" onClick={() => toggleHierarchyNode('__BRANCH__'+branch)}>
+                                     <div className="flex items-center space-x-2 px-2">
+                                        <div className="text-indigo-600">{bExpanded ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}</div>
+                                        <div className="text-indigo-700"><Building2 size={16}/></div>
+                                        <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">{branch}</span>
+                                     </div>
+                                  </div>
+                                  {bExpanded && (
+                                     <div className="flex flex-col pl-4 border-l-2 border-indigo-100 dark:border-indigo-900/30 ml-4 mt-2 space-y-2">
+                                        {/* For grouped by branch, we just render all units of this branch categorized. Wait, if it's categorized, the tree logic is different. For simplicity in this version, we will just render the categories, but ONLY the units in this branch. The helper uses global units. We need a customized render for Branchwise. */}
+                                        
+                                        <div className="mb-2 mt-2">
+                                           {unitTypes.filter(ut => !ut.parent_id).map(root => renderHierarchyNode(root, 0, branch))}
+                                        </div>
+                                        <div className="mb-2">
+                                           {(() => {
+                                              const uncategorizedUnits = units.filter(u => !u.unit_type_id && (u.branch || 'Head Office') === branch).filter(u => {
+                                                 if (hwStatusFilter === 'ACTIVE' && u.is_active === false) return false;
+                                                 if (hwStatusFilter === 'INACTIVE' && u.is_active !== false) return false;
+                                                 return true;
+                                              });
+                                              if (uncategorizedUnits.length === 0) return null;
+                                              
+                                              const uExpanded = !!hierarchyExpanded['__UNCATEGORIZED__'+branch];
+                                              return (
+                                                 <div className="flex flex-col">
+                                                    {hwShowTypes && (
+                                                       <div className="flex items-center py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md cursor-pointer group" onClick={() => toggleHierarchyNode('__UNCATEGORIZED__'+branch)}>
+                                                         <div className="flex items-center space-x-2 w-full pr-4 px-2">
+                                                            <div className="w-4 h-4 flex items-center justify-center text-slate-400">{uExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</div>
+                                                            <span className="font-semibold text-slate-700 dark:text-slate-200 text-sm">Uncategorized ({branch})</span>
+                                                            <span className="text-xs text-slate-400 ml-auto">{uncategorizedUnits.length} units</span>
+                                                         </div>
+                                                       </div>
+                                                    )}
+                                                    {(!hwShowTypes || uExpanded) && hwShowUnits && (
+                                                       <div className="flex flex-col">
+                                                          {uncategorizedUnits.map(u => (
+                                                             <div key={u.id} className="flex items-center py-1 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md">
+                                                                <div style={{ paddingLeft: `${(hwShowTypes ? 1 : 0) * 20 + 24}px` }} className="flex items-center space-x-2">
+                                                                   <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                                                                   <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">{u.name}</span>
+                                                                </div>
+                                                             </div>
+                                                          ))}
+                                                       </div>
+                                                    )}
+                                                 </div>
+                                              )
+                                           })()}
+                                        </div>
+
+                                     </div>
+                                  )}
+                               </div>
+                            )
+                        })
+                     ) : (
+                        <>
+                           <div className="mb-4">
+                              <h4 className="font-bold text-slate-800 mb-2 border-b border-slate-100 pb-1 flex items-center space-x-2"><FolderOpen size={16} className="text-indigo-500"/> <span>Categorized</span></h4>
+                              {unitTypes.filter(ut => !ut.parent_id).map(root => renderHierarchyNode(root, 0))}
+                           </div>
+                           
+                           <div className="mb-4">
+                              <h4 className="font-bold text-slate-800 mb-2 border-b border-slate-100 pb-1 flex items-center space-x-2"><Folder size={16} className="text-slate-400"/> <span>Uncategorized</span></h4>
+                              {(() => {
+                                 const uncategorizedUnits = units.filter(u => !u.unit_type_id).filter(u => {
+                                    if (hwStatusFilter === 'ACTIVE' && u.is_active === false) return false;
+                                    if (hwStatusFilter === 'INACTIVE' && u.is_active !== false) return false;
+                                    return true;
+                                 });
+                                 if (uncategorizedUnits.length === 0) return <div className="text-xs text-slate-400 pl-6">No uncategorized units.</div>;
+                                 
+                                 const uExpanded = !!hierarchyExpanded['__UNCATEGORIZED__'];
+                                 return (
+                                    <div className="flex flex-col">
+                                       {hwShowTypes && (
+                                          <div className="flex items-center py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md cursor-pointer group" onClick={() => toggleHierarchyNode('__UNCATEGORIZED__')}>
+                                            <div className="flex items-center space-x-2 w-full pr-4 px-2">
+                                               <div className="w-4 h-4 flex items-center justify-center text-slate-400">{uExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}</div>
+                                               <span className="font-semibold text-slate-700 dark:text-slate-200 text-sm">Uncategorized Units</span>
+                                               <span className="text-xs text-slate-400 ml-auto">{uncategorizedUnits.length} units</span>
+                                            </div>
+                                          </div>
+                                       )}
+                                       {(!hwShowTypes || uExpanded) && hwShowUnits && (
+                                          <div className="flex flex-col">
+                                             {uncategorizedUnits.map(u => (
+                                                <div key={u.id} className="flex items-center py-1 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md">
+                                                   <div style={{ paddingLeft: `${(hwShowTypes ? 1 : 0) * 20 + 24}px` }} className="flex items-center space-x-2">
+                                                      <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                                                      <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">{u.name}</span>
+                                                   </div>
+                                                </div>
+                                             ))}
+                                          </div>
+                                       )}
+                                    </div>
+                                 )
+                              })()}
+                           </div>
+                        </>
+                     )}
+                  </div>
+               </div>
+            )}
           </div>
         )}
         {activeTab === 'fy' && (
@@ -1929,7 +2334,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                      });
                      setReassignProject(null);
                      fetchProjects();
-                  } catch(e) {
+                  } catch (e: any) {
                      alert("Failed to reassign");
                   }
                 }} 
@@ -1938,6 +2343,53 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                 Save Assignments
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      
+      {showManageUnitTypes && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-5xl w-full p-6 border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
+             <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Manage Unit Types (Categories)</h3>
+                <button onClick={() => setShowManageUnitTypes(false)} className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Close</button>
+             </div>
+             
+             <div className="flex gap-6 overflow-hidden flex-1">
+                <div className="w-3/5 flex flex-col overflow-y-auto pr-4 border-r border-slate-200 dark:border-slate-700">
+                    <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+                       <h4 className="font-semibold text-sm">Current Categories</h4>
+                       <div className="flex space-x-2">
+                          <button onClick={expandAllHierarchy} className="px-2 py-1 text-[10px] font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors">Expand All</button>
+                          <button onClick={collapseAllHierarchy} className="px-2 py-1 text-[10px] font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors">Collapse All</button>
+                       </div>
+                    </div>
+                    {unitTypes.filter(ut => !ut.parent_id).map(root => renderModalCategory(root, 0))}
+                    {unitTypes.length === 0 && <p className="text-xs text-slate-500">No categories found.</p>}
+                </div>
+
+                <div className="w-1/2 flex flex-col">
+                    <h4 className="font-semibold text-sm mb-3">{unitTypeForm?.id ? 'Edit Category' : 'New Category'}</h4>
+                    <div className="space-y-4">
+                       <div>
+                          <label className="block text-xs font-medium text-slate-500 mb-1">Category Name</label>
+                          <input type="text" value={unitTypeForm?.name || ''} onChange={e => setUnitTypeForm({...unitTypeForm, name: e.target.value})} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" />
+                       </div>
+                       <div>
+                          <label className="block text-xs font-medium text-slate-500 mb-1">Parent Category (Optional)</label>
+                          <select value={unitTypeForm?.parent_id || ''} onChange={e => setUnitTypeForm({...unitTypeForm, parent_id: e.target.value || null})} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                             <option value="">-- No Parent (Root Level) --</option>
+                             {renderParentOptions(null, 0)}
+                            </select>
+                       </div>
+                       <div className="flex space-x-2 pt-2">
+                          <button onClick={handleSaveUnitType} disabled={isSavingUnitType || !unitTypeForm?.name} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50">Save</button>
+                          <button onClick={() => setUnitTypeForm(null)} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg transition-colors text-sm font-medium">Clear</button>
+                       </div>
+                    </div>
+                </div>
+             </div>
           </div>
         </div>
       )}

@@ -13,6 +13,7 @@ interface CustomFY {
 interface AnalyticsDashboardProps {
   projects: any[];
   units: AuditUnit[];
+  unitTypes?: any[];
   recentFYs: string[];
   customFys: CustomFY[];
   userRole: number;
@@ -30,7 +31,8 @@ const COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#ef4444'];
 
 export default function AnalyticsDashboard({ 
   projects, 
-  units, 
+  units,
+  unitTypes,
   recentFYs, 
   customFys,
   userRole,
@@ -48,6 +50,7 @@ export default function AnalyticsDashboard({
   const executionFY = globalExecutionFY;
 
   const [filterName, setFilterName] = useState('');
+  const [filterType, setFilterType] = useState('ALL');
   const [filterBranch, setFilterBranch] = useState('ALL');
   const [filterAuditor, setFilterAuditor] = useState('ALL');
   const [isExporting, setIsExporting] = useState(false);
@@ -67,6 +70,17 @@ export default function AnalyticsDashboard({
     return getStartYear(fy1) - getStartYear(fy2);
   };
 
+  const renderCategoryOptions = (parentId: string | null, depth: number): any[] => {
+     return (unitTypes || []).filter(ut => ut.parent_id === parentId).flatMap(ut => {
+         const indent = Array(depth).fill('\u00A0\u00A0\u00A0\u00A0').join('');
+         const arrow = depth > 0 ? '\u21B3 ' : '';
+         return [
+            <option key={ut.id} value={ut.id as string}>{indent + arrow + ut.name}</option>,
+            ...renderCategoryOptions(ut.id as string, depth + 1)
+         ];
+     });
+  };
+
   const analyticsData = useMemo(() => {
     // 1. Calculate Expected Units for the Target FY and apply Branch & Name filters
     let expectedUnits = units.filter(u => {
@@ -75,6 +89,10 @@ export default function AnalyticsDashboard({
       if (u.active_from_fy && targetFY !== 'ALL' && compareFY(targetFY, u.active_from_fy) < 0) return false;
       
       if (filterBranch !== 'ALL' && u.branch !== filterBranch) return false;
+      if (filterType !== 'ALL') {
+          if (filterType === 'UNCATEGORIZED' && u.unit_type_id) return false;
+          if (filterType !== 'UNCATEGORIZED' && u.unit_type_id !== filterType) return false;
+      }
       if (filterName.trim() !== '') {
         const query = filterName.toLowerCase();
         const searchStr = `${u.file_number || ''} ${u.name || ''} ${u.tibetan_name || ''}`.toLowerCase();
@@ -113,7 +131,7 @@ export default function AnalyticsDashboard({
       // Match with unit to apply branch/name filters
       const pName = (p.metadata?.unitName || '').trim().toLowerCase();
       
-      if (filterBranch !== 'ALL' || filterName.trim() !== '') {
+      if (filterBranch !== 'ALL' || filterName.trim() !== '' || filterType !== 'ALL') {
         const unit = units.find(u => {
           const uName = (u.name || '').trim().toLowerCase();
           const fNum = (u.file_number || '').trim().toLowerCase();
@@ -121,6 +139,10 @@ export default function AnalyticsDashboard({
         });
         
         if (filterBranch !== 'ALL' && unit?.branch !== filterBranch) return false;
+        if (filterType !== 'ALL') {
+           if (filterType === 'UNCATEGORIZED' && unit?.unit_type_id) return false;
+           if (filterType !== 'UNCATEGORIZED' && unit?.unit_type_id !== filterType) return false;
+        }
         if (filterName.trim() !== '' && !pName.includes(filterName.toLowerCase())) return false;
       }
 
@@ -338,6 +360,18 @@ export default function AnalyticsDashboard({
             </select>
           </div>
           <div className="flex-1 w-full">
+                      <div className="flex-1 w-full">
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Unit Type</label>
+            <select 
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+            >
+              <option value="ALL">All Categories</option>
+              <option value="UNCATEGORIZED">Uncategorized</option>
+              {renderCategoryOptions(null, 0)}
+              </select>
+          </div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Assigned Auditor</label>
             <select 
               value={filterAuditor}
@@ -349,9 +383,9 @@ export default function AnalyticsDashboard({
             </select>
           </div>
           {/* Clear Filters Button */}
-          {(filterName !== '' || filterBranch !== 'ALL' || filterAuditor !== 'ALL') && (
+          {(filterName !== '' || filterBranch !== 'ALL' || filterAuditor !== 'ALL' || filterType !== 'ALL') && (
              <button 
-                onClick={() => { setFilterName(''); setFilterBranch('ALL'); setFilterAuditor('ALL'); }}
+                onClick={() => { setFilterName(''); setFilterBranch('ALL'); setFilterAuditor('ALL'); setFilterType('ALL'); }}
                 className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium"
              >
                 Clear Filters

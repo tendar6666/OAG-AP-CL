@@ -35,6 +35,9 @@ export type AuditUnit = {
   is_active?: boolean;
   branch?: string;
   active_from_fy?: string;
+  unit_type_main?: string;
+  unit_type_sub?: string;
+  unit_type_id?: string | null;
 };
 
 export async function getUnits(): Promise<AuditUnit[]> {
@@ -53,6 +56,32 @@ export async function updateUnit(id: string, updates: Partial<AuditUnit>) {
 
 export async function deleteUnit(id: string) {
   await deleteDoc(doc(db, "units", id));
+}
+
+
+// ================= Unit Types =================
+export interface UnitType {
+  id?: string;
+  name: string;
+  parent_id: string | null;
+}
+
+export async function getUnitTypes(): Promise<UnitType[]> {
+  const querySnapshot = await getDocs(collection(db, "unit_types"));
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UnitType));
+}
+
+export async function createUnitType(unitType: UnitType): Promise<UnitType> {
+  const docRef = await addDoc(collection(db, "unit_types"), unitType);
+  return { id: docRef.id, ...unitType };
+}
+
+export async function updateUnitType(id: string, updates: Partial<UnitType>) {
+  await updateDoc(doc(db, "unit_types", id), updates);
+}
+
+export async function deleteUnitType(id: string) {
+  await deleteDoc(doc(db, "unit_types", id));
 }
 
 // ================= Custom Financial Years =================
