@@ -317,6 +317,47 @@ export default function AdminDashboard() {
   const [isSavingFy, setIsSavingFy] = useState(false);
 
   const currentYear = new Date().getFullYear();
+  const handleNotifyAuditor = async (projectId: string) => {
+    try {
+      const api = await import('@/lib/api');
+      const project = projects.find(p => p.id === projectId);
+      if (!project) return;
+      
+      const roleStr = user.hierarchy_weight === 10 ? 'Admin' : user.hierarchy_weight === 20 ? 'DS' : user.hierarchy_weight === 30 ? 'JS' : 'AG';
+      
+      const updatedProject = { ...project };
+      if (!updatedProject.metadata) updatedProject.metadata = {};
+      updatedProject.metadata.lastNotification = {
+         byName: user.name,
+         byRole: roleStr,
+         timestamp: new Date().toISOString()
+      };
+      await api.saveProject(updatedProject, {
+         action: 'Sent Deadline Reminder Notification',
+         userId: user.id,
+         userName: user.name
+      });
+      // Update local state to reflect immediately in UI
+      setProjects(projects.map(p => p.id === projectId ? updatedProject : p));
+      
+      const auditor = users.find(u => u.name === project.metadata?.auditorName);
+      if (auditor && auditor.ntfyTopic) {
+          const topicId = await api.getOrCreateNtfyTopic(auditor.id, auditor.ntfyTopic);
+          const endStr = project.metadata?.auditTotals?.endDate;
+          const diffDays = endStr ? Math.ceil((new Date(endStr).getTime() - Date.now()) / (1000 * 3600 * 24)) : 0;
+          await api.sendNtfyNotification(
+             topicId, 
+             `Action Required: Audit Deadline`, 
+             `You have ${diffDays} days left to finish the audit for ${project.metadata?.unitName}.`
+          );
+      }
+      alert('Auditor has been successfully notified via push notification!');
+    } catch (e) {
+      console.error(e);
+      alert('Failed to notify auditor.');
+    }
+  };
+
   const currentFyStart = new Date().getMonth() < 3 ? currentYear - 1 : currentYear;
   const defaultFy = `FY ${currentFyStart}-${currentFyStart + 1}`;
   
@@ -1360,11 +1401,13 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         )}
         {activeTab === 'reports' && (
           <ReportsDashboard 
-            projects={projects}
-            users={users}
-            globalUnitFY={selectedTargetFyFilter}
-            globalExecutionFY={selectedExecFyFilter}
-          />
+              projects={projects}
+              users={users}
+              globalUnitFY={selectedTargetFyFilter}
+              globalExecutionFY={selectedExecFyFilter}
+              currentUser={user}
+              onNotifyAuditor={handleNotifyAuditor}
+            />
         )}
 
         {activeTab === 'handing_taking' && (

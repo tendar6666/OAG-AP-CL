@@ -81,6 +81,18 @@ export default function AnalyticsDashboard({
      });
   };
 
+  const getAllChildTypeIds = (parentId: string): string[] => {
+      let ids: string[] = [];
+      const children = (unitTypes || []).filter(ut => ut.parent_id === parentId);
+      children.forEach(c => {
+          if (c.id) {
+             ids.push(c.id);
+             ids = ids.concat(getAllChildTypeIds(c.id));
+          }
+      });
+      return ids;
+  };
+
   const analyticsData = useMemo(() => {
     // 1. Calculate Expected Units for the Target FY and apply Branch & Name filters
     let expectedUnits = units.filter(u => {
@@ -90,8 +102,12 @@ export default function AnalyticsDashboard({
       
       if (filterBranch !== 'ALL' && u.branch !== filterBranch) return false;
       if (filterType !== 'ALL') {
-          if (filterType === 'UNCATEGORIZED' && u.unit_type_id) return false;
-          if (filterType !== 'UNCATEGORIZED' && u.unit_type_id !== filterType) return false;
+          if (filterType === 'UNCATEGORIZED') {
+             if (u.unit_type_id) return false;
+          } else {
+             const validIds = [filterType, ...getAllChildTypeIds(filterType)];
+             if (!validIds.includes(u.unit_type_id || '')) return false;
+          }
       }
       if (filterName.trim() !== '') {
         const query = filterName.toLowerCase();
@@ -140,8 +156,12 @@ export default function AnalyticsDashboard({
         
         if (filterBranch !== 'ALL' && unit?.branch !== filterBranch) return false;
         if (filterType !== 'ALL') {
-           if (filterType === 'UNCATEGORIZED' && unit?.unit_type_id) return false;
-           if (filterType !== 'UNCATEGORIZED' && unit?.unit_type_id !== filterType) return false;
+           if (filterType === 'UNCATEGORIZED') {
+               if (unit?.unit_type_id) return false;
+           } else {
+               const validIds = [filterType, ...getAllChildTypeIds(filterType)];
+               if (!validIds.includes(unit?.unit_type_id || '')) return false;
+           }
         }
         if (filterName.trim() !== '' && !pName.includes(filterName.toLowerCase())) return false;
       }
@@ -230,7 +250,7 @@ export default function AnalyticsDashboard({
       completionRate,
       branchData
     };
-  }, [projects, units, targetFY, executionFY, filterName, filterBranch, filterAuditor]);
+  }, [projects, units, unitTypes, targetFY, executionFY, filterName, filterBranch, filterAuditor, filterType]);
 
   const pieData = [
     { name: 'Completed', value: analyticsData.completed.length },
@@ -338,51 +358,57 @@ export default function AnalyticsDashboard({
       {/* Global Filter Bar - Hidden during PDF export */}
       {!isExporting && (
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col md:flex-row gap-4 items-end">
-          <div className="flex-1 w-full">
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Search Unit Name</label>
-            <input 
-              type="text" 
-              value={filterName}
-              onChange={(e) => setFilterName(e.target.value)}
-              placeholder="e.g. Department of Finance" 
-              className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
-            />
-          </div>
-          <div className="flex-1 w-full">
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Filter Branch</label>
-            <select 
-              value={filterBranch}
-              onChange={(e) => setFilterBranch(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
-            >
-              <option value="ALL">All Branches</option>
-              {uniqueBranches.map(b => <option key={b} value={b}>{b}</option>)}
-            </select>
-          </div>
-          <div className="flex-1 w-full">
-                      <div className="flex-1 w-full">
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Unit Type</label>
-            <select 
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
-            >
-              <option value="ALL">All Categories</option>
-              <option value="UNCATEGORIZED">Uncategorized</option>
-              {renderCategoryOptions(null, 0)}
-              </select>
-          </div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Assigned Auditor</label>
-            <select 
-              value={filterAuditor}
-              onChange={(e) => setFilterAuditor(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
-            >
-              <option value="ALL">All Auditors</option>
-              {uniqueAuditors.map(a => <option key={a} value={a}>{a}</option>)}
-            </select>
-          </div>
-          {/* Clear Filters Button */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
+              <div className="w-full">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Search Unit Name</label>
+                <input 
+                  type="text" 
+                  value={filterName}
+                  onChange={(e) => setFilterName(e.target.value)}
+                  placeholder="e.g. Department of Finance" 
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+                />
+              </div>
+              
+              <div className="w-full">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Unit Type</label>
+                <select 
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+                >
+                  <option value="ALL">All Categories</option>
+                  <option value="UNCATEGORIZED">Uncategorized</option>
+                  {renderCategoryOptions(null, 0)}
+                </select>
+              </div>
+
+              <div className="w-full">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Filter Branch</label>
+                <select 
+                  value={filterBranch}
+                  onChange={(e) => setFilterBranch(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+                >
+                  <option value="ALL">All Branches</option>
+                  {uniqueBranches.map(b => <option key={b} value={b}>{b}</option>)}
+                </select>
+              </div>
+
+              <div className="w-full">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Assigned Auditor</label>
+                <select 
+                  value={filterAuditor}
+                  onChange={(e) => setFilterAuditor(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+                >
+                  <option value="ALL">All Auditors</option>
+                  {uniqueAuditors.map(a => <option key={a} value={a}>{a}</option>)}
+                </select>
+              </div>
+            </div>
+            
+            {/* Clear Filters Button */}
           {(filterName !== '' || filterBranch !== 'ALL' || filterAuditor !== 'ALL' || filterType !== 'ALL') && (
              <button 
                 onClick={() => { setFilterName(''); setFilterBranch('ALL'); setFilterAuditor('ALL'); setFilterType('ALL'); }}

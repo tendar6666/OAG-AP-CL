@@ -77,7 +77,12 @@ export default function LoginPage() {
        } catch (e) {}
     }
     
-    router.push('/');
+    const dv = localStorage.getItem('defaultView');
+      if (dv && dv.startsWith('/')) {
+         router.push(dv);
+      } else {
+         router.push(dv && dv !== 'new' ? '/?view=' + dv : '/');
+      }
   };
 
   const seedAllDummyUsers = async () => {
@@ -141,7 +146,12 @@ export default function LoginPage() {
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
-      router.push('/');
+      const dv = localStorage.getItem('defaultView');
+      if (dv && dv.startsWith('/')) {
+         router.push(dv);
+      } else {
+         router.push(dv && dv !== 'new' ? '/?view=' + dv : '/');
+      }
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please check your credentials.');
     } finally {

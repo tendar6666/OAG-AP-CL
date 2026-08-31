@@ -8,12 +8,16 @@ export default function ReportsDashboard({
   projects, 
   users,
   globalUnitFY,
-  globalExecutionFY 
+  globalExecutionFY, 
+  currentUser,
+  onNotifyAuditor
 }: { 
   projects: any[],
   users: UserRole[],
   globalUnitFY: string,
-  globalExecutionFY: string 
+  globalExecutionFY: string,
+  currentUser: UserRole,
+  onNotifyAuditor: (projectId: string) => Promise<void>
 }) {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
@@ -176,6 +180,7 @@ export default function ReportsDashboard({
               <th className="px-4 py-3 font-semibold">Audit End Date</th>
               <th className="px-4 py-3 font-semibold">Assigned Reviewer (DS / JS)</th>
               <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold text-center">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -206,10 +211,42 @@ export default function ReportsDashboard({
                       <div>JS: {assignedJS}</div>
                     </td>
                     <td className="px-4 py-3">
-                       <span className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                         {p.status}
-                       </span>
-                    </td>
+                         <span className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                           {p.status}
+                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {p.status !== 'Audited' ? (
+                          <div className="flex flex-col items-center justify-center space-y-2">
+                             {(() => {
+                                const endStr = p.metadata?.auditTotals?.endDate;
+                                if (!endStr) return null;
+                                const diffDays = Math.ceil((new Date(endStr).getTime() - Date.now()) / (1000 * 3600 * 24));
+                                const isOverdue = diffDays < 0;
+                                return (
+                                   <div className={`text-xs font-bold ${isOverdue ? 'text-rose-600' : 'text-slate-600 dark:text-slate-300'}`}>
+                                      {isOverdue ? `Overdue by ${Math.abs(diffDays)} days` : `${diffDays} days left`}
+                                   </div>
+                                );
+                             })()}
+                             {currentUser.hierarchy_weight <= 30 && (
+                               <button 
+                                 onClick={() => onNotifyAuditor(p.id)}
+                                 className="px-3 py-1 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/40 dark:text-indigo-300 dark:hover:bg-indigo-800/60 rounded text-xs font-bold transition-colors"
+                               >
+                                 Notify Auditor
+                               </button>
+                             )}
+                             {p.metadata?.lastNotification && (
+                                <div className="text-[10px] text-slate-500 max-w-[120px] leading-tight mt-1 text-center">
+                                   {p.metadata.lastNotification.byRole} has notified {Math.max(0, Math.floor((Date.now() - new Date(p.metadata.lastNotification.timestamp).getTime()) / (1000 * 3600 * 24)))} days ago
+                                </div>
+                             )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-400">-</span>
+                        )}
+                      </td>
                   </tr>
                 );
               })

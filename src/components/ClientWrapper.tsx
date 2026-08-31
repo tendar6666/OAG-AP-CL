@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { AuthProvider, useAuth, UserRole } from '@/context/AuthContext';
-import { FileText, FolderHeart, Calendar, Settings, Bell, UserCircle, FileSpreadsheet, ShieldAlert, LogOut, Sun, Moon, Menu, RefreshCw } from 'lucide-react';
+import { BarChart, FileText, FolderHeart, Calendar, Settings, Bell, UserCircle, FileSpreadsheet, ShieldAlert, LogOut, Sun, Moon, Menu, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useTheme } from '@/context/ThemeContext';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
@@ -80,19 +80,19 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
                 <Link href="/admin?tab=audits" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'audits' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                   Master Audit Directory
                 </Link>
-                {user.hierarchy_weight <= 10 && (
-                  <>
-                    <Link href="/admin?tab=users" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'users' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-                      User Roles
-                    </Link>
-                    <Link href="/admin?tab=units" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'units' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-                      Units Management
-                    </Link>
-                    <Link href="/admin?tab=fy" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'fy' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-                      Custom Financial Years
-                    </Link>
-                  </>
-                )}
+                <Link href="/admin?tab=units" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'units' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                    Units Management
+                  </Link>
+                  {user.hierarchy_weight <= 10 && (
+                      <>
+                        <Link href="/admin?tab=users" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'users' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                        User Roles
+                      </Link>
+                      <Link href="/admin?tab=fy" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'fy' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                        Custom Financial Years
+                      </Link>
+                    </>
+                  )}
               </div>
             )}
           </div>
@@ -101,12 +101,14 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
           <FileSpreadsheet size={20} />
           <span>My Audit Programs</span>
         </Link>
-        {user.hierarchy_weight === 40 && (
-          <Link href="/?view=extend" className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all ${view === 'extend' ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-            <ShieldAlert size={20} />
-            <span>Extend AP & CL</span>
-          </Link>
-        )}
+        <Link href="/?view=extend" className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all ${view === 'extend' ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+          <ShieldAlert size={20} />
+          <span>Extend AP & CL</span>
+        </Link>
+        <Link href="/?view=projects" className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all ${view === 'projects' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+          <FolderHeart size={20} />
+          <span>Saved Audit Program</span>
+        </Link>
         <Link href="/?view=calendar" className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all ${view === 'calendar' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
           <Calendar size={20} />
           <span>My Calendar</span>
@@ -115,14 +117,14 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
           <FileText size={20} />
           <span>Saved Templates</span>
         </Link>
-        <Link href="/?view=projects" className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all ${view === 'projects' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-          <FolderHeart size={20} />
-          <span>Saved Audit Program</span>
-        </Link>
         </nav>
         
         <div className="p-4 border-t border-[var(--border)] space-y-2">
-        <Link href="/settings" className="flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                <Link href="/?view=analytics" className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all ${view === 'analytics' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+            <BarChart size={20} />
+            <span>System Analytics</span>
+          </Link>
+          <Link href="/settings" className="flex items-center space-x-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
           <Settings size={20} />
           <span>Settings</span>
         </Link>

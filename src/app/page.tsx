@@ -3,6 +3,7 @@
 
 import AuditProgramGrid from '@/components/AuditProgramGrid';
 import ChecklistGrid from '@/components/ChecklistGrid';
+import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import MyCalendar from '@/components/MyCalendar';
 import { useAuth } from '@/context/AuthContext';
 import React, { useState, useEffect, Suspense } from 'react';
@@ -110,6 +111,7 @@ function HomeContent() {
   
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [masterUnits, setMasterUnits] = useState<any[]>([]);
+    const [unitTypes, setUnitTypes] = useState<any[]>([]);
   const [assignedDeputyId, setAssignedDeputyId] = useState<string>('');
   const [assignedJointId, setAssignedJointId] = useState<string>('');
   
@@ -154,9 +156,10 @@ function HomeContent() {
       api.getCustomFYs().then(data => setCustomFys(data || [])).catch(err => console.error(err));
       api.getUsers().then(data => setAllUsers(data || [])).catch(err => console.error(err));
       api.getUnits().then(data => {
-         const activeUnits = data.filter(u => u.is_active !== false);
-         setMasterUnits(activeUnits);
-      }).catch(err => console.error(err));
+          const activeUnits = data.filter(u => u.is_active !== false);
+          setMasterUnits(activeUnits);
+        }).catch(err => console.error(err));
+        api.getUnitTypes().then(data => setUnitTypes(data || [])).catch(err => console.error(err));
     });
   }, []);
 
@@ -927,6 +930,14 @@ function HomeContent() {
                     <span><strong>FY:</strong> {p.metadata?.executionFY || 'Unknown'}</span>
                     {p.submittedAt && <span><strong>Submitted:</strong> {new Date(p.submittedAt).toLocaleDateString('en-GB')}</span>}
                   </div>
+                      {p.status !== 'Audited' && p.metadata?.lastNotification && (
+                         <div className="mt-3 bg-rose-50 border border-rose-200 dark:bg-rose-900/20 dark:border-rose-800 rounded p-2 text-xs flex flex-col space-y-1">
+                            <strong className="text-rose-700 dark:text-rose-400"><ShieldAlert size={14} className="inline mr-1 -mt-0.5" /> Action Required: Audit Deadline</strong>
+                            <span className="text-slate-600 dark:text-slate-300">
+                               Your reviewer ({p.metadata.lastNotification.byRole}) has requested an update regarding your deadline.
+                            </span>
+                         </div>
+                      )}
                 </div>
                 <div className="flex space-x-3 w-full md:w-auto">
                   <button onClick={() => loadProject(p, true)} className="flex-1 md:flex-none px-5 py-2 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors">
@@ -938,6 +949,81 @@ function HomeContent() {
           </div>
           <Pagination page={extendPage} setPage={setExtendPage} total={sortedProjects.length} itemsPerPage={ITEMS_PER_PAGE} />
         </div>
+      </div>
+    );
+  }
+
+    if (view === 'analytics') {
+    return (
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 w-full mx-auto">
+        <div className="glass-panel p-8 rounded-2xl border border-[var(--border)] shadow-sm mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">System Analytics</h2>
+          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
+            <div className="flex flex-col items-start">
+              <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 ml-1">Global Unit FY</label>
+              <select 
+                value={selectedProjectTargetFy} 
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === 'LOAD_MORE_FUTURE') setFyOffsetTop(prev => prev + 5);
+                  else if (val === 'LOAD_MORE_PAST') setFyOffsetBottom(prev => prev + 5);
+                  else handleSetProjectTargetFy(val);
+                }}
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm cursor-pointer"
+              >
+                <option value="ALL">All Time</option>
+                <optgroup label="Indian Financial Years">
+                  <option value="LOAD_MORE_FUTURE">? Load 5 more future FY...</option>
+                  {recentFYs.map(fy => <option key={fy} value={fy}>{fy}</option>)}
+                  <option value="LOAD_MORE_PAST">? Load 5 more older FY...</option>
+                </optgroup>
+                {customFys.length > 0 && (
+                  <optgroup label="Custom Financial Years">
+                    {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
+                  </optgroup>
+                )}
+              </select>
+            </div>
+
+            <div className="flex flex-col items-start">
+              <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 ml-1">Global Execution FY</label>
+              <select 
+                value={selectedProjectFy} 
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === 'LOAD_MORE_FUTURE') setFyOffsetTop(prev => prev + 5);
+                  else if (val === 'LOAD_MORE_PAST') setFyOffsetBottom(prev => prev + 5);
+                  else handleSetProjectExecFy(val);
+                }}
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-sm cursor-pointer"
+              >
+                <option value="ALL">All Time</option>
+                <optgroup label="Indian Financial Years">
+                  <option value="LOAD_MORE_FUTURE">? Load 5 more future FY...</option>
+                  {recentFYs.map(fy => <option key={fy} value={fy}>{fy}</option>)}
+                  <option value="LOAD_MORE_PAST">? Load 5 more older FY...</option>
+                </optgroup>
+                {customFys.length > 0 && (
+                  <optgroup label="Custom Financial Years">
+                    {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
+                  </optgroup>
+                )}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <AnalyticsDashboard 
+          projects={savedProjects}
+          units={masterUnits}
+          unitTypes={unitTypes}
+          recentFYs={recentFYs}
+          customFys={customFys}
+          userRole={user.hierarchy_weight}
+          onAdminOverride={() => {}}
+          globalTargetFY={selectedProjectTargetFy}
+          globalExecutionFY={selectedProjectFy}
+        />
       </div>
     );
   }
@@ -1046,6 +1132,14 @@ function HomeContent() {
                       <span><strong>FY:</strong> {p.metadata?.executionFY || 'Unknown'}</span>
                       {p.submittedAt && <span><strong>Submitted:</strong> {new Date(p.submittedAt).toLocaleDateString('en-GB')}</span>}
                     </div>
+                      {p.status !== 'Audited' && p.metadata?.lastNotification && (
+                         <div className="mt-3 bg-rose-50 border border-rose-200 dark:bg-rose-900/20 dark:border-rose-800 rounded p-2 text-xs flex flex-col space-y-1">
+                            <strong className="text-rose-700 dark:text-rose-400"><ShieldAlert size={14} className="inline mr-1 -mt-0.5" /> Action Required: Audit Deadline</strong>
+                            <span className="text-slate-600 dark:text-slate-300">
+                               Your reviewer ({p.metadata.lastNotification.byRole}) has requested an update regarding your deadline.
+                            </span>
+                         </div>
+                      )}
                   </div>
                   
                   <div className="flex space-x-3 w-full md:w-auto">
