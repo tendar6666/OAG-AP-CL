@@ -1,0 +1,17 @@
+[debug] [2026-08-24T12:31:25.808Z] ----------------------------------------------------------------------
+[debug] [2026-08-24T12:31:25.810Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\user g45\AppData\Local\npm-cache\_npx\7750544ccf494d8b\node_modules\firebase-tools\lib\bin\firebase.js deploy --only hosting
+[debug] [2026-08-24T12:31:25.811Z] CLI Version:   15.28.1
+[debug] [2026-08-24T12:31:25.811Z] Platform:      win32
+[debug] [2026-08-24T12:31:25.811Z] Node Version:  v24.19.0
+[debug] [2026-08-24T12:31:25.811Z] Detected Agent: antigravity
+[debug] [2026-08-24T12:31:25.811Z] Time:          Mon Aug 24 2026 18:01:25 GMT+0530 (India Standard Time)
+[debug] [2026-08-24T12:31:25.811Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-08-24T12:31:27.448Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-08-24T12:31:27.448Z] > authorizing via signed-in user (tendar6666@gmail.com)
+[debug] [2026-08-24T12:31:27.448Z] [iam] checking project oag-audit-management-online for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-08-24T12:31:27.460Z] Checked if tokens are valid: true, expires at: 1787577238365
+[debug] [2026-08-24T12:31:27.460Z] Checked if tokens are valid: true, expires at: 1787577238365
+[debug] [2026-08-24T12:31:27.461Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/oag-audit-management-online:testIamPermissions [none]
+[debug] [2026-08-24T12:31:27.461Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/oag-audit-management-online:testIamPermissions  x-goog-user-project=oag-audit-management-online
+[debug] [2026-08-24T12:31:27.461Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/oag-audit-management-online:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}

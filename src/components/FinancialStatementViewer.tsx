@@ -87,10 +87,12 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
         if (!data.liabilities[groupId]) data.liabilities[groupId] = { total: 0 };
         const gData = stmt.liabilities[groupId];
         if (gData.bifurcation) {
-          data.liabilities[groupId].total += (gData.bifurcation.opening||0) + (gData.bifurcation.surplus||0) + (gData.bifurcation.other||0);
-        } else if (gData.items) {
-          data.liabilities[groupId].total += gData.items.reduce((sum:number, i:any) => sum + (i.amount||0), 0);
-        }
+            data.liabilities[groupId].total += (gData.bifurcation.opening||0) + (gData.bifurcation.surplus||0) + (gData.bifurcation.other||0);
+          } else if (gData.items && gData.items.length > 0) {
+            data.liabilities[groupId].total += gData.items.reduce((sum:number, i:any) => sum + (i.amount||0), 0);
+          } else {
+            data.liabilities[groupId].total += (gData.total || 0);
+          }
       });
       
       // Merge Assets
@@ -98,10 +100,12 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
         if (!data.assets[groupId]) data.assets[groupId] = { total: 0 };
         const gData = stmt.assets[groupId];
         if (gData.bifurcation) {
-          data.assets[groupId].total += (gData.bifurcation.opening||0) + (gData.bifurcation.surplus||0) + (gData.bifurcation.other||0);
-        } else if (gData.items) {
-          data.assets[groupId].total += gData.items.reduce((sum:number, i:any) => sum + (i.amount||0), 0);
-        }
+            data.assets[groupId].total += (gData.bifurcation.opening||0) + (gData.bifurcation.surplus||0) + (gData.bifurcation.other||0);
+          } else if (gData.items && gData.items.length > 0) {
+            data.assets[groupId].total += gData.items.reduce((sum:number, i:any) => sum + (i.amount||0), 0);
+          } else {
+            data.assets[groupId].total += (gData.total || 0);
+          }
       });
     });
     
@@ -111,24 +115,25 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
   const consData = getConsolidatedData();
   const consCurrency = consData.currencies.size > 1 ? "MIXED CURRENCIES" : (Array.from(consData.currencies)[0] || 'Unknown');
 
-  const getSpecificTotal = (stmt: any, type: 'Asset'|'Liability', groupId: string) => {
-    const obj = type === 'Asset' ? stmt.assets : stmt.liabilities;
-    const gData = obj[groupId];
-    if (!gData) return 0;
-    if (gData.bifurcation) {
-      return (gData.bifurcation.opening||0) + (gData.bifurcation.surplus||0) + (gData.bifurcation.other||0);
-    }
-    return (gData.items||[]).reduce((sum:number, i:any) => sum + (i.amount||0), 0);
-  };
+      const getSpecificTotal = (stmt: any, type: 'Asset'|'Liability', groupId: string) => {
+      const gData = (stmt.assets && stmt.assets[groupId]) || (stmt.liabilities && stmt.liabilities[groupId]);
+      if (!gData) return 0;
+      if (gData.bifurcation) {
+        return (gData.bifurcation.opening||0) + (gData.bifurcation.surplus||0) + (gData.bifurcation.other||0);
+      }
+      return (gData.items||[]).reduce((sum:number, i:any) => sum + (i.amount||0), 0);
+    };
 
   const getGrandTotal = (stmt: any, type: 'Asset'|'Liability') => {
     return fsGroups.filter(g => g.type === type).reduce((sum, g) => sum + getSpecificTotal(stmt, type, g.id!), 0);
   };
 
-  const getConsGrandTotal = (type: 'Asset'|'Liability') => {
-    const obj = type === 'Asset' ? consData.assets : consData.liabilities;
-    return fsGroups.filter(g => g.type === type).reduce((sum, g) => sum + (obj[g.id!]?.total || 0), 0);
-  };
+      const getConsGrandTotal = (type: 'Asset'|'Liability') => {
+      return fsGroups.filter(g => g.type === type).reduce((sum, g) => {
+         const val = ((consData.assets && consData.assets[g.id!]?.total) || 0) + ((consData.liabilities && consData.liabilities[g.id!]?.total) || 0);
+         return sum + val;
+      }, 0);
+    };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
@@ -202,9 +207,15 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
                 <span className="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-full">
                   Currency: {activeTab === 'CONSOLIDATED' ? consCurrency : currentStatements.find((s:any) => s.id === activeTab)?.currency}
                 </span>
-              </div>
-
-              {/* Grid */}
+                              </div>
+  
+                {/* Currency Reminder Alert */}
+                <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800/30 px-6 py-2 flex items-center gap-2 text-amber-700 dark:text-amber-400 text-xs font-semibold">
+                  <AlertCircle size={14} className="flex-shrink-0" />
+                  <p>Admin Reminder: Please double-check if the displayed currency is correct for this unit.</p>
+                </div>
+  
+                {/* Grid */}
               <div className="flex-1 overflow-y-auto p-6">
                 <div className="grid grid-cols-2 gap-6 items-start">
                   
@@ -212,7 +223,7 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
                   <div className="space-y-2">
                     <h4 className="text-lg font-black text-slate-800 dark:text-slate-100 border-b-2 border-slate-800 dark:border-slate-300 pb-2 mb-4">LIABILITIES</h4>
                     {fsGroups.filter(g => g.type === 'Liability').map(g => {
-                      const total = activeTab === 'CONSOLIDATED' ? (consData.liabilities[g.id!]?.total || 0) : getSpecificTotal(currentStatements.find((s:any) => s.id === activeTab), 'Liability', g.id!);
+                      const total = activeTab === 'CONSOLIDATED' ? ((consData.liabilities[g.id!]?.total || 0) + (consData.assets[g.id!]?.total || 0)) : getSpecificTotal(currentStatements.find((s:any) => s.id === activeTab), 'Liability', g.id!);
                       if (total === 0) return null; // Hide completely empty rows in viewer
                       return (
                         <div key={g.id} className="flex justify-between items-center py-2 px-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded border-b border-slate-100 dark:border-slate-800/50">
@@ -227,7 +238,7 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
                   <div className="space-y-2">
                     <h4 className="text-lg font-black text-slate-800 dark:text-slate-100 border-b-2 border-slate-800 dark:border-slate-300 pb-2 mb-4">ASSETS</h4>
                     {fsGroups.filter(g => g.type === 'Asset').map(g => {
-                      const total = activeTab === 'CONSOLIDATED' ? (consData.assets[g.id!]?.total || 0) : getSpecificTotal(currentStatements.find((s:any) => s.id === activeTab), 'Asset', g.id!);
+                      const total = activeTab === 'CONSOLIDATED' ? ((consData.assets[g.id!]?.total || 0) + (consData.liabilities[g.id!]?.total || 0)) : getSpecificTotal(currentStatements.find((s:any) => s.id === activeTab), 'Asset', g.id!);
                       if (total === 0) return null; // Hide completely empty rows in viewer
                       return (
                         <div key={g.id} className="flex justify-between items-center py-2 px-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded border-b border-slate-100 dark:border-slate-800/50">
