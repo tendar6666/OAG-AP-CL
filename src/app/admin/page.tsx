@@ -3,10 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useSearchParams } from 'next/navigation';
-import { getUsers, updateUserRole, getProjects, getUnits, createUnit, updateUnit, deleteUnit, getCustomFYs, createCustomFY, deleteCustomFY, getUnitTypes, createUnitType, updateUnitType, deleteUnitType, AuditUnit, CustomFY, UnitType } from '@/lib/api';
-import { Users, FileSpreadsheet, ShieldAlert, Download, Save, Building2, Plus, Edit2, Trash2, CalendarDays, Ban, CheckCircle, Search, Filter, RefreshCw, ChevronRight, ChevronDown, Folder, FolderOpen, Network, MessageSquare } from 'lucide-react';
+import { getUsers, updateUserRole, getProjects, getUnits, createUnit, updateUnit, deleteUnit, getCustomFYs, createCustomFY, deleteCustomFY, getUnitTypes, createUnitType, updateUnitType, deleteUnitType, getFSGroups, createFSGroup, updateFSGroup, deleteFSGroup, AuditUnit, CustomFY, UnitType, FSGroup } from '@/lib/api';
+import { Layers, Users, FileSpreadsheet, ShieldAlert, Download, Save, Building2, Plus, Edit2, Trash2, CalendarDays, Ban, CheckCircle, Search, Filter, RefreshCw, ChevronRight, ChevronDown, Folder, FolderOpen, Network, MessageSquare, GripVertical } from 'lucide-react';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import ReportsDashboard from '@/components/ReportsDashboard';
+import FinancialStatementViewer from '@/components/FinancialStatementViewer';
+import GlobalFSDashboard from '@/components/GlobalFSDashboard';
+import FinancialStatementModal from '@/components/FinancialStatementModal';
 
 const ROLE_MAP: Record<number, string> = {
   10: "Secretary (L1)",
@@ -44,6 +47,7 @@ export function getStatusBadge(p: any) {
   return { label: p.status || 'In Progress', color: 'bg-slate-100 text-slate-700 border-slate-200' };
 }
 
+const getRoleName = (w: number) => { if(w<=10)return'Admin'; if(w<=20)return'Joint Secretary'; if(w===25)return'Finaliser'; if(w<=30)return'Deputy Secretary'; return'Reviewer'; };
 export default function AdminDashboard() {
 
   const [unitTypeFilter, setUnitTypeFilter] = useState('ALL');
@@ -299,9 +303,16 @@ export default function AdminDashboard() {
   const [hwGroupByBranch, setHwGroupByBranch] = useState(false);
   const [hwStatusFilter, setHwStatusFilter] = useState('ALL');
   const [customFys, setCustomFys] = useState<CustomFY[]>([]);
+  const [fsGroups, setFsGroups] = useState<FSGroup[]>([]);
+  const [fsGroupForm, setFsGroupForm] = useState<Partial<FSGroup> | null>(null);
+  const [isSavingFsGroup, setIsSavingFsGroup] = useState(false);
+  const [draggedGroup, setDraggedGroup] = useState<string | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [reassignProject, setReassignProject] = useState<any>(null);
-  const [viewDetailsProject, setViewDetailsProject] = useState<any>(null); const [handingTakingModal, setHandingTakingModal] = useState<any>(null); const [htCustomDate, setHtCustomDate] = useState<string>('');
+  const [viewDetailsProject, setViewDetailsProject] = useState<any>(null);
+  const [viewFsProject, setViewFsProject] = useState<any>(null);
+  const [editFsProject, setEditFsProject] = useState<any>(null); const [handingTakingModal, setHandingTakingModal] = useState<any>(null); const [htCustomDate, setHtCustomDate] = useState<string>('');
 
   const [remarkModal, setRemarkModal] = useState<{project: any, field: string} | null>(null);
   const [remarkText, setRemarkText] = useState('');
@@ -460,9 +471,14 @@ export default function AdminDashboard() {
     // Search Term Filter
     if (unitSearchTerm) {
       const search = unitSearchTerm.toLowerCase();
+      const searchWithPipe = search.replace(/\//g, '|');
+      const searchWithSlash = search.replace(/\|/g, '/');
+      
       const matchName = u.name?.toLowerCase().includes(search);
       const matchTibetan = u.tibetan_name?.toLowerCase().includes(search);
-      const matchFile = u.file_number?.toLowerCase().includes(search);
+      const fileNum = u.file_number?.toLowerCase() || '';
+      const matchFile = fileNum.includes(search) || fileNum.includes(searchWithPipe) || fileNum.replace(/\|/g, '/').includes(search);
+      
       if (!matchName && !matchTibetan && !matchFile) return false;
     }
     
@@ -472,16 +488,18 @@ export default function AdminDashboard() {
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      const [usersData, unitsData, fysData, unitTypesData] = await Promise.all([
+      const [usersData, unitsData, fysData, unitTypesData, fsGroupsData] = await Promise.all([
           getUsers(),
           getUnits(),
           getCustomFYs(),
-          getUnitTypes()
+          getUnitTypes(),
+          getFSGroups()
         ]);
         setUsers(usersData);
         setUnits(unitsData);
         setCustomFys(fysData as any);
         setUnitTypes(unitTypesData);
+        setFsGroups(fsGroupsData);
     } catch (err) {
       console.error("Failed to load initial admin data", err);
     }
@@ -777,7 +795,12 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
           status: newStatus,
           metadata: newMetadata
         };
-        if (isExtension) {
+        
+          if (!updatePayload.metadata) updatePayload.metadata = {};
+          if (!isExtension) {
+             updatePayload.metadata.revisionRequestedBy = getRoleName(user.hierarchy_weight);
+          }
+          if (isExtension) {
             updatePayload.isRevised = true;
             updatePayload.isExtended = true;
         }
@@ -877,6 +900,26 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
     }
   };
 
+  const handleEditFsSubmit = async (fsData: any) => {
+    if (!editFsProject) return;
+    try {
+      const api = await import('@/lib/api');
+      await api.saveProject({
+        ...editFsProject,
+        financialStatements: fsData
+      }, {
+        action: 'Edited Financial Statements',
+        userId: user.id,
+        userName: user.name
+      });
+      alert('Financial Statements updated successfully!');
+      setEditFsProject(null);
+      fetchProjects();
+    } catch (e: any) {
+      alert('Failed to update FS: ' + e.message);
+    }
+  };
+
   const handleHandingTakingSubmit = async () => {
     if (!handingTakingModal) return;
     const project = handingTakingModal;
@@ -942,13 +985,27 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
     }
   };
 
-  const handleRejectExtension = async (project: any) => {
+    const handleExportAP = async (project: any) => {
+    try {
+      const payload = {
+          gridData: project.gridData || [],
+          checklistData: project.checklistData || { items: [] },
+          metadata: project.metadata
+      };
+      const { exportToExcel } = await import('@/lib/exportExcel');
+      await exportToExcel(payload);
+    } catch (e: any) {
+      alert("Export failed: " + e.message);
+    }
+  };
+
+  const handleRequestRevise = async (project: any) => {
     const isExtension = project.status === 'Extension Requested' || project.status === 'Extension Supported';
     const isDraftReject = project.status === 'Draft AP & CL Submitted' || project.status === 'Draft AP & CL Supported';
     
-    let confirmMessage = `Reject Audit Program? This will revert the project back to a 'Draft' for the auditor to fix.`;
+    let confirmMessage = `Request Revision of Audit Program? This will revert the project back to a 'Draft' for the auditor to revise.`;
     if (isExtension) confirmMessage = `Reject extension? This will revert the project back to the 'Submitted' state.`;
-    if (isDraftReject) confirmMessage = `Reject Draft AP & CL? This will revert it back to a 'Draft' for the auditor to fix.`;
+    if (isDraftReject) confirmMessage = `Request Revision of Draft AP & CL? This will revert it back to a 'Draft' for the auditor to revise.`;
 
     if (window.confirm(confirmMessage)) {
       try {
@@ -961,7 +1018,12 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
           ...project,
           status: newStatus
         };
-        if (isExtension) {
+        
+          if (!updatePayload.metadata) updatePayload.metadata = {};
+          if (!isExtension) {
+             updatePayload.metadata.revisionRequestedBy = getRoleName(user.hierarchy_weight);
+          }
+          if (isExtension) {
             updatePayload.isExtended = false;
             updatePayload.isRevised = false;
         } else {
@@ -969,7 +1031,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         }
 
         await api.saveProject(updatePayload, {
-          action: isExtension ? 'Rejected Extension' : (isDraftReject ? 'Rejected Draft AP & CL' : 'Rejected Audit Program'),
+          action: isExtension ? 'Rejected Extension' : (isDraftReject ? 'Requested Revision of Draft AP & CL' : 'Requested Revision of Audit Program'),
           userId: user.id,
           userName: user.name
         });
@@ -980,17 +1042,17 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
            api.getOrCreateNtfyTopic(auditor.id, auditor.ntfyTopic).then(topicId => {
              api.sendNtfyNotification(
                topicId, 
-               isExtension ? 'Extension Rejected' : 'Audit Program Rejected', 
+               isExtension ? 'Extension Rejected' : 'Revision Requested', 
                isExtension 
                  ? `Your extension request for ${project.metadata?.unitName} has been Rejected. The Audit Program has been reverted.`
-                 : `Your Audit Program for ${project.metadata?.unitName} has been Rejected. Please review and resubmit.`
+                 : `Your Audit Program for ${project.metadata?.unitName} needs revision. Requested by ${getRoleName(user.hierarchy_weight)}. Please review and resubmit.`
              );
            }).catch(e => console.error("Push failed:", e));
         }
 
         fetchProjects();
       } catch (e: any) {
-        alert("Failed to reject.");
+        alert('Failed to request revision.');
       }
     }
   };
@@ -1016,6 +1078,97 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
       } catch (e: any) {
         alert("Failed to remove override.");
       }
+    }
+  };
+
+  
+  
+  const handleDragStart = (e: any, id: string) => {
+    setDraggedGroup(id);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: any) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDropGroup = async (e: any, targetId: string, type: 'Asset'|'Liability') => {
+    e.preventDefault();
+    if (!draggedGroup || draggedGroup === targetId) return;
+
+    const items = fsGroups.filter(g => g.type === type).sort((a,b) => (a.order||0) - (b.order||0));
+    const draggedIdx = items.findIndex(g => g.id === draggedGroup);
+    const targetIdx = items.findIndex(g => g.id === targetId);
+    
+    if (draggedIdx === -1 || targetIdx === -1) return;
+
+    // Reorder array
+    const newItems = [...items];
+    const [removed] = newItems.splice(draggedIdx, 1);
+    newItems.splice(targetIdx, 0, removed);
+
+    // Update order fields (give them sequential orders 10, 20, 30...)
+    // Keep Others Group at 99990 if it is Others Group, but actually we can just re-assign order to all.
+    // Wait, the user said "Place this at last of asset and liabilities... undeletable". So Others Group should always stay at the end.
+    
+    const updatedGroups = newItems.map((g, index) => {
+      // Force Others Group to be at the very end regardless of drop
+      const orderVal = g.name === 'Others Group' ? 99990 + index : (index + 1) * 10;
+      return { ...g, order: orderVal };
+    });
+
+    // Update local state immediately for fast UI
+    setFsGroups(prev => {
+      const others = prev.filter(p => p.type !== type);
+      return [...others, ...updatedGroups];
+    });
+
+    // Save to DB
+    try {
+      await Promise.all(updatedGroups.map(g => updateFSGroup(g.id!, { order: g.order })));
+    } catch (err) {
+      console.error("Failed to save reorder", err);
+    }
+    setDraggedGroup(null);
+  };
+
+  const handleSaveFsGroup = async () => {
+    if (!fsGroupForm?.name || !fsGroupForm?.type) return;
+    setIsSavingFsGroup(true);
+    try {
+      if (fsGroupForm.id) {
+        await updateFSGroup(fsGroupForm.id, fsGroupForm);
+      } else {
+        await createFSGroup({ ...fsGroupForm, order: fsGroupForm.order || (fsGroups.length + 1) * 10 });
+      }
+      const data = await getFSGroups();
+      setFsGroups(data);
+      setFsGroupForm(null);
+    } catch (error) {
+      console.error('Failed to save FS group:', error);
+      alert('Failed to save FS Group');
+    } finally {
+      setIsSavingFsGroup(false);
+    }
+  };
+
+
+  const handleDeleteFsGroup = async (id: string) => {
+    const grp = fsGroups.find(g => g.id === id);
+    if (grp?.name === 'Others Group') {
+      alert("The 'Others Group' is a system required group and cannot be deleted.");
+      return;
+    }
+    if (!window.confirm('Are you sure you want to delete this group? It may affect older financial statements.')) return;
+
+    try {
+      await deleteFSGroup(id);
+      const data = await getFSGroups();
+      setFsGroups(data);
+    } catch (error) {
+      console.error('Failed to delete FS Group:', error);
+      alert('Failed to delete FS Group');
     }
   };
 
@@ -1296,10 +1449,10 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     );
 
                     // Handing and Taking Visibility
-                    const isDsAckNeeded = p.status === 'Pending Support' && !handingTaking.dsAckDate && user && user.id === p.metadata?.assignedDeputyId;
-                    const isJsAckNeeded = (p.status === 'Pending Approval' || p.status === 'Pending Support') && !handingTaking.jsAckDate && user && user.id === p.metadata?.assignedJointId;
-                    const isAdminAckNeeded = (p.status === 'Audited' || p.status === 'Pending Approval' || p.status === 'Pending Support') && !handingTaking.adminAckDate && user && user.hierarchy_weight <= 10;
-                    const isFinaliserNeeded = p.status === 'Audited' && !!handingTaking.adminAckDate && !handingTaking.publishDate && user && user.hierarchy_weight === 25;
+                    const isDsAckNeeded = !p.isHistoricalFS && p.status === 'Pending Support' && !handingTaking.dsAckDate && user && user.id === p.metadata?.assignedDeputyId;
+                    const isJsAckNeeded = !p.isHistoricalFS && (p.status === 'Pending Approval' || p.status === 'Pending Support') && !handingTaking.jsAckDate && user && user.id === p.metadata?.assignedJointId;
+                    const isAdminAckNeeded = !p.isHistoricalFS && (p.status === 'Audited' || p.status === 'Pending Approval' || p.status === 'Pending Support') && !handingTaking.adminAckDate && user && user.hierarchy_weight <= 10;
+                    const isFinaliserNeeded = !p.isHistoricalFS && p.status === 'Audited' && !!handingTaking.adminAckDate && !handingTaking.publishDate && user && user.hierarchy_weight === 25;
                     const canAckHT = isDsAckNeeded || isJsAckNeeded || isAdminAckNeeded || isFinaliserNeeded;
                     
                     let actionButtonLabel = "Acknowledge receive of FS & AR";
@@ -1363,12 +1516,37 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex flex-col items-end space-y-2">
-                            <button 
-                              onClick={() => setViewDetailsProject(p)}
-                              className="inline-flex items-center space-x-2 px-3 py-1.5 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-xs font-semibold w-full justify-center md:w-auto"
-                            >
-                              <span>View AP & CL</span>
-                            </button>
+                            <div className="flex space-x-2 w-full md:w-auto">
+  <button 
+    onClick={() => setViewDetailsProject(p)}
+    className="flex-1 inline-flex items-center space-x-2 px-3 py-1.5 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-[10px] sm:text-xs font-semibold justify-center"
+  >
+    <span>View AP & CL</span>
+  </button>
+  <button 
+    onClick={() => handleExportAP(p)}
+    title="Export to Excel"
+    className="inline-flex items-center justify-center px-3 py-1.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-900/60 transition-colors"
+  >
+    <Download size={14} />
+  </button>
+</div>
+  {p.financialStatements && (
+    <div className="flex space-x-2 mt-2">
+      <button 
+        onClick={() => setViewFsProject(p)}
+        className="flex-1 inline-flex items-center space-x-2 px-3 py-1.5 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-900/60 transition-colors text-[10px] font-semibold justify-center"
+      >
+        <span>View FS</span>
+      </button>
+      <button 
+        onClick={() => setEditFsProject(p)}
+        className="flex-1 inline-flex items-center space-x-2 px-3 py-1.5 bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-900/60 transition-colors text-[10px] font-semibold justify-center"
+      >
+        <span>Edit FS</span>
+      </button>
+    </div>
+  )}
 
                             {canAckHT && (
                                 <button 
@@ -1422,10 +1600,10 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
 
                             {(canSupport || canApprove) && !p.metadata?.jsApproved && (
                                 <button 
-                                  onClick={() => handleRejectExtension(p)}
+                                  onClick={() => handleRequestRevise(p)}
                                 className="inline-flex items-center space-x-2 px-3 py-1.5 bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors text-xs font-semibold w-full justify-center md:w-auto"
                               >
-                                <span>Reject</span>
+                                <span>Request Revise</span>
                               </button>
                             )}
 
@@ -1467,6 +1645,14 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
             globalExecutionFY={selectedExecFyFilter}
           />
         )}
+        
+        
+        {activeTab === 'global_fs' && (
+          <div className="fade-in">
+             <GlobalFSDashboard projects={projects} fsGroups={fsGroups} />
+          </div>
+        )}
+
         {activeTab === 'reports' && (
           <ReportsDashboard 
               projects={projects}
@@ -1721,9 +1907,9 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                   const assignedJoint = users.find(u => u.id === p.metadata?.assignedJointId)?.name || 'Unassigned';
 
                     const handingTaking = p.metadata?.handingTaking || {};
-                    const isDsAckNeeded = p.status === 'Pending Support' && !handingTaking.dsAckDate && user && user.id === p.metadata?.assignedDeputyId;
-                    const isJsAckNeeded = (p.status === 'Pending Approval' || p.status === 'Pending Support') && !handingTaking.jsAckDate && user && user.id === p.metadata?.assignedJointId;
-                    const isAdminAckNeeded = (p.status === 'Audited' || p.status === 'Pending Approval' || p.status === 'Pending Support') && !handingTaking.adminAckDate && user && user.hierarchy_weight <= 10;
+                    const isDsAckNeeded = !p.isHistoricalFS && p.status === 'Pending Support' && !handingTaking.dsAckDate && user && user.id === p.metadata?.assignedDeputyId;
+                    const isJsAckNeeded = !p.isHistoricalFS && (p.status === 'Pending Approval' || p.status === 'Pending Support') && !handingTaking.jsAckDate && user && user.id === p.metadata?.assignedJointId;
+                    const isAdminAckNeeded = !p.isHistoricalFS && (p.status === 'Audited' || p.status === 'Pending Approval' || p.status === 'Pending Support') && !handingTaking.adminAckDate && user && user.hierarchy_weight <= 10;
 
                     return (
                     <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
@@ -1784,80 +1970,38 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex flex-col items-end space-y-2">
-                        <button 
-                          onClick={() => setViewDetailsProject(p)}
-                          className="inline-flex items-center space-x-2 px-3 py-1.5 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-xs font-semibold w-full justify-center md:w-auto"
-                        >
-                          <span>View AP & CL</span>
-                        </button>
-
-                        {p.status === 'Audited' && (
-                          p.is_admin_override ? (
-                            <div className="px-3 py-1.5 bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 rounded-lg text-xs font-semibold text-center w-full md:w-auto">
-                              Excel export not available due to Audit override by Admin
-                            </div>
-                          ) : (
-                            <button 
-                              onClick={() => handleExportExcel(p)}
-                              className="inline-flex items-center space-x-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors text-xs font-semibold w-full justify-center md:w-auto"
-                            >
-                              <Download size={14} />
-                              <span>Export Excel</span>
-                            </button>
-                          )
-                        )}
-                        
-                        {canSupport && (
-                          <button 
-                            onClick={() => handleSupportExtension(p)}
-                            className="inline-flex items-center space-x-2 px-3 py-1.5 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors text-xs font-semibold w-full justify-center md:w-auto"
-                          >
-                            <span>Support</span>
-                          </button>
-                        )}
-
-                        {canApprove && (
-                          <button 
-                            onClick={() => {
-                              if (isJsAckNeeded || isAdminAckNeeded) {
-                                alert("You must Acknowledge receipt of Financial Statement and Audit Report first!");
-                                return;
-                              }
-                              handleApproveExtension(p);
-                            }}
-                            className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold w-full justify-center md:w-auto transition-colors ${(isJsAckNeeded || isAdminAckNeeded) ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-50' : 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50'}`}
-                          >
-                            <span>Approve Extension</span>
-                          </button>
-                        )}
-
-                        {user && user.hierarchy_weight <= 20 && (
-                          <button 
-                            onClick={() => setReassignProject(p)}
-                            className="inline-flex items-center space-x-2 px-3 py-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-xs font-semibold w-full justify-center md:w-auto"
-                          >
-                            <span>Reassign</span>
-                          </button>
-                        )}
-
-                        <button 
-                          onClick={() => setHistoryLogView({ history: p.history || [], name: p.metadata?.unitName || 'Unknown Project' })}
-                          className="inline-flex items-center space-x-2 px-3 py-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-xs font-semibold w-full justify-center md:w-auto"
-                        >
-                          <CalendarDays size={14} />
-                          <span>History</span>
-                        </button>
-
-                        {user && user.hierarchy_weight <= 10 && (
-                          <button 
-                            onClick={() => handleAdminDeleteProject(p)}
-                            className="inline-flex items-center space-x-2 px-3 py-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors text-xs font-semibold w-full justify-center md:w-auto"
-                          >
-                            <Trash2 size={14} />
-                            <span>Force Delete</span>
-                          </button>
-                        )}
-                      </div>
+                        <div className="flex space-x-2 w-full md:w-auto">
+  <button 
+    onClick={() => setViewDetailsProject(p)}
+    className="flex-1 inline-flex items-center space-x-2 px-3 py-1.5 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-[10px] sm:text-xs font-semibold justify-center"
+  >
+    <span>View AP & CL</span>
+  </button>
+  <button 
+    onClick={() => handleExportAP(p)}
+    title="Export to Excel"
+    className="inline-flex items-center justify-center px-3 py-1.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-900/60 transition-colors"
+  >
+    <Download size={14} />
+  </button>
+</div>
+  {p.financialStatements && (
+    <div className="flex space-x-2 mt-2">
+      <button 
+        onClick={() => setViewFsProject(p)}
+        className="flex-1 inline-flex items-center space-x-2 px-3 py-1.5 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-900/60 transition-colors text-[10px] font-semibold justify-center"
+      >
+        <span>View FS</span>
+      </button>
+      <button 
+        onClick={() => setEditFsProject(p)}
+        className="flex-1 inline-flex items-center space-x-2 px-3 py-1.5 bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-900/60 transition-colors text-[10px] font-semibold justify-center"
+      >
+        <span>Edit FS</span>
+      </button>
+    </div>
+  )}
+                        </div>
                     </td>
                   </tr>
                   );
@@ -2337,7 +2481,159 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
             )}
           </div>
         )}
-        {activeTab === 'fy' && (
+        
+          {activeTab === 'fs_groups' && (
+            <div className="flex flex-col">
+              <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/20">
+                <h3 className="font-semibold text-slate-800 dark:text-slate-200">Financial Statement Groups</h3>
+                {!fsGroupForm && (
+                  <button 
+                    onClick={() => setFsGroupForm({ name: '', type: 'Asset', requiresBifurcation: false })}
+                    className="flex items-center space-x-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <Plus size={16} />
+                    <span>New Group</span>
+                  </button>
+                )}
+              </div>
+              
+              <div className="p-4 space-y-6">
+                <div className="bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 p-4 rounded-lg text-sm flex items-start space-x-3 border border-amber-200 dark:border-amber-700/30">
+                  <ShieldAlert className="shrink-0 mt-0.5" size={18} />
+                  <div>
+                    <p className="font-medium mb-1">Master Financial Statement Settings</p>
+                    <p>These groups will be universally available to all field auditors when building Balance Sheets. Use the "Requires Bifurcation" toggle for funds (like General Fund) that need the mathematical Opening Balance calculator.</p>
+                  </div>
+                </div>
+
+                {fsGroupForm && (
+                  <div className="bg-slate-50 dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4">
+                    <h4 className="font-medium text-slate-800 dark:text-slate-200 flex items-center space-x-2">
+                      <FolderOpen size={18} className="text-indigo-500" />
+                      <span>{fsGroupForm.id ? 'Edit FS Group' : 'Create New FS Group'}</span>
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-500 uppercase mb-1.5">Group Name</label>
+                        <input
+                          type="text"
+                          value={fsGroupForm.name || ''}
+                          onChange={(e) => setFsGroupForm({...fsGroupForm, name: e.target.value})}
+                          placeholder="e.g., General Fund"
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-500 uppercase mb-1.5">Category Type</label>
+                        <select
+                          value={fsGroupForm.type || 'Asset'}
+                          onChange={(e) => setFsGroupForm({...fsGroupForm, type: e.target.value as 'Asset'|'Liability'})}
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                          <option value="Liability">Liability</option>
+                          <option value="Asset">Asset</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center space-x-3 md:col-span-2">
+                        <input
+                          type="checkbox"
+                          id="bifurcation-toggle"
+                          checked={!!fsGroupForm.requiresBifurcation}
+                          onChange={(e) => setFsGroupForm({...fsGroupForm, requiresBifurcation: e.target.checked})}
+                          className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                        />
+                        <label htmlFor="bifurcation-toggle" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                          Require Bifurcation Calculator (Opening Balance + Surplus/Deficit)
+                        </label>
+                      </div>
+                    </div>
+                    <div className="flex justify-end space-x-3 pt-2">
+                      <button
+                        onClick={() => setFsGroupForm(null)}
+                        className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSaveFsGroup}
+                        disabled={isSavingFsGroup || !fsGroupForm.name}
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
+                      >
+                        {isSavingFsGroup ? 'Saving...' : 'Save Group'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Liabilities Column */}
+                  <div className="space-y-3">
+                    <h4 className="font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700 pb-2">Liabilities</h4>
+                    <div className="space-y-2">
+                      {fsGroups.filter(g => g.type === 'Liability').sort((a,b) => (a.order||0) - (b.order||0)).map(g => (
+                        <div 
+                          key={g.id} 
+                          draggable={g.name !== 'Others Group'}
+                          onDragStart={(e) => handleDragStart(e, g.id!)}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDropGroup(e, g.id!, 'Liability')}
+                          className={`flex justify-between items-center p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm ${draggedGroup === g.id ? 'opacity-50' : ''} ${g.name !== 'Others Group' ? 'cursor-move' : ''}`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            {g.name !== 'Others Group' ? <GripVertical size={18} className="text-slate-400" /> : <div className="w-[18px]"></div>}
+                            <div>
+                              <p className="font-medium text-slate-800 dark:text-slate-200">{g.name}</p>
+                              {g.requiresBifurcation && <span className="inline-block mt-1 px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-[10px] uppercase font-bold rounded">Bifurcation Required</span>}
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            {g.name !== 'Others Group' && (<button onClick={() => setFsGroupForm(g)} className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"><Edit2 size={16} /></button>)}
+                            {g.name !== 'Others Group' && (
+                              <button onClick={() => handleDeleteFsGroup(g.id!)} className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400"><Trash2 size={16} /></button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Assets Column */}
+                  <div className="space-y-3">
+                    <h4 className="font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700 pb-2">Assets</h4>
+                    <div className="space-y-2">
+                      {fsGroups.filter(g => g.type === 'Asset').sort((a,b) => (a.order||0) - (b.order||0)).map(g => (
+                        <div 
+                          key={g.id} 
+                          draggable={g.name !== 'Others Group'}
+                          onDragStart={(e) => handleDragStart(e, g.id!)}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDropGroup(e, g.id!, 'Asset')}
+                          className={`flex justify-between items-center p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm ${draggedGroup === g.id ? 'opacity-50' : ''} ${g.name !== 'Others Group' ? 'cursor-move' : ''}`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            {g.name !== 'Others Group' ? <GripVertical size={18} className="text-slate-400" /> : <div className="w-[18px]"></div>}
+                            <div>
+                              <p className="font-medium text-slate-800 dark:text-slate-200">{g.name}</p>
+                              {g.requiresBifurcation && <span className="inline-block mt-1 px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-[10px] uppercase font-bold rounded">Bifurcation Required</span>}
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            {g.name !== 'Others Group' && (<button onClick={() => setFsGroupForm(g)} className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"><Edit2 size={16} /></button>)}
+                            {g.name !== 'Others Group' && (
+                              <button onClick={() => handleDeleteFsGroup(g.id!)} className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400"><Trash2 size={16} /></button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'fy' && (
           <div className="flex flex-col">
             <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/20">
               <h3 className="font-semibold text-slate-800 dark:text-slate-200">Custom Financial Years</h3>
@@ -2637,6 +2933,25 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
           </div>
         </div>
       )}
+
+      
+      {/* FINANCIAL STATEMENT VIEWER MODAL */}
+      <FinancialStatementViewer
+          isOpen={!!viewFsProject}
+          onClose={() => setViewFsProject(null)}
+          project={viewFsProject}
+        />
+
+        {editFsProject && (
+          <FinancialStatementModal
+            isOpen={!!editFsProject}
+            onClose={() => setEditFsProject(null)}
+            onSubmit={handleEditFsSubmit}
+            financialYears={editFsProject.metadata?.financialYears || [editFsProject.metadata?.financialYear]}
+            unitName={editFsProject.metadata?.unitName}
+            initialData={editFsProject.financialStatements}
+          />
+        )}
 
       {/* VIEW DETAILS MODAL */}
       {viewDetailsProject && (

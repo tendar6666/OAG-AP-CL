@@ -5,6 +5,8 @@ import AuditProgramGrid from '@/components/AuditProgramGrid';
 import ChecklistGrid from '@/components/ChecklistGrid';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import MyCalendar from '@/components/MyCalendar';
+import FinancialStatementModal from '@/components/FinancialStatementModal';
+import FinancialStatementViewer from '@/components/FinancialStatementViewer';
 import { useAuth } from '@/context/AuthContext';
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -94,6 +96,11 @@ function HomeContent() {
   const [saveModalName, setSaveModalName] = useState('');
   
   // Project & Template tracking state
+  
+  const [showFsModal, setShowFsModal] = useState(false);
+  const [pendingFsStatus, setPendingFsStatus] = useState<'Draft' | 'Submitted' | 'DraftSubmitted'>('Draft');
+  const [viewFsProject, setViewFsProject] = useState<any>(null);
+
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [isExtendingMode, setIsExtendingMode] = useState(false);
   const [originalEndDate, setOriginalEndDate] = useState<string | undefined>(undefined);
@@ -246,7 +253,13 @@ function HomeContent() {
     setSaveModalOpen(true);
   };
 
-  const executeProjectSave = async (statusTarget: 'Draft' | 'Submitted' | 'DraftSubmitted') => {
+  
+  const handleFsSubmit = (fsData: any) => {
+    setShowFsModal(false);
+    executeProjectSave(pendingFsStatus, fsData);
+  };
+
+  const executeProjectSave = async (statusTarget: 'Draft' | 'Submitted' | 'DraftSubmitted', fsData?: any) => {
     setIsSaving(true);
     console.log("Starting project save process...");
     
@@ -301,7 +314,9 @@ function HomeContent() {
     const cleanChecklist = checklistData ? JSON.parse(JSON.stringify(checklistData)) : { items: [] };
 
     try {
-      const result = await api.saveProject({ 
+      const result = await api.saveProject({
+          financialStatements: fsData,
+          _cacheBuster: Date.now(), 
         id: currentProjectId,
         customId: currentCustomId,
         name, 
@@ -440,16 +455,16 @@ function HomeContent() {
       }
       
       if (statusTarget === 'Submitted') {
-        if (!window.confirm("ATTENTION: You are about to Submit Final.\n\nPlease confirm that you have completely finished submitting the Financial Statement and Audit Report before proceeding.")) {
+          setPendingFsStatus('Submitted');
+          setShowFsModal(true);
           return;
         }
-      }
-      
-      // Instantly save/submit without the modal
-      await executeProjectSave(statusTarget);
-  };
-
-  const handleBeginExtension = () => {
+        
+        // Instantly save/submit without the modal
+        await executeProjectSave(statusTarget);
+    };
+  
+    const handleBeginExtension = () => {
       setIsExtendingMode(true);
       alert("Please change the Audit End Date to your new extended date in the Audit Procedure grid.");
       setActiveTab('schedule');
@@ -1097,7 +1112,9 @@ function HomeContent() {
                         </span>
                       )}
                       {p.isRevised && !p.isExtended && (
-                        <span className="px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 text-xs font-bold rounded-full">Revised</span>
+                        <span className="px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 text-xs font-bold rounded-full">
+     {p.metadata?.revisionRequestedBy ? `Revision Requested by ${p.metadata.revisionRequestedBy}` : 'Revised'}
+   </span>
                       )}
                       {p.isExtended && (
                         <span className="px-2 py-0.5 bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-400 text-xs font-bold rounded-full">Extended AP & CL</span>
@@ -1447,6 +1464,25 @@ function HomeContent() {
             )}
             
           </div>
+
+
+      {showFsModal && (
+        <FinancialStatementModal
+          isOpen={showFsModal}
+          onClose={() => setShowFsModal(false)}
+          onSubmit={handleFsSubmit}
+          financialYears={financialYears}
+          unitName={unitName}
+        />
+      )}
+
+      
+      {/* FINANCIAL STATEMENT VIEWER MODAL */}
+      <FinancialStatementViewer
+        isOpen={!!viewFsProject}
+        onClose={() => setViewFsProject(null)}
+        project={viewFsProject}
+      />
 
       {/* Save Modal */}
       {saveModalOpen && (

@@ -60,6 +60,15 @@ export async function deleteUnit(id: string) {
 
 
 // ================= Unit Types =================
+
+export interface FSGroup {
+  id?: string;
+  name: string;
+  type: 'Liability' | 'Asset';
+  requiresBifurcation: boolean;
+  order: number;
+}
+
 export interface UnitType {
   id?: string;
   name: string;
@@ -287,3 +296,32 @@ export async function sendNtfyNotification(topic: string, title: string, message
     console.error('Failed to send push notification:', e);
   }
 }
+
+
+// ==========================================
+// FS GROUPS
+// ==========================================
+
+export const getFSGroups = async (): Promise<FSGroup[]> => {
+  const q = query(collection(db, 'fsGroups'), orderBy('order', 'asc'));
+  const snap = await getDocs(q);
+  const groups: FSGroup[] = [];
+  snap.forEach(doc => {
+    groups.push({ id: doc.id, ...doc.data() } as FSGroup);
+  });
+  return groups;
+};
+
+export const createFSGroup = async (groupData: Partial<FSGroup>) => {
+  const docRef = await addDoc(collection(db, 'fsGroups'), groupData);
+  return docRef.id;
+};
+
+export const updateFSGroup = async (id: string, groupData: Partial<FSGroup>) => {
+  const docRef = doc(db, 'fsGroups', id);
+  await updateDoc(docRef, groupData);
+};
+
+export const deleteFSGroup = async (id: string) => {
+  await deleteDoc(doc(db, 'fsGroups', id));
+};
