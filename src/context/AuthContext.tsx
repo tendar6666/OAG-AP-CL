@@ -11,6 +11,7 @@ export type UserRole = {
   hierarchy_weight: number;
   email?: string;
   isActive?: boolean;
+  nameChangedOnce?: boolean;
 };
 
 export const MOCK_USERS = {

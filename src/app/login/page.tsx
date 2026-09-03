@@ -262,26 +262,30 @@ export default function LoginPage() {
                 </optgroup>
               </select>
               <button 
+                type="button"
                 onClick={() => {
                   const val = (document.getElementById('devUserSelect') as HTMLSelectElement).value;
                   const [email, weightStr] = val.split('|');
                   autoLoginDev(email, 'password123', parseInt(weightStr));
                 }}
-                className="px-4 py-2 text-xs font-bold bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/50 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-400 rounded-lg transition-colors"
+                className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors"
               >
-                Fast Login
+                Auto Login
               </button>
            </div>
-           <div className="mt-3 text-center">
+           
+           <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-center">
               <button 
+                type="button"
                 onClick={seedAllDummyUsers}
                 disabled={loading}
-                className="px-4 py-2 w-full text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg transition-colors disabled:opacity-50"
+                className="text-xs text-rose-600 hover:text-rose-700 font-semibold"
               >
                 {loading ? 'Seeding...' : 'Seed Database with All Dummy Users'}
               </button>
            </div>
         </div>
+
       </div>
     </div>
   );

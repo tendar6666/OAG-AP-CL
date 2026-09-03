@@ -97,8 +97,19 @@ export default function AnalyticsDashboard({
     // 1. Calculate Expected Units for the Target FY and apply Branch & Name filters
     let expectedUnits = units.filter(u => {
       if (u.is_active === false) return false;
-      // If no active_from_fy, assume it's always been active
-      if (u.active_from_fy && targetFY !== 'ALL' && compareFY(targetFY, u.active_from_fy) < 0) return false;
+      
+      // Check if there is an explicit project for this unit that matches the targetFY
+      const pName = (u.name || '').trim().toLowerCase();
+      const fNum = (u.file_number || '').trim().toLowerCase();
+      const hasExplicitProject = projects.some(p => {
+         const projName = (p.metadata?.unitName || '').trim().toLowerCase();
+         const matchName = projName === pName || (fNum && projName === `${fNum} ${pName}`);
+         const pTargetFys = p.metadata?.financialYears || [p.metadata?.financialYear];
+         return matchName && (targetFY === 'ALL' || pTargetFys.includes(targetFY));
+      });
+
+      // If no explicit project exists for this year, and the unit is technically not active yet, hide it
+      if (!hasExplicitProject && u.active_from_fy && targetFY !== 'ALL' && compareFY(targetFY, u.active_from_fy) < 0) return false;
       
       if (filterBranch !== 'ALL' && u.branch !== filterBranch) return false;
       if (filterType !== 'ALL') {
@@ -119,7 +130,7 @@ export default function AnalyticsDashboard({
       if (filterAuditor !== 'ALL') {
          const hasProjectForAuditor = projects.some(p => {
            if (p.metadata?.auditorName !== filterAuditor) return false;
-           if (targetFY !== 'ALL' && p.metadata?.financialYear !== targetFY) return false;
+           if (targetFY !== 'ALL' && !(p.metadata?.financialYears || [p.metadata?.financialYear]).includes(targetFY)) return false;
            
            const pName = (p.metadata?.unitName || '').trim().toLowerCase();
            const uName = (u.name || '').trim().toLowerCase();
@@ -134,8 +145,8 @@ export default function AnalyticsDashboard({
 
     // 2. Filter Projects for the Target FY (and optionally Execution FY) and apply ALL filters
     const matchingProjects = projects.filter(p => {
-      const pTargetFY = p.metadata?.financialYear;
-      if (targetFY !== 'ALL' && pTargetFY !== targetFY) return false;
+      const pTargetFys = p.metadata?.financialYears || [p.metadata?.financialYear];
+      if (targetFY !== 'ALL' && !pTargetFys.includes(targetFY)) return false;
       
       if (executionFY !== 'ALL') {
         const pExecFY = p.metadata?.executionFY;
@@ -212,8 +223,10 @@ export default function AnalyticsDashboard({
     });
 
     // Categorize
-    const completed = unitStatuses.filter(u => u.status === 'Audited');
-    const pendingApproval = unitStatuses.filter(u => u.status === 'Pending Approval' || u.status === 'Extension Supported');
+    const getRecentTimestamp = (u: any) => Math.max(...u.projects.map((p: any) => new Date(p.updatedAt || p.createdAt || p.submittedAt || 0).getTime()), 0);
+
+    const completed = unitStatuses.filter(u => u.status === 'Audited').sort((a, b) => getRecentTimestamp(b) - getRecentTimestamp(a));
+    const pendingApproval = unitStatuses.filter(u => u.status === 'Pending Approval' || u.status === 'Extension Supported').sort((a, b) => getRecentTimestamp(b) - getRecentTimestamp(a));
     const inProgress = unitStatuses.filter(u => 
       u.status === 'Draft' || 
       u.status === 'Pending Support' || 
@@ -221,8 +234,9 @@ export default function AnalyticsDashboard({
       u.status === 'Submitted' ||
       u.status === 'Draft AP & CL Submitted' ||
       u.status === 'Draft AP & CL Supported' ||
-      u.status === 'Draft AP & CL Approved'
-    );
+      u.status === 'Draft AP & CL Approved' ||
+      u.status === 'Extended (Approved)'
+    ).sort((a, b) => getRecentTimestamp(b) - getRecentTimestamp(a));
     const notStarted = unitStatuses.filter(u => u.status === 'Not Started');
 
     const total = expectedUnits.length;
@@ -517,7 +531,143 @@ export default function AnalyticsDashboard({
         </div>
       </div>
 
-      {/* The Naughty List */}
+      {/* The In Progress List */}
+      <div id="list-inprogress" className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mt-6">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-amber-50/50 dark:bg-amber-900/10 flex justify-between items-center">
+          <h3 className="font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-2">
+            <Clock size={18} /> In Progress Units ({targetFY})
+          </h3>
+          <span className="bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 text-xs font-bold px-2 py-1 rounded-full">
+            {analyticsData.inProgress.length} Units
+          </span>
+        </div>
+        <div className={isExporting ? "" : "max-h-96 overflow-y-auto"}>
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 sticky top-0 z-10 shadow-sm">
+              <tr>
+                <th className="px-6 py-3 font-semibold">Unit Name</th>
+                <th className="px-6 py-3 font-semibold">Branch</th>
+                <th className="px-6 py-3 font-semibold">Auditor</th>
+                <th className="px-6 py-3 font-semibold">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {analyticsData.inProgress.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                    No units are currently in progress.
+                  </td>
+                </tr>
+              ) : (
+                analyticsData.inProgress.map(({ unit, projects }) => (
+                  <tr key={unit.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <td className="px-6 py-3">
+                      <div className="font-medium text-slate-800 dark:text-slate-200">{unit.file_number ? `${unit.file_number} ${unit.name}` : unit.name}</div>
+                      <div className="text-xs text-slate-400">{unit.tibetan_name}</div>
+                    </td>
+                    <td className="px-6 py-3 text-slate-500">{unit.branch || '-'}</td>
+                    <td className="px-6 py-3 text-slate-500">
+                      {(() => {
+                          const auditors = projects && projects.length > 0 ? Array.from(new Set(projects.map((p: any) => p.metadata?.auditorName).filter(Boolean))) : [];
+                          return (
+                            <>
+                              {auditors.length > 0 ? auditors.join(', ') : '-'}
+                              {auditors.length > 1 && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400">Team Work</span>}
+                            </>
+                          );
+                        })()}
+                    </td>
+                    <td className="px-6 py-3 text-slate-500 flex gap-1 flex-wrap">
+                      {projects && projects.length > 0 ? projects.map((p: any, i: number) => (
+                        <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                          {p.status || 'In Progress'}
+                        </span>
+                      )) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                          In Progress
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+{/* The Good List */}
+      <div id="list-completed" className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mt-6">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-emerald-50/50 dark:bg-emerald-900/10 flex justify-between items-center">
+          <h3 className="font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+            <CheckCircle size={18} /> Audited Units ({targetFY})
+          </h3>
+          <span className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400 text-xs font-bold px-2 py-1 rounded-full">
+            {analyticsData.completed.length} Units
+          </span>
+        </div>
+        <div className={isExporting ? "" : "max-h-96 overflow-y-auto"}>
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 sticky top-0 z-10 shadow-sm">
+              <tr>
+                <th className="px-6 py-3 font-semibold">Unit Name</th>
+                <th className="px-6 py-3 font-semibold">Branch</th>
+                <th className="px-6 py-3 font-semibold">Auditor</th>
+                {userRole <= 10 && onAdminRevert && <th className="px-6 py-3 font-semibold text-right">Actions</th>}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {analyticsData.completed.length === 0 ? (
+                <tr>
+                  <td colSpan={userRole <= 10 && onAdminRevert ? 4 : 3} className="px-6 py-8 text-center text-slate-500">
+                    No audited units found for this financial year yet.
+                  </td>
+                </tr>
+              ) : (
+                analyticsData.completed.map(({ unit, projects }) => (
+                  <tr key={unit.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <td className="px-6 py-3">
+                      <div className="font-medium text-slate-800 dark:text-slate-200">{unit.file_number ? `${unit.file_number} ${unit.name}` : unit.name}</div>
+                      <div className="text-xs text-slate-400">
+                        {projects && projects.some((p: any) => p.is_admin_override) ? (
+                           <span className="text-emerald-500 font-bold">Admin Override</span>
+                        ) : 'Normal Submission'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-3 text-slate-600 dark:text-slate-400">{unit.branch || 'Head Office'}</td>
+                    <td className="px-6 py-3 text-slate-600 dark:text-slate-400 text-xs">
+                      {(() => {
+                          const auditors = projects && projects.length > 0 ? Array.from(new Set(projects.map((p: any) => p.metadata?.auditorName).filter(Boolean))) : [];
+                          return (
+                            <>
+                              {auditors.length > 0 ? auditors.join(', ') : 'N/A'}
+                              {auditors.length > 1 && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400">Team Work</span>}
+                            </>
+                          );
+                        })()}
+                    </td>
+                      {userRole <= 10 && onAdminRevert && projects && projects.length > 0 && (
+                        <td className="px-6 py-3 text-right">
+                          {projects.map((project: any, i: number) => project.is_admin_override ? (
+                            <button
+                              key={i}
+                              onClick={() => onAdminRevert(project)}
+                              className="px-3 py-1.5 bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-900/30 dark:text-rose-400 dark:hover:bg-rose-900/50 rounded text-xs font-semibold transition-colors mb-1"
+                            >
+                              Remove Override
+                            </button>
+                          ) : null)}
+                        </td>
+                      )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+{/* The Naughty List */}
       <div id="list-pending" className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mt-6">
         <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-rose-50/50 dark:bg-rose-900/10 flex justify-between items-center">
           <h3 className="font-semibold text-rose-800 dark:text-rose-300 flex items-center gap-2">
@@ -563,128 +713,6 @@ export default function AnalyticsDashboard({
                         </button>
                       </td>
                     )}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* The In Progress List */}
-      <div id="list-inprogress" className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mt-6">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-amber-50/50 dark:bg-amber-900/10 flex justify-between items-center">
-          <h3 className="font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-2">
-            <Clock size={18} /> In Progress Units ({targetFY})
-          </h3>
-          <span className="bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 text-xs font-bold px-2 py-1 rounded-full">
-            {analyticsData.inProgress.length} Units
-          </span>
-        </div>
-        <div className={isExporting ? "" : "max-h-96 overflow-y-auto"}>
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 sticky top-0 z-10 shadow-sm">
-              <tr>
-                <th className="px-6 py-3 font-semibold">Unit Name</th>
-                <th className="px-6 py-3 font-semibold">Branch</th>
-                <th className="px-6 py-3 font-semibold">Auditor</th>
-                <th className="px-6 py-3 font-semibold">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {analyticsData.inProgress.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
-                    No units are currently in progress.
-                  </td>
-                </tr>
-              ) : (
-                analyticsData.inProgress.map(({ unit, projects }) => (
-                  <tr key={unit.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                    <td className="px-6 py-3">
-                      <div className="font-medium text-slate-800 dark:text-slate-200">{unit.file_number ? `${unit.file_number} ${unit.name}` : unit.name}</div>
-                      <div className="text-xs text-slate-400">{unit.tibetan_name}</div>
-                    </td>
-                    <td className="px-6 py-3 text-slate-500">{unit.branch || '-'}</td>
-                    <td className="px-6 py-3 text-slate-500">
-                      {projects && projects.length > 0 ? Array.from(new Set(projects.map((p: any) => p.metadata?.auditorName).filter(Boolean))).join(', ') : '-'}
-                      {projects && projects.length > 1 && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400">Team Work</span>}
-                    </td>
-                    <td className="px-6 py-3 text-slate-500 flex gap-1 flex-wrap">
-                      {projects && projects.length > 0 ? projects.map((p: any, i: number) => (
-                        <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
-                          {p.status || 'In Progress'}
-                        </span>
-                      )) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
-                          In Progress
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* The Good List */}
-      <div id="list-completed" className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mt-6">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-emerald-50/50 dark:bg-emerald-900/10 flex justify-between items-center">
-          <h3 className="font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
-            <CheckCircle size={18} /> Audited Units ({targetFY})
-          </h3>
-          <span className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400 text-xs font-bold px-2 py-1 rounded-full">
-            {analyticsData.completed.length} Units
-          </span>
-        </div>
-        <div className={isExporting ? "" : "max-h-96 overflow-y-auto"}>
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 sticky top-0 z-10 shadow-sm">
-              <tr>
-                <th className="px-6 py-3 font-semibold">Unit Name</th>
-                <th className="px-6 py-3 font-semibold">Branch</th>
-                <th className="px-6 py-3 font-semibold">Auditor</th>
-                {userRole <= 10 && onAdminRevert && <th className="px-6 py-3 font-semibold text-right">Actions</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {analyticsData.completed.length === 0 ? (
-                <tr>
-                  <td colSpan={userRole <= 10 && onAdminRevert ? 4 : 3} className="px-6 py-8 text-center text-slate-500">
-                    No audited units found for this financial year yet.
-                  </td>
-                </tr>
-              ) : (
-                analyticsData.completed.map(({ unit, projects }) => (
-                  <tr key={unit.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                    <td className="px-6 py-3">
-                      <div className="font-medium text-slate-800 dark:text-slate-200">{unit.file_number ? `${unit.file_number} ${unit.name}` : unit.name}</div>
-                      <div className="text-xs text-slate-400">
-                        {projects && projects.some((p: any) => p.is_admin_override) ? (
-                           <span className="text-emerald-500 font-bold">Admin Override</span>
-                        ) : 'Normal Submission'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-3 text-slate-600 dark:text-slate-400">{unit.branch || 'Head Office'}</td>
-                    <td className="px-6 py-3 text-slate-600 dark:text-slate-400 text-xs">
-                      {projects && projects.length > 0 ? Array.from(new Set(projects.map((p: any) => p.metadata?.auditorName).filter(Boolean))).join(', ') : 'N/A'}
-                      {projects && projects.length > 1 && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400">Team Work</span>}
-                    </td>
-                      {userRole <= 10 && onAdminRevert && projects && projects.length > 0 && (
-                        <td className="px-6 py-3 text-right">
-                          {projects.map((project: any, i: number) => project.is_admin_override ? (
-                            <button
-                              key={i}
-                              onClick={() => onAdminRevert(project)}
-                              className="px-3 py-1.5 bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-900/30 dark:text-rose-400 dark:hover:bg-rose-900/50 rounded text-xs font-semibold transition-colors mb-1"
-                            >
-                              Remove Override
-                            </button>
-                          ) : null)}
-                        </td>
-                      )}
                   </tr>
                 ))
               )}

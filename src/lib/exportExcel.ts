@@ -2,11 +2,12 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 export async function exportToExcel(payload: any) {
-  const { unitName, auditorName, financialYear, auditTotals } = payload.metadata;
+  const { unitName, auditorName, financialYear, financialYears, auditTotals } = payload.metadata;
+  const fyString = (financialYears && financialYears.length > 0) ? financialYears.join(', ') : financialYear;
   const gridData = payload.gridData;
   const checklistData = payload.checklistData;
 
-  const filename = `${unitName || 'Unknown Unit'} AP & CL (${financialYear || 'Unknown FY'}).xlsx`;
+  const filename = `${unitName || 'Unknown Unit'} AP & CL (${fyString || 'Unknown FY'}).xlsx`;
   const wb = new ExcelJS.Workbook();
 
   const applyHeaderStyles = (ws: ExcelJS.Worksheet, numCols: number, startDate: string, endDate: string) => {
@@ -20,7 +21,7 @@ export async function exportToExcel(payload: any) {
     ws.getCell('A1').font = titleFont;
     ws.getCell('A2').value = `Auditor Name: ${auditorName}`;
     ws.getCell('A2').font = titleFont;
-    ws.getCell('A3').value = `Financial Year: ${financialYear}`;
+    ws.getCell('A3').value = `Financial Year: ${fyString}`;
     ws.getCell('A3').font = titleFont;
     ws.getCell('A4').value = `Audit Period: ${startDate} to ${endDate}`;
     ws.getCell('A4').font = titleFont;
@@ -83,7 +84,7 @@ export async function exportToExcel(payload: any) {
   };
 
   addBoldRow("1.", "Name of the Units/Institution", unitName);
-  addBoldRow("2.", "Financial Year", financialYear);
+  addBoldRow("2.", "Financial Year", fyString);
   addBoldRow("3.", "Auditor", auditorName);
 
   let m = 3; let s = 0; let ss = 0;

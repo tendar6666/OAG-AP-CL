@@ -61,10 +61,17 @@ export default function SettingsPage() {
 
   const handleSaveName = async () => {
     if (!nameInput.trim() || nameInput === user.name) return;
+    
+    // Admins can bypass this
+    if (user.hierarchy_weight > 10 && user.nameChangedOnce) {
+       alert("You have already changed your name once. Please contact an admin to change it again.");
+       return;
+    }
+
     setIsSavingName(true);
     try {
       await api.updateUserName(user.id!, nameInput.trim());
-      setUser({ ...user, name: nameInput.trim() });
+      setUser({ ...user, name: nameInput.trim(), nameChangedOnce: true });
       alert("Profile updated successfully!");
     } catch (e) {
       alert("Failed to update profile.");

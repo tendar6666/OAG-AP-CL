@@ -154,9 +154,9 @@ export async function updateUserRole(userId: string, newWeight: number) {
   await updateDoc(docRef, { hierarchy_weight: newWeight });
 }
 
-export async function updateUserName(userId: string, newName: string) {
+export async function updateUserName(userId: string, newName: string, nameChangedOnce: boolean = true) {
   const docRef = doc(db, "users", userId);
-  await updateDoc(docRef, { name: newName });
+  await updateDoc(docRef, { name: newName, nameChangedOnce });
 }
 
 export async function deleteUserAccount(userId: string) {
@@ -178,16 +178,19 @@ export async function updateUserNtfyTopic(userId: string, newTopic: string) {
 export async function getProjects(targetFy: string = 'ALL', execFy: string = 'ALL') {
   let q: any = collection(db, "projects");
   
-  if (targetFy !== 'ALL' && execFy !== 'ALL') {
-    q = query(q, where("metadata.financialYear", "==", targetFy), where("metadata.executionFY", "==", execFy));
-  } else if (targetFy !== 'ALL') {
-    q = query(q, where("metadata.financialYear", "==", targetFy));
-  } else if (execFy !== 'ALL') {
+  if (execFy !== 'ALL') {
     q = query(q, where("metadata.executionFY", "==", execFy));
   }
 
   const querySnapshot = await getDocs(q);
   let projects = querySnapshot.docs.map(doc => ({ ...(doc.data() as any), id: doc.id } as any));
+  
+  if (targetFy !== 'ALL') {
+    projects = projects.filter(p => {
+       const fys = p.metadata?.financialYears || (p.metadata?.financialYear ? [p.metadata.financialYear] : []);
+       return fys.includes(targetFy);
+    });
+  }
   
   // Sort locally to avoid needing a complex composite index in Firestore
   projects.sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());

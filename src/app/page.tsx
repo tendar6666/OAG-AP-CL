@@ -8,7 +8,7 @@ import MyCalendar from '@/components/MyCalendar';
 import { useAuth } from '@/context/AuthContext';
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, Trash2, Plus } from 'lucide-react';
 
 const API_BASE = process.env.NODE_ENV === 'development' ? 'http://127.0.0.1:8000' : '';
 
@@ -64,7 +64,8 @@ function HomeContent() {
   // New Section State
   const [unitName, setUnitName] = useState('');
   const [selectedBranchFilter, setSelectedBranchFilter] = useState('ALL');
-  const [financialYear, setFinancialYear] = useState('');
+  const [financialYears, setFinancialYears] = useState<string[]>(['']);
+  const financialYear = financialYears[0] || '';
   const [auditorName, setAuditorName] = useState(user.name);
   const [isRevised, setIsRevised] = useState(false); const [isLockedRevised, setIsLockedRevised] = useState(false);
   
@@ -146,7 +147,7 @@ function HomeContent() {
             setLoadedChecklistData(defaultTemplate.checklistData);
             if(defaultTemplate.metadata) {
                setUnitName(defaultTemplate.metadata.unitName || '');
-               if (defaultTemplate.metadata.financialYear) setFinancialYear(defaultTemplate.metadata.financialYear);
+               if (defaultTemplate.metadata.financialYears) setFinancialYears(defaultTemplate.metadata.financialYears); else if (defaultTemplate.metadata.financialYear) setFinancialYears([defaultTemplate.metadata.financialYear]);
             }
          }
          sessionStorage.removeItem('pendingLoadConsumed');
@@ -194,7 +195,7 @@ function HomeContent() {
                   else setLoadedTotals(null);
                 setUnitName(p.metadata.unitName || '');
                 setAuditorName(p.metadata.auditorName || user.name);
-                if (p.metadata.financialYear) setFinancialYear(p.metadata.financialYear);
+                if (p.metadata.financialYears) setFinancialYears(p.metadata.financialYears); else if (p.metadata.financialYear) setFinancialYears([p.metadata.financialYear]);
                 setAssignedDeputyId(p.metadata.assignedDeputyId || '');
                 setAssignedJointId(p.metadata.assignedJointId || '');
              }
@@ -219,7 +220,7 @@ function HomeContent() {
                   else setLoadedTotals(null);
                 setUnitName(t.metadata.unitName || '');
                 setAuditorName(t.metadata.auditorName || user.name);
-                if (t.metadata.financialYear) setFinancialYear(t.metadata.financialYear);
+                if (t.metadata.financialYears) setFinancialYears(t.metadata.financialYears); else if (t.metadata.financialYear) setFinancialYears([t.metadata.financialYear]);
              }
           }
        }
@@ -250,7 +251,9 @@ function HomeContent() {
     console.log("Starting project save process...");
     
     // Auto-generate name based on unit and FY instead of asking the user
-    const name = `${unitName.trim()} (${financialYear.trim()})`;
+    const formattedFYs = financialYears.map((fy, i) => i === 0 ? fy : fy.replace('FY ', '')).join(', ');
+      const suffix = financialYears.length > 1 ? ' (Multi-Year)' : '';
+      const name = `${unitName.trim()} ${formattedFYs}${suffix}`;
     
     const gridData = gridRef.current?.getData() || [];
     const checklistData = checklistRef.current?.getData() || [];
@@ -260,15 +263,7 @@ function HomeContent() {
     const executionDateToUse = auditTotals?.endDate || auditTotals?.startDate || new Date().toISOString();
     const executionFY = getIndianFY(executionDateToUse);
 
-    const metadataPayload: any = { 
-      unitName, 
-      auditorName, 
-      financialYear, 
-      executionFY,
-      assignedDeputyId,
-      assignedJointId,
-      auditTotals 
-    };
+    const metadataPayload: any = { unitName, auditorName, financialYear: financialYears[0], financialYears, executionFY, assignedDeputyId, assignedJointId, auditTotals };
     if (statusTarget === 'Submitted' || statusTarget === 'DraftSubmitted') {
       metadataPayload.dsSupported = false;
       metadataPayload.jsApproved = false;
@@ -398,7 +393,7 @@ function HomeContent() {
         alert("Please enter the Name of the Units/Institution before saving.");
         return;
       }
-      if (!financialYear.trim()) {
+      if (financialYears.some(fy => !fy.trim())) {
         alert("Please enter the Financial Year before saving.");
         return;
       }
@@ -569,24 +564,13 @@ function HomeContent() {
          const payload = {
             id: currentProjectId,
             customId: currentCustomId,
-            name: saveModalName || currentCustomId || unitName,
+            name: `${unitName.trim()} ${financialYears.map((fy, i) => i === 0 ? fy : fy.replace('FY ', '')).join(', ')}${financialYears.length > 1 ? ' (Multi-Year)' : ''}`,
             status: newStatus,
             isExtended: true,
             isRevised: true,
             gridData: cleanGrid,
             checklistData: cleanChecklist,
-            metadata: {
-              unitName,
-              auditorName,
-              financialYear,
-              executionFY,
-              assignedDeputyId,
-              assignedJointId,
-              auditTotals,
-              originalEndDate,
-              dsSupported: false,
-              jsApproved: false
-            }
+            metadata: { unitName, auditorName, financialYear: financialYears[0], financialYears, executionFY, assignedDeputyId, assignedJointId, auditTotals, originalEndDate, dsSupported: false, jsApproved: false }
          };
          
          await api.saveProject(payload, {
@@ -654,7 +638,7 @@ function HomeContent() {
         const payload = {
             gridData,
             checklistData: checklistData,
-            metadata: { unitName, auditorName, financialYear, auditTotals }
+            metadata: { unitName, auditorName, financialYear: financialYears[0], financialYears, auditTotals }
         };
         
         // Dynamic import for export to avoid bloat
@@ -687,15 +671,7 @@ function HomeContent() {
     const executionDateToUse = auditTotals?.endDate || auditTotals?.startDate || new Date().toISOString();
     const executionFY = getIndianFY(executionDateToUse);
 
-    const metadataPayload = { 
-      unitName, 
-      auditorName, 
-      financialYear, 
-      executionFY,
-      assignedDeputyId,
-      assignedJointId,
-      auditTotals 
-    };
+    const metadataPayload = { unitName, auditorName, financialYear: financialYears[0], financialYears, executionFY, assignedDeputyId, assignedJointId, auditTotals };
 
     const isSubmit = saveModalType === 'submit';
     const finalStatus = isSubmit ? 'Submitted' : 'Draft';
@@ -1033,7 +1009,7 @@ function HomeContent() {
     const myProjects = savedProjects.filter(p => p.createdBy === user.id);
     
     const filteredProjects = myProjects.filter(p => {
-      if (selectedProjectTargetFy !== 'ALL' && p.metadata?.financialYear !== selectedProjectTargetFy) return false;
+      if (selectedProjectTargetFy !== 'ALL' && !(p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedProjectTargetFy)) return false;
       if (selectedProjectFy !== 'ALL' && p.metadata?.executionFY !== selectedProjectFy) return false;
       return true;
     });
@@ -1242,35 +1218,65 @@ function HomeContent() {
                   {/* Financial Year */}
                   <div className="flex flex-col">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Financial Year</label>
-                    <select 
-                      value={financialYear}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === 'LOAD_MORE_FUTURE') {
-                          setFyOffsetTop(prev => prev + 5);
-                        } else if (val === 'LOAD_MORE_PAST') {
-                          setFyOffsetBottom(prev => prev + 5);
-                        } else {
-                          setFinancialYear(val);
-                        }
-                      }}
-                      className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      <option value="" disabled>Select FY...</option>
-                      <option value="LOAD_MORE_FUTURE" className="font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30">↑ Load 5 more future FY...</option>
-                      {recentFYs.map(fy => <option key={fy} value={fy}>{fy}</option>)}
-                      <option value="LOAD_MORE_PAST" className="font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30">↓ Load 5 more older FY...</option>
-                      {financialYear && !recentFYs.includes(financialYear) && financialYear !== 'LOAD_MORE_FUTURE' && financialYear !== 'LOAD_MORE_PAST' && (
-                        <option value={financialYear}>{financialYear}</option>
-                      )}
-                    </select>
-                    <button 
-                      type="button" 
-                      onClick={() => setIsFyModalOpen(true)}
-                      className="text-[10px] text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline mt-1.5 text-left font-medium"
-                    >
-                      Find custom financial year
-                    </button>
+                    <div className="space-y-2">
+                      {financialYears.map((fy, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <select 
+                            value={fy}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === 'LOAD_MORE_FUTURE') {
+                                setFyOffsetTop(prev => prev + 5);
+                              } else if (val === 'LOAD_MORE_PAST') {
+                                setFyOffsetBottom(prev => prev + 5);
+                              } else {
+                                if (financialYears.includes(val)) {
+                                  alert("This Financial Year is already selected. Please choose a different one.");
+                                  return;
+                                }
+                                const newFys = [...financialYears];
+                                newFys[index] = val;
+                                setFinancialYears(newFys);
+                              }
+                            }}
+                            className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer flex-1"
+                          >
+                            <option value="" disabled>Select FY...</option>
+                            <option value="LOAD_MORE_FUTURE" className="font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30">? Load 5 more future FY...</option>
+                            {recentFYs.map(recentFy => <option key={recentFy} value={recentFy}>{recentFy}</option>)}
+                            <option value="LOAD_MORE_PAST" className="font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30">? Load 5 more older FY...</option>
+                            {fy && !recentFYs.includes(fy) && fy !== 'LOAD_MORE_FUTURE' && fy !== 'LOAD_MORE_PAST' && (
+                              <option value={fy}>{fy}</option>
+                            )}
+                          </select>
+                          {financialYears.length > 1 && (
+                            <button 
+                              type="button" 
+                              onClick={() => setFinancialYears(financialYears.filter((_, i) => i !== index))}
+                              className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex flex-col mt-2 space-y-1">
+                      <button 
+                        type="button" 
+                        onClick={() => setFinancialYears([...financialYears, ''])}
+                        className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center font-semibold text-left"
+                      >
+                        <Plus size={12} className="mr-1" /> Add another FY
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setIsFyModalOpen(true)}
+                        className="text-[10px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:underline text-left font-medium"
+                      >
+                        Find custom financial year
+                      </button>
+                    </div>
                   </div>
 
                   {/* Auditor Name */}
@@ -1505,7 +1511,14 @@ function HomeContent() {
               {customFys.map(fy => (
                 <div 
                   key={fy.id} 
-                  onClick={() => { setFinancialYear(fy.name); setIsFyModalOpen(false); }}
+                  onClick={() => { 
+                  if (financialYears.includes(fy.name)) {
+                    alert("This custom Financial Year is already selected.");
+                  } else {
+                    setFinancialYears(prev => { const arr = [...prev]; arr[arr.length - 1] = fy.name; return arr; }); 
+                    setIsFyModalOpen(false); 
+                  }
+                }}
                   className="p-3 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:cursor-not-allowed cursor-pointer transition-colors group"
                 >
                   <div className="font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">{fy.name}</div>

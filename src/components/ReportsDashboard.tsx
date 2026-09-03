@@ -42,7 +42,7 @@ export default function ReportsDashboard({
   // Filter projects
   const filteredProjects = projects.filter(p => {
     // 1. Global Filters
-    if (globalUnitFY !== 'ALL' && p.metadata?.financialYear !== globalUnitFY) return false;
+    if (globalUnitFY !== 'ALL' && !(p.metadata?.financialYears || [p.metadata?.financialYear]).includes(globalUnitFY)) return false;
     if (globalExecutionFY !== 'ALL' && p.metadata?.executionFY !== globalExecutionFY) return false;
 
     // 2. Date Filters (Overlap check)

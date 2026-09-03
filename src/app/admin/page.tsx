@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useSearchParams } from 'next/navigation';
 import { getUsers, updateUserRole, getProjects, getUnits, createUnit, updateUnit, deleteUnit, getCustomFYs, createCustomFY, deleteCustomFY, getUnitTypes, createUnitType, updateUnitType, deleteUnitType, AuditUnit, CustomFY, UnitType } from '@/lib/api';
-import { Users, FileSpreadsheet, ShieldAlert, Download, Save, Building2, Plus, Edit2, Trash2, CalendarDays, Ban, CheckCircle, Search, Filter, RefreshCw, ChevronRight, ChevronDown, Folder, FolderOpen, Network } from 'lucide-react';
+import { Users, FileSpreadsheet, ShieldAlert, Download, Save, Building2, Plus, Edit2, Trash2, CalendarDays, Ban, CheckCircle, Search, Filter, RefreshCw, ChevronRight, ChevronDown, Folder, FolderOpen, Network, MessageSquare } from 'lucide-react';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import ReportsDashboard from '@/components/ReportsDashboard';
 
@@ -23,11 +23,11 @@ export function getStatusBadge(p: any) {
   
   if (p.status === 'Draft') return { label: 'Draft', color: 'bg-slate-100 text-slate-700 border-slate-200' };
   if (isPendingDraftSupport) return { label: 'Draft Submitted', color: 'bg-orange-100 text-orange-700 border-orange-200' };
-  if (isPendingDraftApproval) return { label: 'Draft Support Pending', color: 'bg-sky-100 text-sky-700 border-sky-200' };
+  if (isPendingDraftApproval) return { label: 'Draft Supported', color: 'bg-sky-100 text-sky-700 border-sky-200' };
   if (p.status === 'Draft AP & CL Approved') return { label: 'Draft Approved', color: 'bg-teal-100 text-teal-700 border-teal-200' };
   
   if (p.status === 'Extension Requested') return { label: 'Extension Submitted', color: 'bg-amber-100 text-amber-700 border-amber-200' };
-  if (p.status === 'Extension Supported') return { label: 'Extension Support', color: 'bg-blue-100 text-blue-700 border-blue-200' };
+  if (p.status === 'Extension Supported') return { label: 'Extension Supported', color: 'bg-blue-100 text-blue-700 border-blue-200' };
   if (p.status === 'Extended (Approved)') return { label: 'Extension Approved', color: 'bg-teal-100 text-teal-700 border-teal-200' };
   
   if (isPendingSupport) return { label: 'Final Submitted', color: 'bg-amber-100 text-amber-700 border-amber-200' };
@@ -302,6 +302,39 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [reassignProject, setReassignProject] = useState<any>(null);
   const [viewDetailsProject, setViewDetailsProject] = useState<any>(null); const [handingTakingModal, setHandingTakingModal] = useState<any>(null); const [htCustomDate, setHtCustomDate] = useState<string>('');
+
+  const [remarkModal, setRemarkModal] = useState<{project: any, field: string} | null>(null);
+  const [remarkText, setRemarkText] = useState('');
+
+  const handleSaveRemark = async () => {
+      if (!remarkModal) return;
+      try {
+          const api = await import('@/lib/api');
+          const { project, field } = remarkModal;
+          const newHandingTaking = { ...project.metadata?.handingTaking, [`${field}Remark`]: remarkText };
+          const newMetadata = { ...project.metadata, handingTaking: newHandingTaking };
+          await api.saveProject({ ...project, metadata: newMetadata });
+          setRemarkModal(null);
+          fetchProjects();
+      } catch (e) { alert("Failed"); }
+  };
+
+  const handleHandingTakingNA = async (project: any) => {
+      if (!window.confirm("Mark acknowledgement as Not Applicable?")) return;
+      try {
+        const api = await import('@/lib/api');
+        const newHandingTaking = { ...project.metadata?.handingTaking };
+        newHandingTaking.adminAckDate = new Date().toISOString();
+        newHandingTaking.adminName = user?.name || 'Admin';
+        newHandingTaking.adminAckNA = true;
+        const newMetadata = { ...project.metadata, handingTaking: newHandingTaking };
+        await api.saveProject({ ...project, metadata: newMetadata });
+        fetchProjects();
+      } catch (e) {
+        alert("Failed");
+      }
+  };
+
   const [historyLogView, setHistoryLogView] = useState<{history: any[], name: string} | null>(null);
   const [userSortConfig, setUserSortConfig] = useState<{key: string, direction: 'asc'|'desc'} | null>(null);
   const [pendingRoleChanges, setPendingRoleChanges] = useState<Record<string, number>>({});
@@ -458,7 +491,7 @@ export default function AdminDashboard() {
   const fetchProjects = async () => {
     setIsProjectsLoading(true);
     try {
-      const data = await getProjects(selectedTargetFyFilter, selectedExecFyFilter);
+      const data = await getProjects("ALL", "ALL");
       setProjects(data);
     } catch (e: any) {
       console.error("Failed to fetch projects", e);
@@ -674,7 +707,7 @@ let newStatus = project.status;
         if (isExtension) newStatus = 'Extension Supported';
 if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
           }
-          const newMetadata = { ...project.metadata, dsSupported: true };
+          const newMetadata = { ...project.metadata, dsSupported: true, dsSupportDate: new Date().toISOString(), dsSupportName: user?.name };
 
         await api.saveProject({
           ...project,
@@ -737,7 +770,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         if (isDraftApproval) newStatus = 'Draft AP & CL Approved';
         if (isExtension) newStatus = 'Extended (Approved)';
 
-        const newMetadata = { ...project.metadata, jsApproved: true };
+        const newMetadata = { ...project.metadata, jsApproved: true, jsApproveDate: new Date().toISOString(), jsApproveName: user?.name };
 
         const updatePayload: any = {
           ...project,
@@ -1029,14 +1062,12 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
   }
 
   const pendingMyAction = projects.filter(p => {
-    if (!user) return false;
-
-    // Apply Global FY Filters
-    if (selectedTargetFyFilter !== 'ALL' && p.metadata?.financialYear !== selectedTargetFyFilter) return false;
-    if (selectedExecFyFilter !== 'ALL' && p.metadata?.executionFY !== selectedExecFyFilter) return false;
-
-    // Catch legacy 'Submitted' status as equivalent to 'Pending Support'
-    const isPendingSupport = p.status === 'Pending Support' || (p.status === 'Submitted' && !p.isExtended);
+      if (!user) return false;
+  
+      // Explicitly ignoring Global FY filters for My Assigned Actions so users never miss a pending item
+  
+      // Catch legacy 'Submitted' status as equivalent to 'Pending Support'
+      const isPendingSupport = p.status === 'Pending Support' || (p.status === 'Submitted' && !p.isExtended);
     const isPendingDraftSupport = p.status === 'Draft AP & CL Submitted';
     const isPendingDraftApproval = p.status === 'Draft AP & CL Supported';
     
@@ -1077,10 +1108,10 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
   });
 
   const filteredProjectsForStats = projects.filter(p => {
-    if (selectedTargetFyFilter !== 'ALL' && p.metadata?.financialYear !== selectedTargetFyFilter) return false;
+    if (selectedTargetFyFilter !== 'ALL' && !(p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter)) return false;
     if (selectedExecFyFilter !== 'ALL' && p.metadata?.executionFY !== selectedExecFyFilter) return false;
     return true;
-  });
+  });;
 
   const filteredUnitsForStats = units.filter(u => {
     if (u.is_active === false) return false;
@@ -1166,7 +1197,28 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
               </div>
               <div>
                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Audits</p>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{filteredProjectsForStats.filter(p => p.status === 'Audited').length}</h3>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{(() => {
+  const expectedUnits = units.filter(u => {
+    if (u.is_active === false) return false;
+    // Note: compareFY is not available in page.tsx directly, so let's just use string comparison for FYs which works for "FY 2025-2026"
+    if (u.active_from_fy && selectedTargetFyFilter !== 'ALL' && selectedTargetFyFilter < u.active_from_fy) return false;
+    return true;
+  });
+  
+  const auditedUnitIds = new Set();
+  filteredProjectsForStats.filter(p => p.status === 'Audited').forEach(p => {
+     const pName = (p.metadata?.unitName || '').trim().toLowerCase();
+     const matchedUnit = expectedUnits.find(u => {
+        const uName = (u.name || '').trim().toLowerCase();
+        const fNum = (u.file_number || '').trim().toLowerCase();
+        return pName === uName || (fNum && pName === `${fNum} ${uName}`);
+     });
+     if (matchedUnit) {
+        auditedUnitIds.add(matchedUnit.id);
+     }
+  });
+  return auditedUnitIds.size;
+})()}</h3>
               </div>
             </div>
             <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center space-x-4">
@@ -1263,7 +1315,15 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     return (
                       <tr key={p.id} className="hover:bg-rose-50/30 dark:hover:bg-rose-900/10 transition-colors">
                         <td className="px-6 py-4">
-                          <div className="font-bold text-slate-800 dark:text-slate-200 mb-1">{p.metadata?.unitName || 'Unknown'}</div>
+                          <div className="font-bold text-slate-800 dark:text-slate-200 mb-1">
+    {p.metadata?.unitName || 'Unknown'}
+    <span className="text-slate-500 font-medium ml-1">{(p.metadata?.financialYears || [p.metadata?.financialYear]).filter(Boolean).join(', ')}</span>
+    {p.metadata?.financialYears && p.metadata.financialYears.length > 1 && (
+      <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800 uppercase tracking-wide">
+        Multi-Year
+      </span>
+    )}
+  </div>
                           <div className="text-xs text-slate-500 mb-2">Auditor: {p.metadata?.auditorName || '-'}</div>
                           
                           {origEnd ? (
@@ -1319,8 +1379,16 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                                   className="inline-flex items-center space-x-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors text-xs font-semibold w-full justify-center md:w-auto"
                                 >
                                   <span>{actionButtonLabel}</span>
-                                </button>
-                            )}
+                                  </button>
+                              )}
+                              {isAdminAckNeeded && (
+                                  <button 
+                                    onClick={() => handleHandingTakingNA(p)}
+                                    className="inline-flex items-center space-x-2 px-3 py-1.5 bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-[10px] font-semibold w-full justify-center md:w-auto mt-2"
+                                  >
+                                    <span>Acknowledgement Not applicable</span>
+                                  </button>
+                              )}
 
                             {canSupport && (
                               <button 
@@ -1419,7 +1487,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
               </div>
               <button 
                 onClick={async () => {
-                  const headers = ["Unit Name", "Branch", "File Number", "Financial Year", "Field Auditor", "DS Acknowledgement", "JS Acknowledgement", "Admin Acknowledgement", "Report Publish Date"];
+                  const headers = ["Unit Name", "Branch", "File Number", "Financial Year", "Field Auditor", "DS Acknowledgement", "DS Support", "JS Acknowledgement", "JS Approve", "Admin Acknowledgement", "Report Publish Date"];
                   const rows = projects.filter(p => p.status === 'Audited').map(p => {
                     const ht = p.metadata?.handingTaking || {};
                     const auditor = users.find(u => u.id === p.createdBy)?.name || "Unknown";
@@ -1433,10 +1501,12 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                       p.metadata?.unitName || "",
                       matchedUnit.branch || p.metadata?.branch || "-",
                       matchedUnit.file_number || p.metadata?.fileNumber || "-",
-                      p.metadata?.financialYear || "",
+                      (p.metadata?.financialYears || [p.metadata?.financialYear]).filter(Boolean).join(', ') || "",
                       auditor,
                       ht.dsAckDate ? `${new Date(ht.dsAckDate).toLocaleDateString()} (${ht.dsName || 'DS'})` : "Pending",
+                      p.metadata?.dsSupportDate ? `${new Date(p.metadata.dsSupportDate).toLocaleDateString()} (${p.metadata.dsSupportName || 'DS'})` : "Pending",
                       ht.jsAckDate ? `${new Date(ht.jsAckDate).toLocaleDateString()} (${ht.jsName || 'JS'})` : "Pending",
+                      p.metadata?.jsApproveDate ? `${new Date(p.metadata.jsApproveDate).toLocaleDateString()} (${p.metadata.jsApproveName || 'JS'})` : "Pending",
                       ht.adminAckDate ? `${new Date(ht.adminAckDate).toLocaleDateString()} (${ht.adminName || 'Admin'})` : "Pending",
                       ht.publishDate ? `${new Date(ht.publishDate).toLocaleDateString()} (${ht.finaliserName || 'Finaliser'})` : "Pending",
                     ];
@@ -1466,10 +1536,16 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     <th className="px-4 py-3 font-semibold">File Number</th>
                     <th className="px-4 py-3 font-semibold">FY</th>
                     <th className="px-4 py-3 font-semibold">Auditor</th>
-                    <th className="px-4 py-3 font-semibold">DS Ack</th>
-                    <th className="px-4 py-3 font-semibold">JS Ack</th>
-                    <th className="px-4 py-3 font-semibold">Admin Ack</th>
-                    <th className="px-4 py-3 font-semibold">Published</th>
+                    <th className="px-4 py-3 font-semibold min-w-[120px]">DS Ack</th>
+                    <th className="px-4 py-3 font-semibold min-w-[120px]">DS Support</th>
+                    {user?.hierarchy_weight !== 30 && (
+                      <>
+                        <th className="px-4 py-3 font-semibold min-w-[120px]">JS Ack</th>
+                        <th className="px-4 py-3 font-semibold min-w-[120px]">JS Approve</th>
+                        <th className="px-4 py-3 font-semibold min-w-[120px]">Admin Ack</th>
+                        <th className="px-4 py-3 font-semibold min-w-[120px]">Published</th>
+                      </>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1482,25 +1558,57 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                       return dName === p.metadata?.unitName || u.name === p.metadata?.unitName;
                     }) || { branch: '-', file_number: '-' };
 
+                    const renderCell = (dateStr: any, name: any, isNA: any, remarkField: string) => {
+                       const remark = ht[remarkField + 'Remark'];
+                       return (
+                         <div className="flex items-start justify-between group">
+                           <div>
+                             {isNA ? <span className="text-emerald-600 dark:text-emerald-400 font-medium">N/A <br/><span className="text-[10px] text-slate-400">({name})</span></span> : dateStr ? <span className="text-emerald-600 dark:text-emerald-400 font-medium">{new Date(dateStr).toLocaleDateString()} <br/><span className="text-[10px] text-slate-400">({name})</span></span> : <span className="text-amber-500 text-xs">Pending</span>}
+                           </div>
+                           <div className="flex items-center space-x-1 ml-2">
+                             {remark && <span title={remark}><MessageSquare size={14} className="text-blue-500 cursor-help" /></span>}
+                             <button onClick={() => { setRemarkModal({project: p, field: remarkField}); setRemarkText(remark || ''); }} className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><Edit2 size={12} /></button>
+                           </div>
+                         </div>
+                       );
+                    };
+
                     return (
                       <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                        <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">{p.metadata?.unitName}</td>
+                        <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">
+    {p.metadata?.unitName}
+    {p.metadata?.financialYears && p.metadata.financialYears.length > 1 && (
+      <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800 uppercase tracking-wide">
+        Multi-Year
+      </span>
+    )}
+  </td>
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{matchedUnit.branch || p.metadata?.branch || '-'}</td>
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{matchedUnit.file_number || p.metadata?.fileNumber || '-'}</td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{p.metadata?.financialYear}</td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{(p.metadata?.financialYears || [p.metadata?.financialYear]).filter(Boolean).join(', ')}</td>
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{auditor}</td>
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                          {ht.dsAckDate ? <span className="text-emerald-600 dark:text-emerald-400 font-medium">{new Date(ht.dsAckDate).toLocaleDateString()} <br/><span className="text-[10px] text-slate-400">({ht.dsName})</span></span> : <span className="text-amber-500 text-xs">Pending</span>}
+                          {renderCell(ht.dsAckDate, ht.dsName, false, 'dsAck')}
                         </td>
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                          {ht.jsAckDate ? <span className="text-emerald-600 dark:text-emerald-400 font-medium">{new Date(ht.jsAckDate).toLocaleDateString()} <br/><span className="text-[10px] text-slate-400">({ht.jsName})</span></span> : <span className="text-amber-500 text-xs">Pending</span>}
+                          {renderCell(p.metadata?.dsSupportDate, p.metadata?.dsSupportName, false, 'dsSupport')}
                         </td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                          {ht.adminAckDate ? <span className="text-emerald-600 dark:text-emerald-400 font-medium">{new Date(ht.adminAckDate).toLocaleDateString()} <br/><span className="text-[10px] text-slate-400">({ht.adminName})</span></span> : <span className="text-amber-500 text-xs">Pending</span>}
-                        </td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                          {ht.publishDate ? <span className="text-emerald-600 dark:text-emerald-400 font-medium">{new Date(ht.publishDate).toLocaleDateString()} <br/><span className="text-[10px] text-slate-400">({ht.finaliserName})</span></span> : <span className="text-amber-500 text-xs">Pending</span>}
-                        </td>
+                        {user?.hierarchy_weight !== 30 && (
+                          <>
+                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                              {renderCell(ht.jsAckDate, ht.jsName, false, 'jsAck')}
+                            </td>
+                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                              {renderCell(p.metadata?.jsApproveDate, p.metadata?.jsApproveName, false, 'jsApprove')}
+                            </td>
+                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                              {renderCell(ht.adminAckDate, ht.adminName, ht.adminAckNA, 'adminAck')}
+                            </td>
+                            <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                              {renderCell(ht.publishDate, ht.finaliserName, false, 'publish')}
+                            </td>
+                          </>
+                        )}
                       </tr>
                     );
                   })}
@@ -1568,7 +1676,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {projects.filter(p => {
                    if (selectedExecFyFilter !== 'ALL' && p.metadata?.executionFY !== selectedExecFyFilter) return false;
-                   if (selectedTargetFyFilter !== 'ALL' && p.metadata?.financialYear !== selectedTargetFyFilter) return false;
+                   if (selectedTargetFyFilter !== 'ALL' && !(p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter)) return false;
                    if (projectStatusFilter !== 'ALL') {
     if (projectStatusFilter === 'Pending Support' && (p.status === 'Pending Support' || (p.status === 'Submitted' && !p.isExtended))) {
         // match legacy
@@ -1620,10 +1728,18 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     return (
                     <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-bold text-slate-800 dark:text-slate-200 mb-1">{p.metadata?.unitName || 'Unknown'} {p.metadata?.financialYear || ''}</div>
+                      <div className="font-bold text-slate-800 dark:text-slate-200 mb-1">
+    {p.metadata?.unitName || 'Unknown'} 
+    <span className="text-slate-500 font-medium ml-1">{(p.metadata?.financialYears || [p.metadata?.financialYear]).filter(Boolean).join(', ')}</span>
+    {p.metadata?.financialYears && p.metadata.financialYears.length > 1 && (
+      <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800 uppercase tracking-wide">
+        Multi-Year
+      </span>
+    )}
+  </div>
                       <div className="text-xs text-slate-500 mb-1">ID: {p.customId || p.id} • Auditor: {p.metadata?.auditorName || '-'}</div>
                       <div className="text-[10px] text-slate-400 space-y-0.5">
-                        <div><strong>Unit FY:</strong> {p.metadata?.financialYear || '-'}</div>
+                        <div><strong>Unit FY:</strong> {(p.metadata?.financialYears || [p.metadata?.financialYear]).filter(Boolean).join(', ') || '-'}</div>
                         <div><strong>Execution FY:</strong> {p.metadata?.executionFY || '-'}</div>
                       </div>
                       <div className="mt-2 text-xs bg-slate-100 dark:bg-slate-800 p-2 rounded-lg inline-block text-slate-700 dark:text-slate-300">
@@ -1751,7 +1867,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
               
               {projects.filter(p => {
                  if (selectedExecFyFilter !== 'ALL' && p.metadata?.executionFY !== selectedExecFyFilter) return false;
-                 if (selectedTargetFyFilter !== 'ALL' && p.metadata?.financialYear !== selectedTargetFyFilter) return false;
+                 if (selectedTargetFyFilter !== 'ALL' && !(p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter)) return false;
                  if (projectStatusFilter !== 'ALL') {
     if (projectStatusFilter === 'Pending Support' && (p.status === 'Pending Support' || (p.status === 'Submitted' && !p.isExtended))) {
         // match legacy
@@ -2437,7 +2553,49 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         </div>
       )}
 
-      {handingTakingModal && (
+      
+        {remarkModal && (
+          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
+              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+                Add Remark
+              </h3>
+              <p className="text-sm text-slate-500 mb-6 border-b border-slate-100 dark:border-slate-700 pb-4">
+                Add, edit, or remove the remark for {remarkModal.project.metadata?.unitName}.
+              </p>
+              
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Remark</label>
+                  <textarea 
+                    value={remarkText}
+                    onChange={e => setRemarkText(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-500 min-h-[100px]"
+                    placeholder="Enter remark here..."
+                  />
+                  <p className="text-xs text-slate-500 mt-2 italic">Leave empty to delete the remark.</p>
+                </div>
+              </div>
+  
+              <div className="flex justify-end space-x-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+                <button 
+                  onClick={() => setRemarkModal(null)}
+                  className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors font-medium text-sm"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleSaveRemark}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors shadow-sm font-medium text-sm"
+                >
+                  Save Remark
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {handingTakingModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
             <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">

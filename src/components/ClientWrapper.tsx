@@ -457,8 +457,11 @@ export const Shell = ({ children }: { children: React.ReactNode }) => {
         <React.Suspense fallback={<aside className="w-64 glass-panel border-r border-[var(--border)] hidden md:block"></aside>}>
           <Sidebar isOpen={isSidebarOpen} />
         </React.Suspense>
-        <main className="flex-1 overflow-y-auto">
-          <div className="min-h-screen p-8 flex flex-col">
+        <main className="flex-1 overflow-y-auto relative">
+          <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0 opacity-[0.04] dark:opacity-[0.02] mix-blend-multiply dark:mix-blend-screen">
+             <img src="/logo.png" alt="" className="w-full max-w-[50vw] h-auto object-contain grayscale" />
+          </div>
+          <div className="min-h-screen p-8 flex flex-col relative z-10">
             <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
             <div className="flex-1">
               {children}
