@@ -259,7 +259,7 @@ function HomeContent() {
     executeProjectSave(pendingFsStatus, fsData);
   };
 
-  const executeProjectSave = async (statusTarget: 'Draft' | 'Submitted' | 'DraftSubmitted', fsData?: any) => {
+  const executeProjectSave = async (statusTarget: 'Draft' | 'Submitted' | 'DraftSubmitted' | 'Maintain', fsData?: any) => {
     setIsSaving(true);
     console.log("Starting project save process...");
     
@@ -287,7 +287,9 @@ function HomeContent() {
     const generateSubmitDate = isFinalSubmit || isDraftSubmit;
     
     let finalStatus = 'Draft';
-    if (isFinalSubmit) {
+    if (statusTarget === 'Maintain') {
+      finalStatus = currentProjectStatus || 'Draft';
+    } else if (isFinalSubmit) {
       if (user?.hierarchy_weight === 40) {
          finalStatus = assignedDeputyId === 'NA' ? 'Pending Approval' : 'Pending Support';
       } else if (user?.hierarchy_weight === 30) {
@@ -403,7 +405,7 @@ function HomeContent() {
     setIsSaving(false);
   };
 
-  const handleSaveProjectClick = async (statusTarget: 'Draft' | 'Submitted' | 'DraftSubmitted' = 'Draft') => {
+  const handleSaveProjectClick = async (statusTarget: 'Draft' | 'Submitted' | 'DraftSubmitted' | 'Maintain' = 'Draft') => {
       if (!unitName.trim()) {
         alert("Please enter the Name of the Units/Institution before saving.");
         return;
@@ -1415,6 +1417,11 @@ function HomeContent() {
                  {currentProjectStatus === 'Draft' && (
                     <button disabled={isSaving || isExporting} onClick={() => handleSaveProjectClick('DraftSubmitted')} className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50">
                        Submit Draft AP & CL
+                    </button>
+                 )}
+                 {currentProjectStatus !== 'Draft' && currentProjectStatus !== 'Audited' && (
+                    <button disabled={isSaving || isExporting} onClick={() => handleSaveProjectClick('Maintain')} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50">
+                       Save AP
                     </button>
                  )}
                  {(currentProjectStatus === 'Draft' || currentProjectStatus === 'Draft AP & CL Approved' || currentProjectStatus === 'Extended (Approved)' || currentProjectStatus === 'Draft AP & CL Submitted' || currentProjectStatus === 'Draft AP & CL Supported') && !isExtendingMode && (

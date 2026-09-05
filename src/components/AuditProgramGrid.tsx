@@ -323,7 +323,7 @@ const SortableRow = ({ item, isMain, updateData, addLeave, deleteItem, totalAllo
 // ---------------------------
 // Main Component
 // ---------------------------
-const AuditProgramGrid = React.forwardRef(({ isSubmitted, isStartDateDisabled, isEndDateDisabled, minEndDate, onEndDateExtended, loadedTotals, onTotalsCalculated, loadedData, onDataChange, onProceed }: { isSubmitted?: boolean, isStartDateDisabled?: boolean, isEndDateDisabled?: boolean, minEndDate?: string, onEndDateExtended?: () => void, loadedTotals?: any, onTotalsCalculated?: (t: AuditTotals) => void, loadedData?: any, onDataChange?: (data: MainProcedure[]) => void, onProceed?: () => void }, ref) => {
+const AuditProgramGrid = React.forwardRef(({ isSubmitted, isStartDateDisabled, isEndDateDisabled, minEndDate, onEndDateExtended, loadedTotals, onTotalsCalculated, loadedData, onDataChange, onProceed, onResetProject }: { isSubmitted?: boolean, isStartDateDisabled?: boolean, isEndDateDisabled?: boolean, minEndDate?: string, onEndDateExtended?: () => void, loadedTotals?: any, onTotalsCalculated?: (t: AuditTotals) => void, loadedData?: any, onDataChange?: (data: MainProcedure[]) => void, onProceed?: () => void, onResetProject?: () => void }, ref) => {
   const [globalStartDate, setGlobalStartDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
   const [globalEndDate, setGlobalEndDate] = useState(() => format(addDays(new Date(), 30), 'yyyy-MM-dd'));
   
@@ -623,7 +623,11 @@ const AuditProgramGrid = React.forwardRef(({ isSubmitted, isStartDateDisabled, i
                 <button 
                   onClick={() => {
                     if (window.confirm('Are you sure you want to load a new AP Grid? WARNING: This will overwrite your current Audit Program Grid progress!')) {
-                      setData(JSON.parse(JSON.stringify(initialData)));
+                      if (onResetProject) {
+                         onResetProject();
+                      } else {
+                         setData(JSON.parse(JSON.stringify(initialData)));
+                      }
                     }
                   }}
                   className="text-xs px-3 py-1 bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-900/40 dark:text-rose-400 dark:hover:bg-rose-900/60 rounded-full font-bold transition-colors"
