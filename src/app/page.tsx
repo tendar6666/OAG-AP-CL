@@ -247,6 +247,35 @@ function HomeContent() {
     router.push('/');
   };
 
+  const startNewAP = () => {
+    if (!window.confirm("Start a new Audit Program? Any unsaved progress will be lost.")) return;
+    setCurrentProjectId(null);
+    setCurrentCustomId(null);
+    setCurrentProjectStatus('Draft');
+    setUnitName('');
+    setFinancialYears(['']);
+    setAuditorName(user?.name || '');
+    setAssignedDeputyId('');
+    setAssignedJointId('');
+    setIsExtendingMode(false);
+    setIsRevised(false);
+    setIsLockedRevised(false);
+    
+    const defaultTemplate = savedTemplates.find((t: any) => t.isDefault);
+    if (defaultTemplate) {
+        setLoadedGridData(defaultTemplate.gridData);
+        setLoadedChecklistData(defaultTemplate.checklistData);
+        if (defaultTemplate.metadata) {
+           setUnitName(defaultTemplate.metadata.unitName || '');
+           if (defaultTemplate.metadata.financialYears) setFinancialYears(defaultTemplate.metadata.financialYears);
+           else if (defaultTemplate.metadata.financialYear) setFinancialYears([defaultTemplate.metadata.financialYear]);
+        }
+    } else {
+        setLoadedGridData([]);
+        setLoadedChecklistData([]);
+    }
+  };
+
   const handleSaveTemplateClick = () => {
     setSaveModalType('template');
     setSaveModalName('');
@@ -1389,7 +1418,8 @@ function HomeContent() {
                 isStartDateDisabled={currentProjectStatus === 'Draft AP & CL Approved' || currentProjectStatus === 'Extended (Approved)' || isExtendingMode}
                 isEndDateDisabled={(currentProjectStatus === 'Draft AP & CL Approved' || currentProjectStatus === 'Extended (Approved)') && !isExtendingMode}
                 minEndDate={isExtendingMode ? originalEndDate : undefined}
-                onEndDateExtended={() => {
+                onResetProject={startNewAP}
+                  onEndDateExtended={() => {
                   if (!hasAlertedExtended) {
                     alert("Please allocate the extended days among your Audit Procedures in the grid below.");
                     setHasAlertedExtended(true);
