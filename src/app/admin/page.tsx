@@ -48,7 +48,21 @@ export function getStatusBadge(p: any) {
 }
 
 const getRoleName = (w: number) => { if(w<=10)return'Admin'; if(w<=20)return'Joint Secretary'; if(w===25)return'Finaliser'; if(w<=30)return'Deputy Secretary'; return'Reviewer'; };
+
+const Pagination = ({ page, setPage, total, itemsPerPage }: any) => {
+  const totalPages = Math.ceil(total / itemsPerPage);
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex justify-center items-center space-x-2 mt-6">
+      <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors">Prev</button>
+      <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Page {page} of {totalPages}</span>
+      <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors">Next</button>
+    </div>
+  );
+};
+
 export default function AdminDashboard() {
+
 
   const [unitTypeFilter, setUnitTypeFilter] = useState('ALL');
 
@@ -349,6 +363,8 @@ export default function AdminDashboard() {
   const [historyLogView, setHistoryLogView] = useState<{history: any[], name: string} | null>(null);
   const [userSortConfig, setUserSortConfig] = useState<{key: string, direction: 'asc'|'desc'} | null>(null);
   const [pendingRoleChanges, setPendingRoleChanges] = useState<Record<string, number>>({});
+  const [htPage, setHtPage] = useState(1);
+
   const [isSavingRoles, setIsSavingRoles] = useState(false);
   const [showSavedSuccess, setShowSavedSuccess] = useState(false);
 
@@ -1624,6 +1640,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                 </tbody>
               </table>
             </div>
+            <Pagination page={htPage} setPage={setHtPage} total={projects.filter(p => p.status === 'Audited' && !p.isHistoricalFS).length} itemsPerPage={50} />
           </div>
         )}
         {activeTab === 'analytics' && (
@@ -1674,7 +1691,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
               <button 
                 onClick={async () => {
                   const headers = ["Unit Name", "Branch", "File Number", "Financial Year", "Field Auditor", "DS Acknowledgement", "DS Support", "JS Acknowledgement", "JS Approve", "Admin Acknowledgement", "Report Publish Date"];
-                  const rows = projects.filter(p => p.status === 'Audited').map(p => {
+                  const rows = projects.filter(p => p.status === 'Audited' && !p.isHistoricalFS).map(p => {
                     const ht = p.metadata?.handingTaking || {};
                     const auditor = users.find(u => u.id === p.createdBy)?.name || "Unknown";
                     
@@ -1735,7 +1752,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {projects.filter(p => p.status === 'Audited').map(p => {
+                  {projects.filter(p => p.status === 'Audited' && !p.isHistoricalFS).slice((htPage - 1) * 50, htPage * 50).map(p => {
                     const ht = p.metadata?.handingTaking || {};
                     const auditor = users.find(u => u.id === p.createdBy)?.name || "Unknown";
                     
@@ -1801,6 +1818,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                 </tbody>
               </table>
             </div>
+            <Pagination page={htPage} setPage={setHtPage} total={projects.filter(p => p.status === 'Audited' && !p.isHistoricalFS).length} itemsPerPage={50} />
           </div>
         )}
 
@@ -2725,6 +2743,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                 </tbody>
               </table>
             </div>
+            <Pagination page={htPage} setPage={setHtPage} total={projects.filter(p => p.status === 'Audited' && !p.isHistoricalFS).length} itemsPerPage={50} />
           </div>
         )}
       </div>
