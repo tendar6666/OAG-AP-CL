@@ -348,8 +348,12 @@ const AuditProgramGrid = React.forwardRef(({ isSubmitted, isStartDateDisabled, i
 
   useEffect(() => {
       if(loadedData && Array.isArray(loadedData)) {
-          setData(loadedData);
-      }
+            if (loadedData.length > 0) {
+                setData(loadedData);
+            } else {
+                setData(JSON.parse(JSON.stringify(initialData)));
+            }
+        }
   }, [loadedData]);
 
   useEffect(() => {
