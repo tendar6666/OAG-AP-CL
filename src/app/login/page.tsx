@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
+  const [resetMessage, setResetMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -134,6 +135,26 @@ export default function LoginPage() {
     setError('Database successfully seeded! All dummy users are now permanently available in the dropdowns.');
   };
 
+  
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError("Please enter your email address first to reset password.");
+      return;
+    }
+    setLoading(true);
+    setError('');
+    setResetMessage('');
+    try {
+      const { sendPasswordResetEmail } = await import('firebase/auth');
+      await sendPasswordResetEmail(auth, email);
+      setResetMessage("Password reset email sent! Please check your inbox.");
+    } catch (err: any) {
+      setError(err.message || "Failed to send reset email.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -177,6 +198,11 @@ export default function LoginPage() {
             {error}
           </div>
         )}
+        {resetMessage && (
+          <div className="mb-6 p-3 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-lg text-emerald-700 dark:text-emerald-400 text-sm">
+            {resetMessage}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -202,17 +228,29 @@ export default function LoginPage() {
             />
           </div>
           
-          <div className="flex items-center space-x-2 mt-2">
-            <input 
-              type="checkbox" 
-              id="remember" 
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className="w-4 h-4 text-indigo-600 bg-slate-100 border-slate-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600 cursor-pointer"
-            />
-            <label htmlFor="remember" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer select-none">
-              Keep me logged in
-            </label>
+          <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center space-x-2">
+              <input 
+                type="checkbox" 
+                id="remember" 
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 text-indigo-600 bg-slate-100 border-slate-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600 cursor-pointer"
+              />
+              <label htmlFor="remember" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+                Keep me logged in
+              </label>
+            </div>
+            
+            {!isRegistering && (
+              <button 
+                type="button" 
+                onClick={handleForgotPassword} 
+                className="text-sm font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
+              >
+                Forgot password?
+              </button>
+            )}
           </div>
           
           <button 
