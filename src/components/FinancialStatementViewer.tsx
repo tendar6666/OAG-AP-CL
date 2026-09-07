@@ -84,10 +84,13 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
       
       // Merge Liabilities
       Object.keys(stmt.liabilities || {}).forEach(groupId => {
-        if (!data.liabilities[groupId]) data.liabilities[groupId] = { total: 0 };
-        const gData = stmt.liabilities[groupId];
-        if (gData.bifurcation) {
-            data.liabilities[groupId].total += (gData.bifurcation.opening||0) + (gData.bifurcation.surplus||0) + (gData.bifurcation.other||0);
+        if (!data.liabilities[groupId]) data.liabilities[groupId] = { total: 0, bifurcation: { opening: 0, surplus: 0, other: 0 } };
+          const gData = stmt.liabilities[groupId];
+          if (gData.bifurcation) {
+              data.liabilities[groupId].bifurcation.opening += (gData.bifurcation.opening||0);
+              data.liabilities[groupId].bifurcation.surplus += (gData.bifurcation.surplus||0);
+              data.liabilities[groupId].bifurcation.other += (gData.bifurcation.other||0);
+              data.liabilities[groupId].total += (gData.bifurcation.opening||0) + (gData.bifurcation.surplus||0) + (gData.bifurcation.other||0);
           } else if (gData.items && gData.items.length > 0) {
             data.liabilities[groupId].total += gData.items.reduce((sum:number, i:any) => sum + (i.amount||0), 0);
           } else {
@@ -97,10 +100,13 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
       
       // Merge Assets
       Object.keys(stmt.assets || {}).forEach(groupId => {
-        if (!data.assets[groupId]) data.assets[groupId] = { total: 0 };
-        const gData = stmt.assets[groupId];
-        if (gData.bifurcation) {
-            data.assets[groupId].total += (gData.bifurcation.opening||0) + (gData.bifurcation.surplus||0) + (gData.bifurcation.other||0);
+        if (!data.assets[groupId]) data.assets[groupId] = { total: 0, bifurcation: { opening: 0, surplus: 0, other: 0 } };
+          const gData = stmt.assets[groupId];
+          if (gData.bifurcation) {
+              data.assets[groupId].bifurcation.opening += (gData.bifurcation.opening||0);
+              data.assets[groupId].bifurcation.surplus += (gData.bifurcation.surplus||0);
+              data.assets[groupId].bifurcation.other += (gData.bifurcation.other||0);
+              data.assets[groupId].total += (gData.bifurcation.opening||0) + (gData.bifurcation.surplus||0) + (gData.bifurcation.other||0);
           } else if (gData.items && gData.items.length > 0) {
             data.assets[groupId].total += gData.items.reduce((sum:number, i:any) => sum + (i.amount||0), 0);
           } else {
