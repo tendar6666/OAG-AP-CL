@@ -33,8 +33,19 @@ function HomeContent() {
   const [activeTab, setActiveTab] = useState<'schedule' | 'checklist'>('schedule');
   const [auditTotals, setAuditTotals] = useState<any>(null);
   const [selectedFY, setSelectedFY] = useState('2023-2024'); // Target FY inside the creator
-  const [selectedProjectFy, setSelectedProjectFy] = useState('ALL'); // Execution FY filter
-  const [selectedProjectTargetFy, setSelectedProjectTargetFy] = useState('ALL'); // Target FY filter
+  const getDefaultFys = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const isAfterMarch = now.getMonth() >= 3;
+    const startYear = isAfterMarch ? year : year - 1;
+    return {
+      execFy: `${startYear}-${startYear + 1}`,
+      targetFy: `${startYear - 1}-${startYear}`
+    };
+  };
+  const _defaultFys = getDefaultFys();
+  const [selectedProjectFy, setSelectedProjectFy] = useState(_defaultFys.execFy); // Execution FY filter
+  const [selectedProjectTargetFy, setSelectedProjectTargetFy] = useState(_defaultFys.targetFy); // Target FY filter
   const [selectedUnit, setSelectedUnit] = useState('All Units');
   const searchParams = useSearchParams();
   const router = useRouter();
