@@ -184,6 +184,19 @@ export async function updateUserNtfyTopic(userId: string, newTopic: string) {
 }
 
 // ================= Projects =================
+let _projectsCache: { data: any[], timestamp: number, targetFy: string, execFy: string } | null = null;
+const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
+
+export function clearProjectsCache() {
+  _projectsCache = null;
+}
+
+export async function getHistoricalProjects() {
+  const q = collection(db, "historical_projects");
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({ ...(doc.data() as any), id: doc.id } as any));
+}
+
 export async function getProjects(targetFy: string = 'ALL', execFy: string = 'ALL') {
   let q: any = collection(db, "projects");
   
@@ -207,6 +220,7 @@ export async function getProjects(targetFy: string = 'ALL', execFy: string = 'AL
 }
 
 export async function saveProject(data: any, historyLog?: { action: string; userId?: string; userName?: string; notes?: string }) {
+  clearProjectsCache();
   let docId = data.id;
   
   // Create a customId if it doesn't exist
@@ -260,6 +274,7 @@ export async function saveProject(data: any, historyLog?: { action: string; user
 }
 
 export async function deleteProject(id: string) {
+  clearProjectsCache();
   await deleteDoc(doc(db, "projects", id));
 }
 

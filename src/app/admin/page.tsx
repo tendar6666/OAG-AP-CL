@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useSearchParams } from 'next/navigation';
-import { getUsers, updateUserRole, getProjects, getUnits, createUnit, updateUnit, deleteUnit, getCustomFYs, createCustomFY, deleteCustomFY, getUnitTypes, createUnitType, updateUnitType, deleteUnitType, getFSGroups, createFSGroup, updateFSGroup, deleteFSGroup, AuditUnit, CustomFY, UnitType, FSGroup } from '@/lib/api';
+import { getUsers, updateUserRole, getProjects, getHistoricalProjects, getUnits, createUnit, updateUnit, deleteUnit, getCustomFYs, createCustomFY, deleteCustomFY, getUnitTypes, createUnitType, updateUnitType, deleteUnitType, getFSGroups, createFSGroup, updateFSGroup, deleteFSGroup, AuditUnit, CustomFY, UnitType, FSGroup } from '@/lib/api';
 import { Layers, Users, FileSpreadsheet, ShieldAlert, Download, Save, Building2, Plus, Edit2, Trash2, CalendarDays, Ban, CheckCircle, Search, Filter, RefreshCw, ChevronRight, ChevronDown, Folder, FolderOpen, Network, MessageSquare, GripVertical } from 'lucide-react';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import ReportsDashboard from '@/components/ReportsDashboard';
@@ -432,7 +432,10 @@ export default function AdminDashboard() {
   const [projectSearchTerm, setProjectSearchTerm] = useState<string>('');
   const [projectStatusFilter, setProjectStatusFilter] = useState<string>('ALL');
   const [projectTypeFilter, setProjectTypeFilter] = useState<string>('ALL');
-  const [isProjectsLoading, setIsProjectsLoading] = useState(false);
+    const [isProjectsLoading, setIsProjectsLoading] = useState(false);
+  const [historicalProjects, setHistoricalProjects] = useState<any[]>([]);
+  const [isHistLoading, setIsHistLoading] = useState(false);
+  const [masterUnitPage, setMasterUnitPage] = useState(1);
 
   // Unit filters
   const [unitSearchTerm, setUnitSearchTerm] = useState<string>('');
@@ -461,6 +464,16 @@ export default function AdminDashboard() {
       fetchProjects();
     }
   }, [user, selectedTargetFyFilter, selectedExecFyFilter, hasLoadedFilters]);
+
+    useEffect(() => {
+    if (activeTab === 'global_fs' && historicalProjects.length === 0 && !isHistLoading) {
+      setIsHistLoading(true);
+      getHistoricalProjects().then(data => {
+        setHistoricalProjects(data);
+        setIsHistLoading(false);
+      });
+    }
+  }, [activeTab]);
 
   const handleGlobalTargetFyChange = (val: string) => {
     setSelectedTargetFyFilter(val);
@@ -1640,7 +1653,12 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                 </tbody>
               </table>
             </div>
-            <Pagination page={htPage} setPage={setHtPage} total={projects.filter(p => p.status === 'Audited' && !p.isHistoricalFS).length} itemsPerPage={50} />
+            <Pagination page={htPage} setPage={setHtPage} total={projects.filter(p => {
+  if (p.status !== 'Audited' || p.isHistoricalFS) return false;
+  if (selectedTargetFyFilter !== 'ALL' && !(p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter)) return false;
+  if (selectedExecFyFilter !== 'ALL' && p.metadata?.executionFY !== selectedExecFyFilter) return false;
+  return true;
+}).length} itemsPerPage={20} />
           </div>
         )}
         {activeTab === 'analytics' && (
@@ -1666,7 +1684,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         
         {activeTab === 'global_fs' && (
           <div className="fade-in">
-             <GlobalFSDashboard projects={projects} fsGroups={fsGroups} />
+             <GlobalFSDashboard projects={[...projects, ...historicalProjects]} fsGroups={fsGroups} />
           </div>
         )}
 
@@ -1691,7 +1709,12 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
               <button 
                 onClick={async () => {
                   const headers = ["Unit Name", "Branch", "File Number", "Financial Year", "Field Auditor", "DS Acknowledgement", "DS Support", "JS Acknowledgement", "JS Approve", "Admin Acknowledgement", "Report Publish Date"];
-                  const rows = projects.filter(p => p.status === 'Audited' && !p.isHistoricalFS).map(p => {
+                  const rows = projects.filter(p => {
+  if (p.status !== 'Audited' || p.isHistoricalFS) return false;
+  if (selectedTargetFyFilter !== 'ALL' && !(p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter)) return false;
+  if (selectedExecFyFilter !== 'ALL' && p.metadata?.executionFY !== selectedExecFyFilter) return false;
+  return true;
+}).map(p => {
                     const ht = p.metadata?.handingTaking || {};
                     const auditor = users.find(u => u.id === p.createdBy)?.name || "Unknown";
                     
@@ -1752,7 +1775,12 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {projects.filter(p => p.status === 'Audited' && !p.isHistoricalFS).slice((htPage - 1) * 50, htPage * 50).map(p => {
+                  {projects.filter(p => {
+  if (p.status !== 'Audited' || p.isHistoricalFS) return false;
+  if (selectedTargetFyFilter !== 'ALL' && !(p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter)) return false;
+  if (selectedExecFyFilter !== 'ALL' && p.metadata?.executionFY !== selectedExecFyFilter) return false;
+  return true;
+}).slice((htPage - 1) * 20, htPage * 20).map(p => {
                     const ht = p.metadata?.handingTaking || {};
                     const auditor = users.find(u => u.id === p.createdBy)?.name || "Unknown";
                     
@@ -1818,7 +1846,12 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                 </tbody>
               </table>
             </div>
-            <Pagination page={htPage} setPage={setHtPage} total={projects.filter(p => p.status === 'Audited' && !p.isHistoricalFS).length} itemsPerPage={50} />
+            <Pagination page={htPage} setPage={setHtPage} total={projects.filter(p => {
+  if (p.status !== 'Audited' || p.isHistoricalFS) return false;
+  if (selectedTargetFyFilter !== 'ALL' && !(p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter)) return false;
+  if (selectedExecFyFilter !== 'ALL' && p.metadata?.executionFY !== selectedExecFyFilter) return false;
+  return true;
+}).length} itemsPerPage={20} />
           </div>
         )}
 
@@ -2297,7 +2330,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     <tr>
                       <td colSpan={6} className="px-6 py-8 text-center text-slate-500">No units match your filters.</td>
                     </tr>
-                  ) : filteredUnits.map(u => (
+                  ) : filteredUnits.slice((masterUnitPage - 1) * 10, masterUnitPage * 10).map(u => (
                     <React.Fragment key={u.id}>
                     <tr className={`hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${u.is_active === false ? 'opacity-60' : ''} ${unitForm?.id === u.id ? 'bg-indigo-50/30 dark:bg-indigo-900/10' : ''}`}>
                       <td className="px-6 py-4 font-medium text-slate-800 dark:text-slate-200">{u.file_number}</td>
@@ -2743,7 +2776,12 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                 </tbody>
               </table>
             </div>
-            <Pagination page={htPage} setPage={setHtPage} total={projects.filter(p => p.status === 'Audited' && !p.isHistoricalFS).length} itemsPerPage={50} />
+            <Pagination page={htPage} setPage={setHtPage} total={projects.filter(p => {
+  if (p.status !== 'Audited' || p.isHistoricalFS) return false;
+  if (selectedTargetFyFilter !== 'ALL' && !(p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter)) return false;
+  if (selectedExecFyFilter !== 'ALL' && p.metadata?.executionFY !== selectedExecFyFilter) return false;
+  return true;
+}).length} itemsPerPage={20} />
           </div>
         )}
       </div>
