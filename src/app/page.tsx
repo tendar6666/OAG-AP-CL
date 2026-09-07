@@ -1142,7 +1142,7 @@ function HomeContent() {
                           <span>{p.status}</span>
                         </span>
                       )}
-                      {p.isRevised && !p.isExtended && (
+                      {p.isRevised && (
                         <span className="px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400 text-xs font-bold rounded-full">
      {p.metadata?.revisionRequestedBy ? `Revision Requested by ${p.metadata.revisionRequestedBy}` : 'Revised'}
    </span>
