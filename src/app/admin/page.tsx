@@ -1888,10 +1888,17 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                   className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all w-full md:w-36"
                 >
                   <option value="ALL">All Status</option>
-                  <option value="Draft">Draft / In Progress</option>
-                  <option value="Submitted">Audited (Submitted)</option>
-                  <option value="Extension Requested">Pending Support</option>
-                  <option value="Extension Supported">Pending Approval</option>
+                    <option value="Draft">Draft / In Progress</option>
+                    <option value="Draft AP & CL Submitted">Draft Submitted</option>
+                    <option value="Draft AP & CL Supported">Draft Supported</option>
+                    <option value="Draft AP & CL Approved">Draft Approved</option>
+                    <option value="Final Submitted">Final Submitted</option>
+                    <option value="Final Supported">Final Supported</option>
+                    <option value="Final Approved">Final Approved</option>
+                    <option value="Report Published">Report Published</option>
+                    <option value="Extension Requested">Extension Requested</option>
+                    <option value="Extension Supported">Extension Supported</option>
+                    <option value="Extended (Approved)">Extension Approved</option>
                 </select>
               </div>
             </div>
@@ -1915,12 +1922,21 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                    if (selectedExecFyFilter !== 'ALL' && p.metadata?.executionFY !== selectedExecFyFilter) return false;
                    if (selectedTargetFyFilter !== 'ALL' && !(p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter)) return false;
                    if (projectStatusFilter !== 'ALL') {
-    if (projectStatusFilter === 'Pending Support' && (p.status === 'Pending Support' || (p.status === 'Submitted' && !p.isExtended))) {
-        // match legacy
-    } else if (p.status !== projectStatusFilter) {
-        return false;
-    }
-}
+      const isPendingSupport = p.status === 'Pending Support' || (p.status === 'Submitted' && !p.isExtended);
+      const isPendingApproval = p.status === 'Pending Approval';
+      const isAudited = p.status === 'Audited';
+      const isPublished = isAudited && !!p.metadata?.handingTaking?.publishDate;
+      
+      let matches = false;
+      if (projectStatusFilter === 'Final Submitted' && isPendingSupport) matches = true;
+      else if (projectStatusFilter === 'Final Supported' && isPendingApproval) matches = true;
+      else if (projectStatusFilter === 'Final Approved' && isAudited) matches = true;
+      else if (projectStatusFilter === 'Report Published' && isPublished) matches = true;
+      else if (['Final Submitted', 'Final Supported', 'Final Approved', 'Report Published'].includes(projectStatusFilter)) matches = false;
+      else if (p.status === projectStatusFilter) matches = true;
+      
+      if (!matches) return false;
+  }
                    if (projectTypeFilter !== 'ALL') {
                       const matchedUnit = units.find(u => u.name === p.metadata?.unitName);
                       if (projectTypeFilter === 'UNCATEGORIZED' && matchedUnit?.unit_type_id) return false;
@@ -2064,12 +2080,21 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                  if (selectedExecFyFilter !== 'ALL' && p.metadata?.executionFY !== selectedExecFyFilter) return false;
                  if (selectedTargetFyFilter !== 'ALL' && !(p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter)) return false;
                  if (projectStatusFilter !== 'ALL') {
-    if (projectStatusFilter === 'Pending Support' && (p.status === 'Pending Support' || (p.status === 'Submitted' && !p.isExtended))) {
-        // match legacy
-    } else if (p.status !== projectStatusFilter) {
-        return false;
-    }
-}
+      const isPendingSupport = p.status === 'Pending Support' || (p.status === 'Submitted' && !p.isExtended);
+      const isPendingApproval = p.status === 'Pending Approval';
+      const isAudited = p.status === 'Audited';
+      const isPublished = isAudited && !!p.metadata?.handingTaking?.publishDate;
+      
+      let matches = false;
+      if (projectStatusFilter === 'Final Submitted' && isPendingSupport) matches = true;
+      else if (projectStatusFilter === 'Final Supported' && isPendingApproval) matches = true;
+      else if (projectStatusFilter === 'Final Approved' && isAudited) matches = true;
+      else if (projectStatusFilter === 'Report Published' && isPublished) matches = true;
+      else if (['Final Submitted', 'Final Supported', 'Final Approved', 'Report Published'].includes(projectStatusFilter)) matches = false;
+      else if (p.status === projectStatusFilter) matches = true;
+      
+      if (!matches) return false;
+  }
                  if (projectSearchTerm) {
                     const searchLower = projectSearchTerm.toLowerCase();
                     const unitMatch = (p.metadata?.unitName || '').toLowerCase().includes(searchLower);
