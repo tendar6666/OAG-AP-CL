@@ -225,10 +225,38 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
                     {fsGroups.filter(g => g.type === 'Liability').map(g => {
                       const total = activeTab === 'CONSOLIDATED' ? ((consData.liabilities[g.id!]?.total || 0) + (consData.assets[g.id!]?.total || 0)) : getSpecificTotal(currentStatements.find((s:any) => s.id === activeTab), 'Liability', g.id!);
                       if (total === 0) return null; // Hide completely empty rows in viewer
+                      
+                      const stmt = currentStatements.find((s:any) => s.id === activeTab);
+                      const gData = activeTab === 'CONSOLIDATED' ? (consData.liabilities[g.id!] || consData.assets[g.id!]) : (stmt?.liabilities?.[g.id!] || stmt?.assets?.[g.id!]);
+                      
                       return (
-                        <div key={g.id} className="flex justify-between items-center py-2 px-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded border-b border-slate-100 dark:border-slate-800/50">
-                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{g.name}</span>
-                          <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{total.toLocaleString()}</span>
+                        <div key={g.id} className="py-2 px-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded border-b border-slate-100 dark:border-slate-800/50">
+                          {g.requiresBifurcation && gData?.bifurcation ? (
+                            <div className="flex flex-col space-y-1">
+                              <span className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">{g.name}</span>
+                              <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 pl-2">
+                                <span>Opening Balance</span>
+                                <span>{(gData.bifurcation.opening||0).toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 pl-2">
+                                <span>Add: Surplus / (Less: Deficit)</span>
+                                <span>{(gData.bifurcation.surplus||0).toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 pl-2 pb-1 border-b border-slate-200 dark:border-slate-700">
+                                <span>Add / (Less): Other Adjustments</span>
+                                <span>{(gData.bifurcation.other||0).toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between text-sm font-bold text-slate-900 dark:text-slate-100 pt-1">
+                                <span>Closing Balance</span>
+                                <span>{total.toLocaleString()}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{g.name}</span>
+                              <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{total.toLocaleString()}</span>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -240,10 +268,38 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
                     {fsGroups.filter(g => g.type === 'Asset').map(g => {
                       const total = activeTab === 'CONSOLIDATED' ? ((consData.assets[g.id!]?.total || 0) + (consData.liabilities[g.id!]?.total || 0)) : getSpecificTotal(currentStatements.find((s:any) => s.id === activeTab), 'Asset', g.id!);
                       if (total === 0) return null; // Hide completely empty rows in viewer
+                      
+                      const stmt = currentStatements.find((s:any) => s.id === activeTab);
+                      const gData = activeTab === 'CONSOLIDATED' ? (consData.assets[g.id!] || consData.liabilities[g.id!]) : (stmt?.assets?.[g.id!] || stmt?.liabilities?.[g.id!]);
+                      
                       return (
-                        <div key={g.id} className="flex justify-between items-center py-2 px-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded border-b border-slate-100 dark:border-slate-800/50">
-                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{g.name}</span>
-                          <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{total.toLocaleString()}</span>
+                        <div key={g.id} className="py-2 px-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded border-b border-slate-100 dark:border-slate-800/50">
+                          {g.requiresBifurcation && gData?.bifurcation ? (
+                            <div className="flex flex-col space-y-1">
+                              <span className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">{g.name}</span>
+                              <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 pl-2">
+                                <span>Opening Balance</span>
+                                <span>{(gData.bifurcation.opening||0).toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 pl-2">
+                                <span>Add: Additions / (Less: Disposals)</span>
+                                <span>{(gData.bifurcation.surplus||0).toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 pl-2 pb-1 border-b border-slate-200 dark:border-slate-700">
+                                <span>Add / (Less): Other Adjustments</span>
+                                <span>{(gData.bifurcation.other||0).toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between text-sm font-bold text-slate-900 dark:text-slate-100 pt-1">
+                                <span>Closing Balance</span>
+                                <span>{total.toLocaleString()}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{g.name}</span>
+                              <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{total.toLocaleString()}</span>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
