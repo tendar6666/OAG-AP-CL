@@ -448,6 +448,17 @@ function HomeContent() {
         alert("Please enter the Name of the Units/Institution before saving.");
         return;
       }
+      
+      // Strict Validation: Must match a unit from the database
+      const isValidUnit = masterUnits.some(u => {
+          const displayName = u.file_number ? `${u.file_number} ${u.name}` : u.name;
+          return displayName === unitName;
+      });
+      
+      if (!isValidUnit) {
+          alert("Invalid Unit Name. You must select a valid unit from the dropdown suggestions.");
+          return;
+      }
       if (financialYears.some(fy => !fy.trim())) {
         alert("Please enter the Financial Year before saving.");
         return;
@@ -1232,23 +1243,26 @@ function HomeContent() {
                   {/* Unit Name */}
                   <div className="flex flex-col">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Name of the Units/Institution</label>
-                    <select 
+                    <input 
+                        type="text" 
+                        list="unit-suggestions"
                         value={unitName}
                         onChange={(e) => setUnitName(e.target.value)}
-                        className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
-                      >
-                        <option value="">-- Select Unit --</option>
+                        placeholder="e.g. Delek Hospital (Type to search...)"
+                        className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                      />
+                      <datalist id="unit-suggestions">
                         {masterUnits
                           .filter(u => selectedBranchFilter === 'ALL' || u.branch === selectedBranchFilter)
                           .map(u => {
-                            const displayName = u.file_number ? `${u.file_number} ${u.name}` : u.name;
-                            return (
-                              <option key={u.id || u.name} value={displayName}>
-                                {u.tibetan_name ? `${displayName} (${u.tibetan_name})` : displayName}
-                              </option>
-                            );
+                          const displayName = u.file_number ? `${u.file_number} ${u.name}` : u.name;
+                          return (
+                            <option key={u.id || u.name} value={displayName}>
+                              {u.tibetan_name ? `${displayName} (${u.tibetan_name})` : displayName}
+                            </option>
+                          );
                         })}
-                      </select>
+                      </datalist>
                   </div>
 
                   {/* Financial Year */}
