@@ -1703,7 +1703,27 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
           </div>
         )}
 
-        {activeTab === 'add_fs' && (
+        {activeTab === 'add_fs' && (() => {
+          const isProjectMatch = (p: any, u: any) => {
+             if (!p.metadata?.unitName) return false;
+             const pName = p.metadata.unitName.trim();
+             const uName = u.name.trim();
+             return pName === uName || pName.endsWith(uName);
+          };
+          
+          const allFSProjects = [...projects, ...historicalProjects];
+
+          const filteredAddFsUnits = units.filter(u => {
+             if (addFsSearchQuery && !u.name.toLowerCase().includes(addFsSearchQuery.toLowerCase()) && !(u.file_number && u.file_number.toLowerCase().includes(addFsSearchQuery.toLowerCase()))) return false;
+             if (addFsStatusFilter === 'ACTIVE' && u.is_active === false) return false;
+             if (addFsStatusFilter === 'INACTIVE' && u.is_active !== false) return false;
+             if (addFsUnitTypeFilter !== 'ALL' && u.unit_type_id !== addFsUnitTypeFilter) return false;
+             return true;
+          });
+          
+          const receivedCount = filteredAddFsUnits.filter(u => allFSProjects.some(p => isProjectMatch(p, u) && (p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter) && p.financialStatements)).length;
+          
+          return (
           <div className="flex flex-col">
             <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/20">
               <div>
@@ -1718,13 +1738,13 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
                 <div className="flex flex-wrap items-center gap-4 bg-slate-100 dark:bg-slate-900 p-2 rounded-lg">
                   <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                    Total: {units.length}
+                    Total: {filteredAddFsUnits.length}
                   </div>
                   <div className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                    Received: {units.filter(u => projects.some(p => p.metadata?.unitName === u.name && (p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter) && p.financialStatements)).length}
+                    Received: {receivedCount}
                   </div>
                   <div className="text-sm font-semibold text-rose-600 dark:text-rose-400">
-                    Pending: {units.filter(u => !projects.some(p => p.metadata?.unitName === u.name && (p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter) && p.financialStatements)).length}
+                    Pending: {filteredAddFsUnits.length - receivedCount}
                   </div>
                 </div>
                 
@@ -1756,14 +1776,8 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {units.filter(u => {
-                        if (addFsSearchQuery && !u.name.toLowerCase().includes(addFsSearchQuery.toLowerCase()) && !(u.file_number && u.file_number.toLowerCase().includes(addFsSearchQuery.toLowerCase()))) return false;
-                        if (addFsStatusFilter === 'ACTIVE' && u.is_active === false) return false;
-                        if (addFsStatusFilter === 'INACTIVE' && u.is_active !== false) return false;
-                        if (addFsUnitTypeFilter !== 'ALL' && u.unit_type_id !== addFsUnitTypeFilter) return false;
-                        return true;
-                    }).map((unit) => {
-                      const matchedProject = projects.find(p => p.metadata?.unitName === unit.name && (p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter) && p.financialStatements);
+                    {filteredAddFsUnits.map((unit) => {
+                      const matchedProject = allFSProjects.find(p => isProjectMatch(p, unit) && (p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter) && p.financialStatements);
                       const hasFS = !!matchedProject;
                       return (
                         <tr key={unit.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
@@ -1804,7 +1818,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
               </div>
             </div>
           </div>
-        )}
+        )})()}
 
         {activeTab === 'reports' && (
           <ReportsDashboard 
