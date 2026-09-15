@@ -120,7 +120,7 @@ const SortableChecklistRow = ({ item, displayNum, onChange, onDelete }: any) => 
 // ---------------------------
 // Main Checklist Component
 // ---------------------------
-const ChecklistGrid = forwardRef(({ auditTotals, loadedData, unitName, setUnitName, auditorName, financialYear }: any, ref) => {
+const ChecklistGrid = forwardRef(({ auditTotals, loadedData, unitName, setUnitName, auditorName, setAuditorName, financialYear, setFinancialYear }: any, ref) => {
   
   const [items, setItems] = useState<ChecklistItemType[]>(defaultDynamicItems);
   
@@ -235,15 +235,15 @@ const ChecklistGrid = forwardRef(({ auditTotals, loadedData, unitName, setUnitNa
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
           <div className="flex flex-col">
             <label className="text-xs font-bold text-slate-500 uppercase">1. Name of Institution</label>
-            <input type="text" value={unitName || ''} readOnly className="mt-1 bg-transparent text-slate-800 dark:text-slate-200 font-semibold focus:outline-none pb-1" />
+            <input type="text" value={unitName || ''} onChange={(e) => setUnitName && setUnitName(e.target.value)} className="mt-1 bg-transparent text-slate-800 dark:text-slate-200 font-semibold focus:outline-none pb-1 border-b border-dashed border-slate-300 dark:border-slate-600 focus:border-indigo-500 transition-colors" placeholder="Enter Name..." />
           </div>
           <div className="flex flex-col border-l border-slate-200 dark:border-slate-700 pl-4">
             <label className="text-xs font-bold text-slate-500 uppercase">2. Audit Period</label>
-            <input type="text" value={financialYear || ''} readOnly className="mt-1 bg-transparent text-slate-800 dark:text-slate-200 font-semibold focus:outline-none pb-1" />
+            <input type="text" value={financialYear || ''} onChange={(e) => setFinancialYear && setFinancialYear(e.target.value)} className="mt-1 bg-transparent text-slate-800 dark:text-slate-200 font-semibold focus:outline-none pb-1 border-b border-dashed border-slate-300 dark:border-slate-600 focus:border-indigo-500 transition-colors" placeholder="Enter Audit Period..." />
           </div>
           <div className="flex flex-col border-l border-slate-200 dark:border-slate-700 pl-4">
             <label className="text-xs font-bold text-slate-500 uppercase">3. Auditor</label>
-            <input type="text" value={auditorName || ''} readOnly className="mt-1 bg-transparent text-slate-800 dark:text-slate-200 font-semibold focus:outline-none pb-1" />
+            <input type="text" value={auditorName || ''} onChange={(e) => setAuditorName && setAuditorName(e.target.value)} className="mt-1 bg-transparent text-slate-800 dark:text-slate-200 font-semibold focus:outline-none pb-1 border-b border-dashed border-slate-300 dark:border-slate-600 focus:border-indigo-500 transition-colors" placeholder="Enter Auditor Name..." />
           </div>
         </div>
 
