@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useSearchParams } from 'next/navigation';
-import { getUsers, updateUserRole, getProjects, getHistoricalProjects, getUnits, createUnit, updateUnit, deleteUnit, getCustomFYs, createCustomFY, deleteCustomFY, getUnitTypes, createUnitType, updateUnitType, deleteUnitType, getFSGroups, createFSGroup, updateFSGroup, deleteFSGroup, AuditUnit, CustomFY, UnitType, FSGroup } from '@/lib/api';
+import { getUsers, updateUserRole, getProjects, getHistoricalProjects, getUnits, createUnit, updateUnit, deleteUnit, getUnitTypes, createUnitType, updateUnitType, deleteUnitType, getFSGroups, createFSGroup, updateFSGroup, deleteFSGroup, AuditUnit, UnitType, FSGroup } from '@/lib/api';
 import { Layers, Users, FileSpreadsheet, ShieldAlert, Download, Save, Building2, Plus, Edit2, Trash2, CalendarDays, Ban, CheckCircle, Search, Filter, RefreshCw, ChevronRight, ChevronDown, Folder, FolderOpen, Network, MessageSquare, GripVertical } from 'lucide-react';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import ReportsDashboard from '@/components/ReportsDashboard';
@@ -303,9 +303,22 @@ export default function AdminDashboard() {
   
   const [users, setUsers] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
+  const [allPendingActions, setAllPendingActions] = useState<any[]>([]);
   const [units, setUnits] = useState<AuditUnit[]>([]);
   const [unitTypes, setUnitTypes] = useState<UnitType[]>([]);
   const [unitTypeForm, setUnitTypeForm] = useState<Partial<UnitType> | null>(null);
+
+  const renderCategoryOptions = (parentId: string | null, depth: number): any[] => {
+     return (unitTypes || []).filter(ut => ut.parent_id === parentId).flatMap(ut => {
+         const indent = Array(depth).fill('\u00A0\u00A0\u00A0\u00A0').join('');
+         const arrow = depth > 0 ? '\u21B3 ' : '';
+         return [
+            <option key={ut.id} value={ut.id as string}>{indent + arrow + ut.name}</option>,
+            ...renderCategoryOptions(ut.id as string, depth + 1)
+         ];
+     });
+  };
+
   const [isSavingUnitType, setIsSavingUnitType] = useState(false);
   const [showManageUnitTypes, setShowManageUnitTypes] = useState(false);
   
@@ -316,8 +329,7 @@ export default function AdminDashboard() {
   const [hwShowUnits, setHwShowUnits] = useState(true);
   const [hwGroupByBranch, setHwGroupByBranch] = useState(false);
   const [hwStatusFilter, setHwStatusFilter] = useState('ALL');
-  const [customFys, setCustomFys] = useState<CustomFY[]>([]);
-  const [fsGroups, setFsGroups] = useState<FSGroup[]>([]);
+    const [fsGroups, setFsGroups] = useState<FSGroup[]>([]);
   const [fsGroupForm, setFsGroupForm] = useState<Partial<FSGroup> | null>(null);
   const [isSavingFsGroup, setIsSavingFsGroup] = useState(false);
   const [draggedGroup, setDraggedGroup] = useState<string | null>(null);
@@ -328,6 +340,10 @@ export default function AdminDashboard() {
   const [viewFsProject, setViewFsProject] = useState<any>(null);
   const [editFsProject, setEditFsProject] = useState<any>(null); const [handingTakingModal, setHandingTakingModal] = useState<any>(null); const [htCustomDate, setHtCustomDate] = useState<string>('');
 
+  const [addFsStatusFilter, setAddFsStatusFilter] = useState('ALL');
+  const [addFsUnitTypeFilter, setAddFsUnitTypeFilter] = useState('ALL');
+  const [addFsSearchQuery, setAddFsSearchQuery] = useState('');
+  
   const [remarkModal, setRemarkModal] = useState<{project: any, field: string} | null>(null);
   const [remarkText, setRemarkText] = useState('');
 
@@ -339,8 +355,7 @@ export default function AdminDashboard() {
           const newHandingTaking = { ...project.metadata?.handingTaking, [`${field}Remark`]: remarkText };
           const newMetadata = { ...project.metadata, handingTaking: newHandingTaking };
           await api.saveProject({ ...project, metadata: newMetadata });
-          setRemarkModal(null);
-          fetchProjects();
+          updateProjectLocally({ ...project, metadata: newMetadata });
       } catch (e) { alert("Failed"); }
   };
 
@@ -373,8 +388,7 @@ export default function AdminDashboard() {
   const [isSavingUnit, setIsSavingUnit] = useState(false);
 
   // FY form state
-  const [fyForm, setFyForm] = useState<Partial<CustomFY> | null>(null);
-  const [isSavingFy, setIsSavingFy] = useState(false);
+    const [isSavingFy, setIsSavingFy] = useState(false);
 
   const currentYear = new Date().getFullYear();
   const handleNotifyAuditor = async (projectId: string) => {
@@ -517,17 +531,15 @@ export default function AdminDashboard() {
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      const [usersData, unitsData, fysData, unitTypesData, fsGroupsData] = await Promise.all([
+      const [usersData, unitsData, unitTypesData, fsGroupsData] = await Promise.all([
           getUsers(),
           getUnits(),
-          getCustomFYs(),
           getUnitTypes(),
           getFSGroups()
         ]);
         setUsers(usersData);
         setUnits(unitsData);
-        setCustomFys(fysData as any);
-        setUnitTypes(unitTypesData);
+                setUnitTypes(unitTypesData);
         setFsGroups(fsGroupsData);
     } catch (err) {
       console.error("Failed to load initial admin data", err);
@@ -535,11 +547,42 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
+  
+  const updateProjectLocally = (updatedProject: any, isDelete: boolean = false) => {
+    if (isDelete) {
+      setProjects(prev => prev.filter(p => p.id !== updatedProject.id));
+      setAllPendingActions(prev => prev.filter(p => p.id !== updatedProject.id));
+    } else {
+      setProjects(prev => {
+        const idx = prev.findIndex(p => p.id === updatedProject.id);
+        if (idx > -1) {
+          const newArr = [...prev];
+          newArr[idx] = updatedProject;
+          return newArr;
+        }
+        return prev;
+      });
+      setAllPendingActions(prev => {
+        const idx = prev.findIndex(p => p.id === updatedProject.id);
+        if (idx > -1) {
+          const newArr = [...prev];
+          newArr[idx] = updatedProject;
+          return newArr;
+        }
+        return prev;
+      });
+    }
+  };
+
   const fetchProjects = async () => {
     setIsProjectsLoading(true);
     try {
-      const data = await getProjects("ALL", "ALL");
+      const data = await getProjects(selectedTargetFyFilter, selectedExecFyFilter);
       setProjects(data);
+      
+      // Fetch all projects once to find pending actions from any FY
+      const allData = await getProjects("ALL", "ALL");
+      setAllPendingActions(allData);
     } catch (e: any) {
       console.error("Failed to fetch projects", e);
     }
@@ -933,11 +976,17 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
     if (!editFsProject) return;
     try {
       const api = await import('@/lib/api');
-      await api.saveProject({
-        ...editFsProject,
-        financialStatements: fsData
-      }, {
-        action: 'Edited Financial Statements',
+      
+      let payload = { ...editFsProject, financialStatements: fsData };
+      if (payload.isNewHistorical) {
+          payload.name = `${payload.metadata.unitName} ${payload.metadata.financialYear} (Historical FS)`;
+          payload.status = 'Audited';
+          payload.isHistoricalFS = true;
+          delete payload.isNewHistorical;
+      }
+      
+      await api.saveProject(payload, {
+        action: payload.isHistoricalFS ? 'Added Historical FS' : 'Edited Financial Statements',
         userId: user.id,
         userName: user.name
       });
@@ -1091,7 +1140,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
       try {
         const api = await import('@/lib/api');
         await api.deleteProject(project.id);
-        fetchProjects();
+          updateProjectLocally({id: project.id}, true);
       } catch (e: any) {
         alert("Failed to delete project.");
       }
@@ -1103,7 +1152,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
       try {
         const api = await import('@/lib/api');
         await api.deleteProject(project.id);
-        fetchProjects();
+          updateProjectLocally({id: project.id}, true);
       } catch (e: any) {
         alert("Failed to remove override.");
       }
@@ -1201,34 +1250,8 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
     }
   };
 
-  const saveFy = async () => {
-    if (!fyForm?.name || !fyForm?.start_date || !fyForm?.end_date) {
-      alert("Name, Start Date, and End Date are required.");
-      return;
-    }
-    setIsSavingFy(true);
-    try {
-      const newFy = await createCustomFY(fyForm as Omit<CustomFY, 'id'>);
-      setCustomFys([...customFys, newFy]);
-      setFyForm(null);
-    } catch (e: any) {
-      console.error(e);
-      alert("Failed to save financial year.");
-    }
-    setIsSavingFy(false);
-  };
-
-  const handleDeleteFy = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this custom financial year?")) {
-      try {
-        await deleteCustomFY(id);
-        setCustomFys(customFys.filter(f => f.id !== id));
-      } catch (e: any) {
-        alert("Failed to delete financial year.");
-      }
-    }
-  };
-
+  
+  
   if (authLoading || loading) {
     return <div className="flex justify-center mt-20"><div className="w-8 h-8 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div></div>;
   }
@@ -1243,7 +1266,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
     );
   }
 
-  const pendingMyAction = projects.filter(p => {
+  const pendingMyAction = allPendingActions.filter(p => {
       if (!user) return false;
   
       // Explicitly ignoring Global FY filters for My Assigned Actions so users never miss a pending item
@@ -1330,11 +1353,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
               })}
               <option value="LOAD_MORE_PAST">↓ Load 5 more older FY...</option>
             </optgroup>
-            {customFys.length > 0 && (
-              <optgroup label="Custom Financial Years">
-                {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
-              </optgroup>
-            )}
+            
           </select>
         </div>
         
@@ -1360,11 +1379,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
               })}
               <option value="LOAD_MORE_PAST">↓ Load 5 more older FY...</option>
             </optgroup>
-            {customFys.length > 0 && (
-              <optgroup label="Custom Financial Years">
-                {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
-              </optgroup>
-            )}
+            
           </select>
         </div>
       </div>
@@ -1670,7 +1685,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
               const y = highestFy - i;
               return `FY ${y}-${y+1}`;
             })} 
-            customFys={customFys} 
+             
             userRole={user.hierarchy_weight}
             onAdminOverride={handleAdminOverride}
             onAdminRevert={handleAdminRevertOverride}
@@ -1685,6 +1700,109 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         {activeTab === 'global_fs' && (
           <div className="fade-in">
              <GlobalFSDashboard projects={[...projects, ...historicalProjects]} fsGroups={fsGroups} />
+          </div>
+        )}
+
+        {activeTab === 'add_fs' && (
+          <div className="flex flex-col">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/20">
+              <div>
+                <h3 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                  <FileSpreadsheet size={18} /> Add FS
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">Manually enter Financial Statements for units.</p>
+              </div>
+            </div>
+            
+            <div className="p-4 bg-white dark:bg-slate-800">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
+                <div className="flex flex-wrap items-center gap-4 bg-slate-100 dark:bg-slate-900 p-2 rounded-lg">
+                  <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    Total: {units.length}
+                  </div>
+                  <div className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                    Received: {units.filter(u => projects.some(p => p.metadata?.unitName === u.name && (p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter) && p.financialStatements)).length}
+                  </div>
+                  <div className="text-sm font-semibold text-rose-600 dark:text-rose-400">
+                    Pending: {units.filter(u => !projects.some(p => p.metadata?.unitName === u.name && (p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter) && p.financialStatements)).length}
+                  </div>
+                </div>
+                
+                <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+                    <div className="relative w-full md:w-48">
+                        <input type="text" placeholder="Search units..." value={addFsSearchQuery} onChange={e => setAddFsSearchQuery(e.target.value)} className="w-full pl-9 pr-3 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm" />
+                        <Search className="absolute left-3 top-2 text-slate-400" size={14} />
+                    </div>
+                    <select value={addFsStatusFilter} onChange={e => setAddFsStatusFilter(e.target.value)} className="w-full md:w-32 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none">
+                        <option value="ALL">All Status</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="INACTIVE">Inactive</option>
+                    </select>
+                    <select value={addFsUnitTypeFilter} onChange={e => setAddFsUnitTypeFilter(e.target.value)} className="w-full md:w-48 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none">
+                        <option value="ALL">All Types</option>
+                        {renderCategoryOptions(null, 0)}
+                    </select>
+                </div>
+              </div>
+              
+              <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-lg">
+                <table className="w-full text-left text-sm text-slate-600 dark:text-slate-400">
+                  <thead className="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase font-semibold text-slate-500">
+                    <tr>
+                      <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Unit Name</th>
+                      <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">File Number</th>
+                      <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Status</th>
+                      <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {units.filter(u => {
+                        if (addFsSearchQuery && !u.name.toLowerCase().includes(addFsSearchQuery.toLowerCase()) && !(u.file_number && u.file_number.toLowerCase().includes(addFsSearchQuery.toLowerCase()))) return false;
+                        if (addFsStatusFilter === 'ACTIVE' && u.is_active === false) return false;
+                        if (addFsStatusFilter === 'INACTIVE' && u.is_active !== false) return false;
+                        if (addFsUnitTypeFilter !== 'ALL' && u.unit_type_id !== addFsUnitTypeFilter) return false;
+                        return true;
+                    }).map((unit) => {
+                      const matchedProject = projects.find(p => p.metadata?.unitName === unit.name && (p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter) && p.financialStatements);
+                      const hasFS = !!matchedProject;
+                      return (
+                        <tr key={unit.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                          <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-200">{unit.name}</td>
+                          <td className="px-4 py-3">{unit.file_number || '-'}</td>
+                          <td className="px-4 py-3">
+                            {hasFS ? (
+                               <span className="px-2 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400 text-xs font-bold rounded-full">Received</span>
+                            ) : (
+                               <span className="px-2 py-1 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 text-xs font-bold rounded-full">Pending</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                             {hasFS ? (
+                               <button 
+                                 onClick={() => setEditFsProject(matchedProject)}
+                                 className="px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/50 dark:text-amber-400 dark:hover:bg-amber-900 font-semibold rounded text-xs transition-colors"
+                               >
+                                 Edit FS
+                               </button>
+                             ) : (
+                               <button 
+                                 onClick={() => setEditFsProject({
+                                    metadata: { unitName: unit.name, financialYear: selectedTargetFyFilter, financialYears: [selectedTargetFyFilter] },
+                                    isNewHistorical: true
+                                 })}
+                                 className="px-3 py-1.5 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-400 dark:hover:bg-indigo-900 font-semibold rounded text-xs transition-colors"
+                               >
+                                 Add FS
+                               </button>
+                             )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
@@ -2297,7 +2415,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                 >
                     <option value="ALL">All Categories</option>
                     <option value="UNCATEGORIZED">Uncategorized</option>
-                    {unitTypes.map(ut => <option key={ut.id} value={ut.id as string}>{ut.name}</option>)}
+                    {renderCategoryOptions(null, 0)}
                 </select>
                 
                 <select 
@@ -2338,7 +2456,8 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
             {unitForm && !unitForm.id && renderUnitForm(false)}
 
             {unitsTab === 'list' && (
-            <div className="overflow-x-auto">
+              <>
+              <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
                   <tr>
@@ -2406,6 +2525,10 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                 </tbody>
               </table>
             </div>
+            <div className="mt-4">
+              <Pagination page={masterUnitPage} setPage={setMasterUnitPage} total={filteredUnits.length} itemsPerPage={10} />
+            </div>
+            </>
             )}
         
             {unitsTab === 'hierarchy' && (
@@ -2709,106 +2832,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
             </div>
           )}
 
-          {activeTab === 'fy' && (
-          <div className="flex flex-col">
-            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/20">
-              <h3 className="font-semibold text-slate-800 dark:text-slate-200">Custom Financial Years</h3>
-              {!fyForm && (
-                <button 
-                  onClick={() => setFyForm({ name: '', start_date: '', end_date: '' })}
-                  className="flex items-center space-x-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors"
-                >
-                  <Plus size={16} /> <span>Add Custom FY</span>
-                </button>
-              )}
-            </div>
-
-            {fyForm && (
-              <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                <h4 className="font-semibold mb-4 text-slate-800 dark:text-slate-200">New Custom Financial Year</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">FY Name (e.g. Nepal FY 2078-79)</label>
-                    <input 
-                      type="text" 
-                      value={fyForm.name || ''} 
-                      onChange={e => setFyForm({...fyForm, name: e.target.value})}
-                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Start Date</label>
-                    <input 
-                      type="date" 
-                      value={fyForm.start_date || ''} 
-                      onChange={e => setFyForm({...fyForm, start_date: e.target.value})}
-                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">End Date</label>
-                    <input 
-                      type="date" 
-                      value={fyForm.end_date || ''} 
-                      onChange={e => setFyForm({...fyForm, end_date: e.target.value})}
-                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-                <div className="mt-4 flex space-x-3">
-                  <button onClick={saveFy} disabled={isSavingFy} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-sm font-medium">
-                    {isSavingFy ? 'Saving...' : 'Save FY'}
-                  </button>
-                  <button onClick={() => setFyForm(null)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 rounded text-sm font-medium">
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold">Financial Year Name</th>
-                    <th className="px-6 py-4 font-semibold">Start Date</th>
-                    <th className="px-6 py-4 font-semibold">End Date</th>
-                    <th className="px-6 py-4 font-semibold text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {customFys.map(f => (
-                    <tr key={f.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-slate-800 dark:text-slate-200">{f.name}</td>
-                      <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{f.start_date}</td>
-                      <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{f.end_date}</td>
-                      <td className="px-6 py-4 text-right">
-                        <button 
-                          onClick={() => handleDeleteFy(f.id!)}
-                          title="Delete Custom FY"
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {customFys.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="px-6 py-8 text-center text-slate-500">No custom financial years defined.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <Pagination page={htPage} setPage={setHtPage} total={projects.filter(p => {
-  if (p.status !== 'Audited' || p.isHistoricalFS) return false;
-  if (selectedTargetFyFilter !== 'ALL' && !(p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter)) return false;
-  if (selectedExecFyFilter !== 'ALL' && p.metadata?.executionFY !== selectedExecFyFilter) return false;
-  return true;
-}).length} itemsPerPage={20} />
-          </div>
-        )}
+          
       </div>
 
       {/* REASSIGN MODAL */}
@@ -3130,6 +3154,51 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                          </div>
                        </div>
                      ))}
+                     
+                     {/* Footer Questionnaire */}
+                     {viewDetailsProject.checklistData.formData && (
+                       <>
+                         {viewDetailsProject.checklistData.formData.q5 && (
+                           <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                             <div className="font-semibold text-slate-800 dark:text-slate-200 mb-2">Have you discussed the Financial position (Balance Sheet) with the concern authority and their view obtained.</div>
+                             <div className="flex items-center space-x-2 text-sm">
+                               <span className="text-slate-500 font-medium">Answer:</span>
+                               <span className="font-bold text-indigo-600 dark:text-indigo-400">{viewDetailsProject.checklistData.formData.q5}</span>
+                             </div>
+                           </div>
+                         )}
+                         {viewDetailsProject.checklistData.formData.q6_status && (
+                           <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                             <div className="font-semibold text-slate-800 dark:text-slate-200 mb-2">Have you discussed the Draft Audit report with the concern authority and their view obtained</div>
+                             <div className="flex items-center space-x-2 text-sm">
+                               <span className="text-slate-500 font-medium">Answer:</span>
+                               <span className="font-bold text-indigo-600 dark:text-indigo-400">{viewDetailsProject.checklistData.formData.q6_status}</span>
+                               {viewDetailsProject.checklistData.formData.q6_status === 'Yes' && viewDetailsProject.checklistData.formData.q6_date && (
+                                 <span className="font-bold text-indigo-600 dark:text-indigo-400"> (Date: {new Date(viewDetailsProject.checklistData.formData.q6_date).toLocaleDateString('en-GB')})</span>
+                               )}
+                             </div>
+                           </div>
+                         )}
+                         {viewDetailsProject.checklistData.formData.q11 && (
+                           <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                             <div className="font-semibold text-slate-800 dark:text-slate-200 mb-2">Do you have any suggestion for the next audit. If yes, state you suggestions in your register.</div>
+                             <div className="flex items-center space-x-2 text-sm">
+                               <span className="text-slate-500 font-medium">Answer:</span>
+                               <span className="font-bold text-indigo-600 dark:text-indigo-400">{viewDetailsProject.checklistData.formData.q11}</span>
+                             </div>
+                           </div>
+                         )}
+                         {viewDetailsProject.checklistData.formData.q12 && (
+                           <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                             <div className="font-semibold text-slate-800 dark:text-slate-200 mb-2">Reason for the extension</div>
+                             <div className="flex items-center space-x-2 text-sm">
+                               <span className="text-slate-500 font-medium">Answer:</span>
+                               <span className="font-bold text-indigo-600 dark:text-indigo-400">{viewDetailsProject.checklistData.formData.q12}</span>
+                             </div>
+                           </div>
+                         )}
+                       </>
+                     )}
                    </div>
                 )}
               </div>

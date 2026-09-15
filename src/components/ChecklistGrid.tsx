@@ -135,7 +135,8 @@ const ChecklistGrid = forwardRef(({ auditTotals, loadedData, unitName, auditorNa
     q5: 'Yes',
     q6_status: 'Yes',
     q6_date: '',
-    q11: ''
+    q11: '',
+    q12: ''
   });
 
   useImperativeHandle(ref, () => ({
@@ -356,6 +357,11 @@ const ChecklistGrid = forwardRef(({ auditTotals, loadedData, unitName, auditorNa
           <div className="flex flex-col p-4 space-y-3">
             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{nextMainNumber+6}. Do you have any suggestion for the next audit. If yes, state you suggestions in your register.</span>
             <input type="text" value={formData.q11} onChange={e => setFormData(p => ({...p, q11: e.target.value}))} placeholder="Type suggestions or 'No'..." className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          <div className="flex flex-col p-4 space-y-3">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{nextMainNumber+7}. Reason for the extension</span>
+            <input type="text" value={formData.q12} onChange={e => setFormData(p => ({...p, q12: e.target.value}))} placeholder="Enter reason for extension..." className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
 
         </div>

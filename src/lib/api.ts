@@ -40,21 +40,26 @@ export type AuditUnit = {
   unit_type_id?: string | null;
 };
 
-export async function getUnits(): Promise<AuditUnit[]> {
-  const querySnapshot = await getDocs(collection(db, "units"));
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AuditUnit));
+export function getUnits(): Promise<AuditUnit[]> {
+  return withCache(masterCache, "units", async () => {
+    const querySnapshot = await getDocs(collection(db, "units"));
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AuditUnit));
+  });
 }
 
 export async function createUnit(unit: AuditUnit): Promise<AuditUnit> {
+  masterCache["units"] = null;
   const docRef = await addDoc(collection(db, "units"), unit);
   return { id: docRef.id, ...unit };
 }
 
 export async function updateUnit(id: string, updates: Partial<AuditUnit>) {
+  masterCache["units"] = null;
   await updateDoc(doc(db, "units", id), updates);
 }
 
 export async function deleteUnit(id: string) {
+  masterCache["units"] = null;
   await deleteDoc(doc(db, "units", id));
 }
 
@@ -75,53 +80,51 @@ export interface UnitType {
   parent_id: string | null;
 }
 
-export async function getUnitTypes(): Promise<UnitType[]> {
-  const querySnapshot = await getDocs(collection(db, "unit_types"));
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UnitType));
+export function getUnitTypes(): Promise<UnitType[]> {
+  return withCache(masterCache, "unitTypes", async () => {
+    const querySnapshot = await getDocs(collection(db, "unit_types"));
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UnitType));
+  });
 }
 
 export async function createUnitType(unitType: UnitType): Promise<UnitType> {
+  masterCache["unitTypes"] = null;
+  masterCache["units"] = null;
   const docRef = await addDoc(collection(db, "unit_types"), unitType);
   return { id: docRef.id, ...unitType };
 }
 
 export async function updateUnitType(id: string, updates: Partial<UnitType>) {
+  masterCache["unitTypes"] = null;
+  masterCache["units"] = null;
   await updateDoc(doc(db, "unit_types", id), updates);
 }
 
 export async function deleteUnitType(id: string) {
+  masterCache["unitTypes"] = null;
+  masterCache["units"] = null;
   await deleteDoc(doc(db, "unit_types", id));
 }
 
 // ================= Custom Financial Years =================
-export interface CustomFY {
-  id: string;
-  name: string;
-  start_date: string;
-  end_date: string;
-};
+;
 
-export async function getCustomFYs(): Promise<CustomFY[]> {
-  const querySnapshot = await getDocs(collection(db, "custom_fys"));
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CustomFY));
-}
 
-export async function createCustomFY(fy: Omit<CustomFY, 'id'>): Promise<CustomFY> {
-  const docRef = await addDoc(collection(db, "custom_fys"), fy);
-  return { id: docRef.id, ...fy };
-}
 
-export async function deleteCustomFY(id: string) {
-  await deleteDoc(doc(db, "custom_fys", id));
-}
+
+
+
 
 // ================= Templates =================
-export async function getTemplates() {
-  const querySnapshot = await getDocs(collection(db, "templates"));
-  return querySnapshot.docs.map(doc => ({ ...(doc.data() as any), id: doc.id } as any));
+export function getTemplates(): Promise<any[]> {
+  return withCache(masterCache, "templates", async () => {
+    const querySnapshot = await getDocs(collection(db, "templates"));
+    return querySnapshot.docs.map(doc => ({ ...(doc.data() as any), id: doc.id } as any));
+  });
 }
 
 export async function saveTemplate(data: any) {
+  masterCache["templates"] = null;
   let docId = data.id;
   const payload = { ...data };
   delete payload.id;
@@ -139,10 +142,12 @@ export async function saveTemplate(data: any) {
 }
 
 export async function deleteTemplate(id: string) {
+  masterCache["templates"] = null;
   await deleteDoc(doc(db, "templates", id));
 }
 
 export async function setDefaultTemplate(id: string) {
+  masterCache["templates"] = null;
   const templates = await getTemplates();
   for (const t of templates) {
     if (t.isDefault) {
@@ -153,12 +158,15 @@ export async function setDefaultTemplate(id: string) {
 }
 
 // ================= Users (Admin) =================
-export async function getUsers() {
-  const querySnapshot = await getDocs(collection(db, "users"));
-  return querySnapshot.docs.map(doc => ({ ...(doc.data() as any), id: doc.id } as any));
+export function getUsers(): Promise<any[]> {
+  return withCache(masterCache, "users", async () => {
+    const querySnapshot = await getDocs(collection(db, "users"));
+    return querySnapshot.docs.map(doc => ({ ...(doc.data() as any), id: doc.id } as any));
+  });
 }
 
 export async function updateUserRole(userId: string, newWeight: number) {
+  masterCache["users"] = null;
   const docRef = doc(db, "users", userId);
   await updateDoc(docRef, { hierarchy_weight: newWeight });
 }
@@ -186,6 +194,19 @@ export async function updateUserNtfyTopic(userId: string, newTopic: string) {
 // ================= Projects =================
 let _projectsCache: { data: any[], timestamp: number, targetFy: string, execFy: string } | null = null;
 const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
+
+function withCache(cacheObj: any, key: string, fetchFn: any) {
+  const now = Date.now();
+  if (cacheObj[key] && now - cacheObj[key].timestamp < CACHE_TTL) {
+    return Promise.resolve(cacheObj[key].data);
+  }
+  return fetchFn().then((data: any) => {
+    cacheObj[key] = { data, timestamp: now };
+    return data;
+  });
+}
+const masterCache: any = {};
+
 
 export function clearProjectsCache() {
   _projectsCache = null;
@@ -328,15 +349,18 @@ export const getFSGroups = async (): Promise<FSGroup[]> => {
 };
 
 export const createFSGroup = async (groupData: Partial<FSGroup>) => {
+  masterCache["fsGroups"] = null;
   const docRef = await addDoc(collection(db, 'fsGroups'), groupData);
   return docRef.id;
 };
 
 export const updateFSGroup = async (id: string, groupData: Partial<FSGroup>) => {
+  masterCache["fsGroups"] = null;
   const docRef = doc(db, 'fsGroups', id);
   await updateDoc(docRef, groupData);
 };
 
 export const deleteFSGroup = async (id: string) => {
+  masterCache["fsGroups"] = null;
   await deleteDoc(doc(db, 'fsGroups', id));
 };

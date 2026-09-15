@@ -146,6 +146,13 @@ export async function exportToExcel(payload: any) {
   wsChecklist.getCell(currentRow, 2).font = { bold: true };
   wsChecklist.getCell(currentRow, 3).value = formData.q11 || "";
   currentRow++;
+  
+  wsChecklist.getCell(currentRow, 1).value = `${nextMain + 7}.`;
+  wsChecklist.getCell(currentRow, 1).font = { bold: true };
+  wsChecklist.getCell(currentRow, 2).value = "Reason for the extension";
+  wsChecklist.getCell(currentRow, 2).font = { bold: true };
+  wsChecklist.getCell(currentRow, 3).value = formData.q12 || "";
+  currentRow++;
 
   formatTable(wsChecklist, tableStart, 4);
   wsChecklist.getColumn(1).width = 6;

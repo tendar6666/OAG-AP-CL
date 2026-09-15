@@ -77,9 +77,8 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
                 <Link href="/admin?tab=reports" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'reports' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                   Generated Reports
                   </Link>
-                  <Link href="/admin?tab=global_fs" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'global_fs' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-                    Financial Statements (Global)
-                  </Link>
+                  <Link href="/admin?tab=global_fs" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'global_fs' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>Financial Statements</Link>
+                  <Link href="/admin?tab=add_fs" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'add_fs' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>Add FS</Link>
 
                 <Link href="/admin?tab=audits" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'audits' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                   Master Audit Directory

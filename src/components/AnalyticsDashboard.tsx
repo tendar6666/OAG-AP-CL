@@ -5,18 +5,13 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { ShieldAlert, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import { AuditUnit } from '@/lib/api';
 
-interface CustomFY {
-  id: string;
-  name: string;
-}
 
 interface AnalyticsDashboardProps {
   projects: any[];
   units: AuditUnit[];
   unitTypes?: any[];
   recentFYs: string[];
-  customFys: CustomFY[];
-  userRole: number;
+    userRole: number;
   onAdminOverride: (unit: AuditUnit, targetFY: string, execFY: string) => void;
   onAdminRevert?: (project: any) => void;
   onLoadMoreFuture?: () => void;
@@ -34,8 +29,7 @@ export default function AnalyticsDashboard({
   units,
   unitTypes,
   recentFYs, 
-  customFys,
-  userRole,
+    userRole,
   onAdminOverride,
   onAdminRevert,
   onLoadMoreFuture,

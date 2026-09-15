@@ -9,6 +9,18 @@ export default function GlobalFSDashboard({ projects, fsGroups }: { projects: an
   const [searchTerm, setSearchTerm] = useState('');
   const [filterFy, setFilterFy] = useState('');
   const [filterCurrency, setFilterCurrency] = useState('ALL');
+
+  const renderCategoryOptions = (parentId: string | null, depth: number): any[] => {
+     return (unitTypes || []).filter(ut => ut.parent_id === parentId).flatMap(ut => {
+         const indent = Array(depth).fill('\u00A0\u00A0\u00A0\u00A0').join('');
+         const arrow = depth > 0 ? '\u21B3 ' : '';
+         return [
+            <option key={ut.id} value={ut.id as string}>{indent + arrow + ut.name}</option>,
+            ...renderCategoryOptions(ut.id as string, depth + 1)
+         ];
+     });
+  };
+
   const [filterUnitType, setFilterUnitType] = useState('ALL');
   const [unitTypes, setUnitTypes] = useState<any[]>([]);
   const [unitMap, setUnitMap] = useState<Record<string, string>>({});
@@ -234,11 +246,7 @@ export default function GlobalFSDashboard({ projects, fsGroups }: { projects: an
             className="px-3 py-1.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 max-w-[150px] truncate"
           >
             <option value="ALL">All Types</option>
-            {unitTypes.map(ut => {
-              const parent = unitTypes.find(p => p.id === ut.parent_id);
-              const displayName = parent ? parent.name + ' > ' + ut.name : ut.name;
-              return <option key={ut.id} value={ut.id}>{displayName}</option>;
-            }).sort((a, b) => (a.props.children > b.props.children ? 1 : -1))}
+            {renderCategoryOptions(null, 0)}
           </select>
 
           <select 

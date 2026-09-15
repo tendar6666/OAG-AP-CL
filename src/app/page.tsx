@@ -125,8 +125,7 @@ function HomeContent() {
   const [isExporting, setIsExporting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [customFys, setCustomFys] = useState<any[]>([]);
-  const [isFyModalOpen, setIsFyModalOpen] = useState(false);
+    const [isFyModalOpen, setIsFyModalOpen] = useState(false);
   
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [masterUnits, setMasterUnits] = useState<any[]>([]);
@@ -172,8 +171,7 @@ function HomeContent() {
       }).catch(err => console.error(err));
       
       api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL').then(data => setSavedProjects(data || [])).catch(err => console.error(err));
-      api.getCustomFYs().then(data => setCustomFys(data || [])).catch(err => console.error(err));
-      api.getUsers().then(data => setAllUsers(data || [])).catch(err => console.error(err));
+            api.getUsers().then(data => setAllUsers(data || [])).catch(err => console.error(err));
       api.getUnits().then(data => {
           const activeUnits = data.filter(u => u.is_active !== false);
           setMasterUnits(activeUnits);
@@ -610,7 +608,13 @@ function HomeContent() {
          const executionFY = getIndianFY(executionDateToUse);
 
          const currentGridData = gridRef.current?.getData() || [];
-         const currentChecklistData = checklistRef.current?.getData() || [];
+                  const currentChecklistData = checklistRef.current?.getData() || [];
+         
+         if (isExtendingMode && (!currentChecklistData.formData || !currentChecklistData.formData.q12 || !currentChecklistData.formData.q12.trim())) {
+             alert("Please provide the 'Reason for the extension' in question 12 of the checklist before requesting an extension.");
+             setIsSaving(false);
+             return;
+         }
          
          const cleanGrid = (currentGridData || []).map((m: any) => ({
              ...m,
@@ -912,11 +916,7 @@ function HomeContent() {
                     {recentFYs.map(fy => <option key={fy} value={fy}>{fy}</option>)}
                     <option value="LOAD_MORE_PAST">↓ Load 5 more older FY...</option>
                   </optgroup>
-                  {customFys.length > 0 && (
-                    <optgroup label="Custom Financial Years">
-                      {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
-                    </optgroup>
-                  )}
+                  
                 </select>
               </div>
 
@@ -938,11 +938,7 @@ function HomeContent() {
                     {recentFYs.map(fy => <option key={fy} value={fy}>{fy}</option>)}
                     <option value="LOAD_MORE_PAST">↓ Load 5 more older FY...</option>
                   </optgroup>
-                  {customFys.length > 0 && (
-                    <optgroup label="Custom Financial Years">
-                      {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
-                    </optgroup>
-                  )}
+                  
                 </select>
               </div>
             </div>
@@ -1010,11 +1006,7 @@ function HomeContent() {
                   {recentFYs.map(fy => <option key={fy} value={fy}>{fy}</option>)}
                   <option value="LOAD_MORE_PAST">? Load 5 more older FY...</option>
                 </optgroup>
-                {customFys.length > 0 && (
-                  <optgroup label="Custom Financial Years">
-                    {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
-                  </optgroup>
-                )}
+                
               </select>
             </div>
 
@@ -1036,11 +1028,7 @@ function HomeContent() {
                   {recentFYs.map(fy => <option key={fy} value={fy}>{fy}</option>)}
                   <option value="LOAD_MORE_PAST">? Load 5 more older FY...</option>
                 </optgroup>
-                {customFys.length > 0 && (
-                  <optgroup label="Custom Financial Years">
-                    {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
-                  </optgroup>
-                )}
+                
               </select>
             </div>
           </div>
@@ -1051,7 +1039,7 @@ function HomeContent() {
           units={masterUnits}
           unitTypes={unitTypes}
           recentFYs={recentFYs}
-          customFys={customFys}
+          
           userRole={user.hierarchy_weight}
           onAdminOverride={() => {}}
           globalTargetFY={selectedProjectTargetFy}
@@ -1097,11 +1085,7 @@ function HomeContent() {
                     {recentFYs.map(fy => <option key={fy} value={fy}>{fy}</option>)}
                     <option value="LOAD_MORE_PAST">↓ Load 5 more older FY...</option>
                   </optgroup>
-                  {customFys.length > 0 && (
-                    <optgroup label="Custom Financial Years">
-                      {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
-                    </optgroup>
-                  )}
+                  
                 </select>
               </div>
 
@@ -1123,11 +1107,7 @@ function HomeContent() {
                     {recentFYs.map(fy => <option key={fy} value={fy}>{fy}</option>)}
                     <option value="LOAD_MORE_PAST">↓ Load 5 more older FY...</option>
                   </optgroup>
-                  {customFys.length > 0 && (
-                    <optgroup label="Custom Financial Years">
-                      {customFys.map(f => <option key={f.id} value={f.name}>{f.name}</option>)}
-                    </optgroup>
-                  )}
+                  
                 </select>
               </div>
             </div>
@@ -1592,28 +1572,8 @@ function HomeContent() {
             {/* Admin Custom FYs */}
             <h4 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Custom / International FYs</h4>
             <div className="space-y-2 mb-8">
-              {customFys.map(fy => (
-                <div 
-                  key={fy.id} 
-                  onClick={() => { 
-                  if (financialYears.includes(fy.name)) {
-                    alert("This custom Financial Year is already selected.");
-                  } else {
-                    setFinancialYears(prev => { const arr = [...prev]; arr[arr.length - 1] = fy.name; return arr; }); 
-                    setIsFyModalOpen(false); 
-                  }
-                }}
-                  className="p-3 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:cursor-not-allowed cursor-pointer transition-colors group"
-                >
-                  <div className="font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">{fy.name}</div>
-                  <div className="text-xs text-slate-500 mt-1">{fy.start_date} to {fy.end_date}</div>
-                </div>
-              ))}
-              {customFys.length === 0 && (
-                <div className="p-4 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-center text-sm text-slate-500">
-                  No custom financial years have been defined yet.
-                </div>
-              )}
+              
+              
               <div className="mt-3 text-xs text-slate-500 text-center bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg">
                 Can't find the Custom Financial Year you are looking for? <br/>
                 Please request your <strong>Secretary (L1)</strong> or <strong>Joint Secretary (L2)</strong> to add it via their Admin Dashboard.
