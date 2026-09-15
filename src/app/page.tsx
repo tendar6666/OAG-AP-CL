@@ -1232,26 +1232,23 @@ function HomeContent() {
                   {/* Unit Name */}
                   <div className="flex flex-col">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Name of the Units/Institution</label>
-                    <input 
-                      type="text" 
-                      list="unit-suggestions"
-                      value={unitName}
-                      onChange={(e) => setUnitName(e.target.value)}
-                      placeholder="e.g. Delek Hospital"
-                      className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    />
-                    <datalist id="unit-suggestions">
-                      {masterUnits
-                        .filter(u => selectedBranchFilter === 'ALL' || u.branch === selectedBranchFilter)
-                        .map(u => {
-                        const displayName = u.file_number ? `${u.file_number} ${u.name}` : u.name;
-                        return (
-                          <option key={u.id || u.name} value={displayName}>
-                            {u.tibetan_name ? `${displayName} (${u.tibetan_name})` : displayName}
-                          </option>
-                        );
-                      })}
-                    </datalist>
+                    <select 
+                        value={unitName}
+                        onChange={(e) => setUnitName(e.target.value)}
+                        className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
+                      >
+                        <option value="">-- Select Unit --</option>
+                        {masterUnits
+                          .filter(u => selectedBranchFilter === 'ALL' || u.branch === selectedBranchFilter)
+                          .map(u => {
+                            const displayName = u.file_number ? `${u.file_number} ${u.name}` : u.name;
+                            return (
+                              <option key={u.id || u.name} value={displayName}>
+                                {u.tibetan_name ? `${displayName} (${u.tibetan_name})` : displayName}
+                              </option>
+                            );
+                        })}
+                      </select>
                   </div>
 
                   {/* Financial Year */}
@@ -1425,7 +1422,7 @@ function HomeContent() {
               />
             </div>
             <div className={activeTab === 'checklist' && view !== 'calendar' ? 'block' : 'hidden'}>
-              <ChecklistGrid key={"chk-"+(currentProjectId || 'new')+(isExtendingMode?'-ext':'')} auditTotals={auditTotals} ref={checklistRef} loadedData={loadedChecklistData} unitName={unitName} setUnitName={setUnitName} auditorName={auditorName} setAuditorName={setAuditorName} financialYear={financialYear} setFinancialYear={(v: string) => setFinancialYears([v, ...financialYears.slice(1)])} />
+              <ChecklistGrid key={"chk-"+(currentProjectId || 'new')+(isExtendingMode?'-ext':'')} auditTotals={auditTotals} ref={checklistRef} loadedData={loadedChecklistData} unitName={unitName} auditorName={auditorName} financialYear={financialYear} />
               <div className="mt-8 flex justify-end items-center space-x-4 max-w-4xl mx-auto w-full">
                  <button disabled={isSaving || isExporting} onClick={handleSaveTemplateClick} className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-lg shadow-sm transition-colors disabled:opacity-50">
                     Save Template
