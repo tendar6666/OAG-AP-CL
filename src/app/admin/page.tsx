@@ -1591,6 +1591,17 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
       </button>
     </div>
   )}
+  {user?.hierarchy_weight <= 10 && (
+    <div className="flex space-x-2 mt-2">
+      <button 
+        onClick={() => handleAdminDeleteProject(p)}
+        className="flex-1 inline-flex items-center space-x-2 px-3 py-1.5 bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 rounded-lg hover:bg-rose-200 dark:hover:bg-rose-900/60 transition-colors text-[10px] font-semibold justify-center"
+      >
+        <Trash2 size={12} />
+        <span>Delete AP</span>
+      </button>
+    </div>
+  )}
 
                             {canAckHT && (
                                 <button 
@@ -2197,6 +2208,17 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         className="flex-1 inline-flex items-center space-x-2 px-3 py-1.5 bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-900/60 transition-colors text-[10px] font-semibold justify-center"
       >
         <span>Edit FS</span>
+      </button>
+    </div>
+  )}
+  {user?.hierarchy_weight <= 10 && (
+    <div className="flex space-x-2 mt-2">
+      <button 
+        onClick={() => handleAdminDeleteProject(p)}
+        className="flex-1 inline-flex items-center space-x-2 px-3 py-1.5 bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 rounded-lg hover:bg-rose-200 dark:hover:bg-rose-900/60 transition-colors text-[10px] font-semibold justify-center"
+      >
+        <Trash2 size={12} />
+        <span>Delete AP</span>
       </button>
     </div>
   )}
