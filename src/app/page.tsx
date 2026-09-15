@@ -1243,26 +1243,12 @@ function HomeContent() {
                   {/* Unit Name */}
                   <div className="flex flex-col">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Name of the Units/Institution</label>
-                    <input 
-                        type="text" 
-                        list="unit-suggestions"
-                        value={unitName}
-                        onChange={(e) => setUnitName(e.target.value)}
-                        placeholder="e.g. Delek Hospital (Type to search...)"
-                        className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    <UnitComboBox 
+                        masterUnits={masterUnits} 
+                        selectedBranchFilter={selectedBranchFilter} 
+                        unitName={unitName} 
+                        setUnitName={setUnitName} 
                       />
-                      <datalist id="unit-suggestions">
-                        {masterUnits
-                          .filter(u => selectedBranchFilter === 'ALL' || u.branch === selectedBranchFilter)
-                          .map(u => {
-                          const displayName = u.file_number ? `${u.file_number} ${u.name}` : u.name;
-                          return (
-                            <option key={u.id || u.name} value={displayName}>
-                              {u.tibetan_name ? `${displayName} (${u.tibetan_name})` : displayName}
-                            </option>
-                          );
-                        })}
-                      </datalist>
                   </div>
 
                   {/* Financial Year */}
@@ -1604,7 +1590,62 @@ function HomeContent() {
   );
 }
 
+
+const UnitComboBox = ({ masterUnits, selectedBranchFilter, unitName, setUnitName }: any) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [search, setSearch] = React.useState(unitName);
+  
+  React.useEffect(() => { setSearch(unitName); }, [unitName]);
+
+  const filteredUnits = masterUnits
+    .filter((u: any) => selectedBranchFilter === 'ALL' || u.branch === selectedBranchFilter)
+    .filter((u: any) => {
+       const displayName = u.file_number ? `${u.file_number} ${u.name}` : u.name;
+       const searchLower = search.toLowerCase();
+       return displayName.toLowerCase().includes(searchLower) || 
+              (u.tibetan_name && u.tibetan_name.includes(search));
+    });
+
+  return (
+    <div className="relative w-full">
+      <input 
+        type="text" 
+        value={search}
+        onChange={e => { setSearch(e.target.value); setUnitName(e.target.value); setIsOpen(true); }}
+        onFocus={() => setIsOpen(true)}
+        onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+        placeholder="e.g. Delek Hospital (Type to search...)"
+        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+      />
+      {isOpen && (
+        <ul className="absolute z-50 w-full mt-1 max-h-60 overflow-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl">
+          {filteredUnits.length === 0 ? (
+            <li className="px-4 py-2 text-sm text-slate-500">No units found.</li>
+          ) : filteredUnits.map((u: any) => {
+            const displayName = u.file_number ? `${u.file_number} ${u.name}` : u.name;
+            const text = u.tibetan_name ? `${displayName} (${u.tibetan_name})` : displayName;
+            return (
+              <li 
+                key={u.id || u.name}
+                onClick={() => {
+                  setSearch(displayName);
+                  setUnitName(displayName);
+                  setIsOpen(false);
+                }}
+                className="px-4 py-2 text-sm text-slate-800 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 cursor-pointer border-b last:border-b-0 border-slate-100 dark:border-slate-700"
+              >
+                {text}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+};
+
 export default function Home() {
+
   return (
     <Suspense fallback={<div className="p-8 text-slate-500">Loading workspace...</div>}>
       <HomeContent />
