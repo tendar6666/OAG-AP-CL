@@ -120,7 +120,7 @@ const SortableChecklistRow = ({ item, displayNum, onChange, onDelete }: any) => 
 // ---------------------------
 // Main Checklist Component
 // ---------------------------
-const ChecklistGrid = forwardRef(({ auditTotals, loadedData, unitName, auditorName, financialYear }: any, ref) => {
+const ChecklistGrid = forwardRef(({ auditTotals, loadedData, unitName, setUnitName, auditorName, financialYear }: any, ref) => {
   
   const [items, setItems] = useState<ChecklistItemType[]>(defaultDynamicItems);
   
