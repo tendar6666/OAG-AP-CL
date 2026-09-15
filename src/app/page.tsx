@@ -1241,7 +1241,7 @@ function HomeContent() {
                   </div>
 
                   {/* Unit Name */}
-                  <div className="flex flex-col">
+                  <div className="flex flex-col relative z-[100]">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Name of the Units/Institution</label>
                     <UnitComboBox 
                         masterUnits={masterUnits} 
@@ -1594,8 +1594,19 @@ function HomeContent() {
 const UnitComboBox = ({ masterUnits, selectedBranchFilter, unitName, setUnitName }: any) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [search, setSearch] = React.useState(unitName);
+  const wrapperRef = React.useRef<HTMLDivElement>(null);
   
   React.useEffect(() => { setSearch(unitName); }, [unitName]);
+
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const filteredUnits = masterUnits
     .filter((u: any) => selectedBranchFilter === 'ALL' || u.branch === selectedBranchFilter)
@@ -1607,18 +1618,17 @@ const UnitComboBox = ({ masterUnits, selectedBranchFilter, unitName, setUnitName
     });
 
   return (
-    <div className="relative w-full">
+    <div ref={wrapperRef} className="relative w-full z-[9999]">
       <input 
         type="text" 
         value={search}
         onChange={e => { setSearch(e.target.value); setUnitName(e.target.value); setIsOpen(true); }}
         onFocus={() => setIsOpen(true)}
-        onBlur={() => setTimeout(() => setIsOpen(false), 200)}
         placeholder="e.g. Delek Hospital (Type to search...)"
         className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
       />
       {isOpen && (
-        <ul className="absolute z-50 w-full mt-1 max-h-60 overflow-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl">
+        <ul className="absolute z-[9999] w-full mt-1 max-h-60 overflow-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl">
           {filteredUnits.length === 0 ? (
             <li className="px-4 py-2 text-sm text-slate-500">No units found.</li>
           ) : filteredUnits.map((u: any) => {
