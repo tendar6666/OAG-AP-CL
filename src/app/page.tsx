@@ -496,6 +496,23 @@ function HomeContent() {
          }
       }
 
+      // Validate days allocation before final or draft submission
+      if (statusTarget === 'Submitted' || statusTarget === 'DraftSubmitted') {
+          if (auditTotals) {
+             const alloc = auditTotals.totalAllocatedGlobalDays || 0;
+             const approx = auditTotals.totalApproximate || 0;
+             const taken = auditTotals.totalCalendarDays || 0;
+             if (approx > alloc) {
+                 alert(`Total Approx Days (${approx}) cannot exceed Total Allocated Days (${alloc}).`);
+                 return;
+             }
+             if (taken !== alloc) {
+                 alert(`Total Day Taken (${taken}) must exactly match Total Allocated Days (${alloc}). Please adjust the actual days taken.`);
+                 return;
+             }
+          }
+      }
+
       // Check officer assignment when making a final submission or draft submission
       if (statusTarget === 'Submitted' || statusTarget === 'DraftSubmitted') {
         const isFieldAuditor = user && user.hierarchy_weight === 40;
@@ -596,6 +613,20 @@ function HomeContent() {
       if (auditTotals?.endDate <= originalEndDate) {
           alert("You must select an end date strictly after your previously submitted end date.");
           return;
+      }
+      
+      if (auditTotals) {
+         const alloc = auditTotals.totalAllocatedGlobalDays || 0;
+         const approx = auditTotals.totalApproximate || 0;
+         const taken = auditTotals.totalCalendarDays || 0;
+         if (approx > alloc) {
+             alert(`Total Approx Days (${approx}) cannot exceed Total Allocated Days (${alloc}).`);
+             return;
+         }
+         if (taken !== alloc) {
+             alert(`Total Day Taken (${taken}) must exactly match Total Allocated Days (${alloc}). Please adjust the actual days taken.`);
+             return;
+         }
       }
 
       const isFieldAuditor = user && user.hierarchy_weight === 40;

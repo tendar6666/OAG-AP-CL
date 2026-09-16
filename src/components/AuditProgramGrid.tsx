@@ -31,6 +31,8 @@ type AuditTotals = {
   endDate: string;
   totalCalendarDays: number;
   actualWorkingDays: number;
+  totalAllocatedGlobalDays?: number;
+  totalApproximate?: number;
 };
 
 // Date Calculation Helpers
@@ -125,74 +127,74 @@ function calculateRowDates(state: CascadeState, actualDays: number, manualLeaveD
 
 const initialData: MainProcedure[] = [
   { id: 'm1', is_main: true, procedure_name: 'Entry Conference:', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '', subs: [
-      { id: 'm1-s1', is_main: false, procedure_name: 'Review of past audit report', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm1-s2', is_main: false, procedure_name: 'Units Reply', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm1-s3', is_main: false, procedure_name: 'PAC report', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm1-s1', is_main: false, procedure_name: 'Review of past audit report', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm1-s2', is_main: false, procedure_name: 'Units Reply', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm1-s3', is_main: false, procedure_name: 'PAC report', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
   ]},
   { id: 'm2', is_main: true, procedure_name: 'Study the legal status of the institution', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '', subs: [
-      { id: 'm2-s1', is_main: false, procedure_name: 'Annual Reports if any, Bye Law, Affiliation Certificates, Rules and Regulations, Minutes Books of Board & General Body, Co-operative Acts & Rules/Bye Laws & Amendment if any, Memorandum & Articles of Association, Board Resolution', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm2-s1', is_main: false, procedure_name: 'Annual Reports if any, Bye Law, Affiliation Certificates, Rules and Regulations, Minutes Books of Board & General Body, Co-operative Acts & Rules/Bye Laws & Amendment if any, Memorandum & Articles of Association, Board Resolution', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
   ]},
-  { id: 'm3', is_main: true, procedure_name: 'Familiarization with the structure & Functioning of Institute', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '', subs: [] },
+  { id: 'm3', is_main: true, procedure_name: 'Familiarization with the structure & Functioning of Institute', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '', subs: [] },
   { id: 'm4', is_main: true, procedure_name: 'Financial Statement Preparation & Comparative study', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '', subs: [
-      { id: 'm4-s1', is_main: false, procedure_name: 'Preparation Financial Statement', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm4-s2', is_main: false, procedure_name: 'comparative studies in Financial Statement', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm4-s1', is_main: false, procedure_name: 'Preparation Financial Statement', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm4-s2', is_main: false, procedure_name: 'comparative studies in Financial Statement', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
   ]},
   { id: 'm5', is_main: true, procedure_name: 'Scanning', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '', subs: [
-      { id: 'm5-s1', is_main: false, procedure_name: 'General ledger, debtor, creditors, stocks & other', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm5-s2', is_main: false, procedure_name: 'Physical inspection', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm5-s3', is_main: false, procedure_name: 'Cash, investment, fixed asset, fixed deposit', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm5-s4', is_main: false, procedure_name: 'Scrutiny of Final Accounts', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm5-s1', is_main: false, procedure_name: 'General ledger, debtor, creditors, stocks & other', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm5-s2', is_main: false, procedure_name: 'Physical inspection', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm5-s3', is_main: false, procedure_name: 'Cash, investment, fixed asset, fixed deposit', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm5-s4', is_main: false, procedure_name: 'Scrutiny of Final Accounts', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
   ]},
   { id: 'm6', is_main: true, procedure_name: 'Vouching', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '', subs: [
-      { id: 'm6-s1', is_main: false, procedure_name: 'Administrative Expenses', approximate_days: 3, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm6-s2', is_main: false, procedure_name: 'Projects', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm6-s3', is_main: false, procedure_name: 'Sundry Creditors & Sundry Debtors', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm6-s1', is_main: false, procedure_name: 'Administrative Expenses', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm6-s2', is_main: false, procedure_name: 'Projects', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm6-s3', is_main: false, procedure_name: 'Sundry Creditors & Sundry Debtors', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
   ]},
   { id: 'm7', is_main: true, procedure_name: 'Purchase Audit', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '', subs: [
-      { id: 'm7-s1', is_main: false, procedure_name: 'Quotation are invited for purchases exceeding RS. 20,000.00/Quotation study', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm7-s2', is_main: false, procedure_name: 'Checking of quality/quantity for all the purchases', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm7-s3', is_main: false, procedure_name: 'Study of title deeds, sale deed, mutation papers in case of immovable property', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm7-s1', is_main: false, procedure_name: 'Quotation are invited for purchases exceeding RS. 20,000.00/Quotation study', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm7-s2', is_main: false, procedure_name: 'Checking of quality/quantity for all the purchases', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm7-s3', is_main: false, procedure_name: 'Study of title deeds, sale deed, mutation papers in case of immovable property', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
   ]},
   { id: 'm8', is_main: true, procedure_name: 'Salary & Allowances', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '', subs: [
-      { id: 'm8-s1', is_main: false, procedure_name: 'Pay structure and pay scale, according to the post.', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm8-s2', is_main: false, procedure_name: 'Studying fresh appointment as per sanctioned post.', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm8-s3', is_main: false, procedure_name: 'Necessary deductions from salary as per rules & orders.', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm8-s4', is_main: false, procedure_name: 'Study of salary sheet/register', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm8-s1', is_main: false, procedure_name: 'Pay structure and pay scale, according to the post.', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm8-s2', is_main: false, procedure_name: 'Studying fresh appointment as per sanctioned post.', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm8-s3', is_main: false, procedure_name: 'Necessary deductions from salary as per rules & orders.', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm8-s4', is_main: false, procedure_name: 'Study of salary sheet/register', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
   ]},
   { id: 'm9', is_main: true, procedure_name: 'Construction and Contract Audit', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '', subs: [
-      { id: 'm9-s1', is_main: false, procedure_name: 'Examination of estimates & plan', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm9-s2', is_main: false, procedure_name: 'Audit of Contract documents', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm9-s3', is_main: false, procedure_name: 'Audit of execution of contract', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm9-s4', is_main: false, procedure_name: 'Audit of payments of contract\'s bill', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm9-s1', is_main: false, procedure_name: 'Examination of estimates & plan', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm9-s2', is_main: false, procedure_name: 'Audit of Contract documents', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm9-s3', is_main: false, procedure_name: 'Audit of execution of contract', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm9-s4', is_main: false, procedure_name: 'Audit of payments of contract\'s bill', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
   ]},
   { id: 'm10', is_main: true, procedure_name: 'Stocks & Store Audit', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '', subs: [
-      { id: 'm10-s1', is_main: false, procedure_name: 'Quotation for bulk purchases', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm10-s2', is_main: false, procedure_name: 'Checking of opening stock carried correctly along with rates', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm10-s3', is_main: false, procedure_name: 'Purchase booked as & when received', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm10-s4', is_main: false, procedure_name: 'Issues/sales booked as & when takes place', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm10-s5', is_main: false, procedure_name: 'Comparison with the physical verification', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm10-s6', is_main: false, procedure_name: 'Closing Stock valuation & total checking', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm10-s7', is_main: false, procedure_name: 'Checking of obsolete & damaged stock', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm10-s1', is_main: false, procedure_name: 'Quotation for bulk purchases', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm10-s2', is_main: false, procedure_name: 'Checking of opening stock carried correctly along with rates', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm10-s3', is_main: false, procedure_name: 'Purchase booked as & when received', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm10-s4', is_main: false, procedure_name: 'Issues/sales booked as & when takes place', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm10-s5', is_main: false, procedure_name: 'Comparison with the physical verification', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm10-s6', is_main: false, procedure_name: 'Closing Stock valuation & total checking', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm10-s7', is_main: false, procedure_name: 'Checking of obsolete & damaged stock', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
   ]},
   { id: 'm11', is_main: true, procedure_name: 'Receipt Audit', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '', subs: [
-      { id: 'm11-s1', is_main: false, procedure_name: 'Check of Booklet and sub booklets', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm11-s2', is_main: false, procedure_name: 'Checking of other receipt', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm11-s1', is_main: false, procedure_name: 'Check of Booklet and sub booklets', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm11-s2', is_main: false, procedure_name: 'Checking of other receipt', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
   ]},
   { id: 'm12', is_main: true, procedure_name: 'Cash Book & Bank Account Audit', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '', subs: [
-      { id: 'm12-s1', is_main: false, procedure_name: 'Checking of untick in cash book at the end of audit', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm12-s2', is_main: false, procedure_name: 'Balance confirmation & Bank reconciliation', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm12-s3', is_main: false, procedure_name: 'Arithmetic Accuracy of Account books (Check posting, balancing of cash book, etc.)', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm12-s4', is_main: false, procedure_name: 'Fixed Deposit calculation', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm12-s1', is_main: false, procedure_name: 'Checking of untick in cash book at the end of audit', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm12-s2', is_main: false, procedure_name: 'Balance confirmation & Bank reconciliation', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm12-s3', is_main: false, procedure_name: 'Arithmetic Accuracy of Account books (Check posting, balancing of cash book, etc.)', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm12-s4', is_main: false, procedure_name: 'Fixed Deposit calculation', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
   ]},
   { id: 'm13', is_main: true, procedure_name: 'Audit Report', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '', subs: [
-      { id: 'm13-s1', is_main: false, procedure_name: 'Prepare draft audit report', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm13-s2', is_main: false, procedure_name: 'Prepare final audit report', approximate_days: 2, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm13-s3', is_main: false, procedure_name: 'Budget Comparison with Actual Expenses', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm13-s4', is_main: false, procedure_name: 'Prepare Balance Sheet', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
-      { id: 'm13-s5', is_main: false, procedure_name: 'Submission of Financial Statement and Report', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm13-s1', is_main: false, procedure_name: 'Prepare draft audit report', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm13-s2', is_main: false, procedure_name: 'Prepare final audit report', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm13-s3', is_main: false, procedure_name: 'Budget Comparison with Actual Expenses', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm13-s4', is_main: false, procedure_name: 'Prepare Balance Sheet', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm13-s5', is_main: false, procedure_name: 'Submission of Financial Statement and Report', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
   ]},
   { id: 'm14', is_main: true, procedure_name: 'Exit Conference', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '', subs: [
-      { id: 'm14-s1', is_main: false, procedure_name: 'Report Presentation', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
+      { id: 'm14-s1', is_main: false, procedure_name: 'Report Presentation', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' },
   ]},
 ];
 
@@ -512,10 +514,12 @@ const AuditProgramGrid = React.forwardRef(({ isSubmitted, isStartDateDisabled, i
         startDate: globalStartDate,
         endDate: globalEndDate,
         totalCalendarDays: globalCalendarDays,
-        actualWorkingDays: actualWorkingDays
+        actualWorkingDays: actualWorkingDays,
+        totalAllocatedGlobalDays,
+        totalApproximate
       });
     }
-  }, [globalStartDate, globalEndDate, globalCalendarDays, actualWorkingDays, onTotalsCalculated]);
+  }, [globalStartDate, globalEndDate, globalCalendarDays, actualWorkingDays, totalAllocatedGlobalDays, totalApproximate, onTotalsCalculated]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -609,7 +613,7 @@ const AuditProgramGrid = React.forwardRef(({ isSubmitted, isStartDateDisabled, i
   const addSubProcedure = (mainId: string) => {
       setData(prev => prev.map(main => {
           if (main.id === mainId) {
-              const newSub: SubProcedure = { id: `${mainId}-s${Date.now()}`, is_main: false, procedure_name: 'New Sub Procedure', approximate_days: 1, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' };
+              const newSub: SubProcedure = { id: `${mainId}-s${Date.now()}`, is_main: false, procedure_name: 'New Sub Procedure', approximate_days: 0, actual_days: 0, manual_leave_days: 0, start_date: '', end_date: '', auto_nw_days: 0, auto_remarks: '', user_remarks: '' };
               return { ...main, subs: [...(main.subs || []), newSub] };
           }
           return main;
@@ -764,11 +768,15 @@ const AuditProgramGrid = React.forwardRef(({ isSubmitted, isStartDateDisabled, i
         <div className="flex items-center space-x-4">
           <button 
             onClick={() => {
-               if (globalCalendarDays !== totalAllocatedGlobalDays) {
-                  alert("Please match the allocated day from start of audit program and end date or reduce the day from audit procedure.");
-               } else {
-                  if (onProceed) onProceed();
+               if (totalApproximate > totalAllocatedGlobalDays) {
+                  alert("Total Approx Days (" + totalApproximate + ") cannot exceed Total Allocated Days (" + totalAllocatedGlobalDays + ").");
+                  return;
                }
+               if (globalCalendarDays !== totalAllocatedGlobalDays) {
+                  alert("Total Day Taken (" + globalCalendarDays + ") must exactly match Total Allocated Days (" + totalAllocatedGlobalDays + "). Please adjust the actual days taken.");
+                  return;
+               }
+               if (onProceed) onProceed();
             }}
             className="px-5 py-2 rounded-xl font-medium shadow-sm transition-all flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200 dark:shadow-none cursor-pointer"
           >
