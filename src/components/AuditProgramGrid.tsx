@@ -207,7 +207,7 @@ function arrayMove<T>(array: T[], from: number, to: number): T[] {
 // ---------------------------
 // Sortable Row Component
 // ---------------------------
-const SortableRow = ({ item, isMain, updateData, addLeave, deleteItem, totalAllocatedGlobalDays, globalCalendarDays, parentId, indexText }: any) => {
+const SortableRow = ({ item, isMain, updateData, addLeave, deleteItem, totalAllocatedGlobalDays, globalCalendarDays, totalApproximate, parentId, indexText }: any) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item.id, data: { type: isMain ? 'main' : 'sub', parentId } });
   const style = { transform: CSS.Transform.toString(transform), transition };
   
@@ -229,6 +229,22 @@ const SortableRow = ({ item, isMain, updateData, addLeave, deleteItem, totalAllo
     if (localVal[field] !== item[field]) {
       updateData(item.id, field, localVal[field]);
     }
+  };
+
+  const approximateDaysHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newVal: string | number = e.target.value;
+    const numericVal = Number(newVal);
+    if (numericVal < 0) {
+        newVal = 0;
+    } else {
+        const currentApprox = Number(item.approximate_days) || 0;
+        const remaining = totalAllocatedGlobalDays - totalApproximate;
+        const maxAllowed = currentApprox + Math.max(0, remaining);
+        if (numericVal > maxAllowed) {
+           newVal = maxAllowed;
+        }
+    }
+    handleChange('approximate_days', newVal);
   };
 
   const actualDaysHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -277,7 +293,7 @@ const SortableRow = ({ item, isMain, updateData, addLeave, deleteItem, totalAllo
       {isMain ? (
           <div className="w-14"></div>
       ) : (
-          <input type="number" step="0.5" value={localVal.approximate_days === 0 ? '' : localVal.approximate_days} onChange={e => handleChange('approximate_days', Math.max(0, Number(e.target.value)))} onBlur={() => handleBlur('approximate_days')} className="w-14 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 rounded px-1 py-1 text-sm focus:outline-none" />
+          <input type="number" step="0.5" value={localVal.approximate_days === 0 ? '' : localVal.approximate_days} onChange={approximateDaysHandler} onBlur={() => handleBlur('approximate_days')} className="w-14 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 rounded px-1 py-1 text-sm focus:outline-none" />
       )}
       
       {/* Actual Days */}
@@ -717,12 +733,12 @@ const AuditProgramGrid = React.forwardRef(({ isSubmitted, isStartDateDisabled, i
                <SortableContext items={data.map(m => m.id)} strategy={verticalListSortingStrategy}>
                   {data.map((main, mainIndex) => (
                      <div key={main.id} className="flex flex-col">
-                        <SortableRow item={main} isMain={true} indexText={`${mainIndex + 1}.`} updateData={updateData} addLeave={addLeave} deleteItem={deleteItem} totalAllocatedGlobalDays={totalAllocatedGlobalDays} globalCalendarDays={globalCalendarDays} />
+                        <SortableRow item={main} isMain={true} indexText={`${mainIndex + 1}.`} updateData={updateData} addLeave={addLeave} deleteItem={deleteItem} totalAllocatedGlobalDays={totalAllocatedGlobalDays} globalCalendarDays={globalCalendarDays} totalApproximate={totalApproximate} />
                         
                         {main.subs && main.subs.length > 0 && (
                             <SortableContext items={main.subs.map(s => s.id)} strategy={verticalListSortingStrategy}>
                                 {main.subs.map((sub, subIndex) => (
-                                    <SortableRow key={sub.id} item={sub} isMain={false} indexText={`${roman[subIndex % roman.length]}.`} updateData={updateData} addLeave={addLeave} deleteItem={deleteItem} totalAllocatedGlobalDays={totalAllocatedGlobalDays} globalCalendarDays={globalCalendarDays} parentId={main.id} />
+                                    <SortableRow key={sub.id} item={sub} isMain={false} indexText={`${roman[subIndex % roman.length]}.`} updateData={updateData} addLeave={addLeave} deleteItem={deleteItem} totalAllocatedGlobalDays={totalAllocatedGlobalDays} globalCalendarDays={globalCalendarDays} totalApproximate={totalApproximate} parentId={main.id} />
                                 ))}
                             </SortableContext>
                         )}
