@@ -3114,7 +3114,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
       {/* VIEW DETAILS MODAL */}
       {viewDetailsProject && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-4xl w-full p-6 border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-6xl w-full p-6 border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <div>
                 <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-1">AP & CL Details</h3>
