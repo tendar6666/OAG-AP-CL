@@ -435,8 +435,8 @@ export default function AdminDashboard() {
   const currentFyStart = new Date().getMonth() < 3 ? currentYear - 1 : currentYear;
   const defaultFy = `FY ${currentFyStart}-${currentFyStart + 1}`;
   
-  const [selectedExecFyFilter, setSelectedExecFyFilter] = useState<string>('ALL');
-  const [selectedTargetFyFilter, setSelectedTargetFyFilter] = useState<string>('ALL');
+  const [selectedExecFyFilter, setSelectedExecFyFilter] = useState<string>(() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s}-${s + 1}`; });
+  const [selectedTargetFyFilter, setSelectedTargetFyFilter] = useState<string>(() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s - 1}-${s}`; });
   const [fyOffsetTop, setFyOffsetTop] = useState(0);
   const [fyOffsetBottom, setFyOffsetBottom] = useState(10);
   
@@ -468,8 +468,24 @@ export default function AdminDashboard() {
   useEffect(() => {
     const savedTarget = localStorage.getItem('globalTargetFy');
     const savedExec = localStorage.getItem('globalExecFy');
-    if (savedTarget) setSelectedTargetFyFilter(savedTarget);
-    if (savedExec) setSelectedExecFyFilter(savedExec);
+
+    const currentYear = new Date().getFullYear();
+    const currentFyStart = new Date().getMonth() < 3 ? currentYear - 1 : currentYear;
+    const defaultTarget = `FY ${currentFyStart - 1}-${currentFyStart}`;
+    const defaultExec = `FY ${currentFyStart}-${currentFyStart + 1}`;
+
+    if (savedTarget) {
+      setSelectedTargetFyFilter(savedTarget);
+    } else {
+      setSelectedTargetFyFilter(defaultTarget);
+    }
+
+    if (savedExec) {
+      setSelectedExecFyFilter(savedExec);
+    } else {
+      setSelectedExecFyFilter(defaultExec);
+    }
+
     setHasLoadedFilters(true);
   }, []);
 

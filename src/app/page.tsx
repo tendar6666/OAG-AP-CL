@@ -39,8 +39,8 @@ function HomeContent() {
     const isAfterMarch = now.getMonth() >= 3;
     const startYear = isAfterMarch ? year : year - 1;
     return {
-      execFy: `${startYear}-${startYear + 1}`,
-      targetFy: `${startYear - 1}-${startYear}`
+      execFy: `FY ${startYear}-${startYear + 1}`,
+      targetFy: `FY ${startYear - 1}-${startYear}`
     };
   };
   const _defaultFys = getDefaultFys();
@@ -54,8 +54,23 @@ function HomeContent() {
   useEffect(() => {
     const savedExec = localStorage.getItem('globalExecFy');
     const savedTarget = localStorage.getItem('globalTargetFy');
-    if (savedExec) setSelectedProjectFy(savedExec);
-    if (savedTarget) setSelectedProjectTargetFy(savedTarget);
+
+    const currentYear = new Date().getFullYear();
+    const currentFyStart = new Date().getMonth() < 3 ? currentYear - 1 : currentYear;
+    const defaultTarget = `FY ${currentFyStart - 1}-${currentFyStart}`;
+    const defaultExec = `FY ${currentFyStart}-${currentFyStart + 1}`;
+
+    if (savedExec) {
+      setSelectedProjectFy(savedExec);
+    } else {
+      setSelectedProjectFy(defaultExec);
+    }
+
+    if (savedTarget) {
+      setSelectedProjectTargetFy(savedTarget);
+    } else {
+      setSelectedProjectTargetFy(defaultTarget);
+    }
   }, []);
 
   const handleSetProjectExecFy = (val: string) => {
@@ -170,7 +185,7 @@ function HomeContent() {
          sessionStorage.removeItem('pendingLoadConsumed');
       }).catch(err => console.error(err));
       
-      api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL').then(data => setSavedProjects(data || [])).catch(err => console.error(err));
+      api.getProjects(localStorage.getItem('globalTargetFy') || (() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s-1}-${s}`; })(), localStorage.getItem('globalExecFy') || (() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s}-${s+1}`; })()).then(data => setSavedProjects(data || [])).catch(err => console.error(err));
             api.getUsers().then(data => setAllUsers(data || [])).catch(err => console.error(err));
       api.getUnits().then(data => {
           const activeUnits = data.filter(u => u.is_active !== false);
@@ -378,7 +393,7 @@ function HomeContent() {
       setCurrentProjectStatus(result.status);
       
       alert((isFinalSubmit || isDraftSubmit) ? "Audit Program Submitted Successfully!" : "Audit Program Draft Saved!");
-      const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL');
+      const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || (() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s-1}-${s}`; })(), localStorage.getItem('globalExecFy') || (() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s}-${s+1}`; })());
       setSavedProjects(newData || []);
       // Handle Notifications
       try {
@@ -534,7 +549,7 @@ function HomeContent() {
              isExtended: false,
              isRevised: false
          }, { action: 'Cancelled Extension', userId: user.id, userName: user.name });
-         const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL');
+         const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || (() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s-1}-${s}`; })(), localStorage.getItem('globalExecFy') || (() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s}-${s+1}`; })());
          setSavedProjects(newData || []);
          setCurrentProjectStatus('Submitted');
          setIsExtendingMode(false);
@@ -558,7 +573,7 @@ function HomeContent() {
              ...originalProject,
              status: targetStatus
          }, { action: isDraftTrack ? 'Reverted Draft Submission' : 'Reverted Final Submission', userId: user.id, userName: user.name });
-         const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL');
+         const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || (() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s-1}-${s}`; })(), localStorage.getItem('globalExecFy') || (() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s}-${s+1}`; })());
          setSavedProjects(newData || []);
          setCurrentProjectStatus(targetStatus);
          alert(`Audit Program reverted to ${targetStatus}.`);
@@ -681,7 +696,7 @@ function HomeContent() {
          setCurrentProjectStatus(newStatus);
          alert(successMessage);
          
-         const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL');
+         const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || (() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s-1}-${s}`; })(), localStorage.getItem('globalExecFy') || (() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s}-${s+1}`; })());
          setSavedProjects(newData || []);
       } catch (e) {
          console.error("Failed to request extension", e);
@@ -834,7 +849,7 @@ function HomeContent() {
      try {
        const api = await import('@/lib/api');
        await api.deleteProject(name);
-       const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || 'ALL', localStorage.getItem('globalExecFy') || 'ALL');
+       const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || (() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s-1}-${s}`; })(), localStorage.getItem('globalExecFy') || (() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s}-${s+1}`; })());
        setSavedProjects(newData || []);
      } catch (e) {
        alert("Error deleting project");
