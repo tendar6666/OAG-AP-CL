@@ -2,26 +2,39 @@
   "firestore": {
     "rules": "firestore.rules"
   },
-  "hosting": {
-    "public": "out",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "cleanUrls": true,
-    "trailingSlash": false,
-    "headers": [
-      {
-        "source": "**/*.@(html)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache, no-store, must-revalidate"
-          }
-        ]
-      }
-    ],
-    "site": "oagonline"
-  }
+  "hosting": [
+    {
+      "public": "out",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "cleanUrls": true,
+      "trailingSlash": false,
+      "headers": [
+        {
+          "source": "**/*.@(html)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        }
+      ],
+      "site": "oagonline"
+    },
+    {
+      "site": "oag-audit-management-online",
+      "public": "redirect-dummy",
+      "redirects": [
+        {
+          "source": "**",
+          "destination": "https://oagonline.web.app",
+          "type": 301
+        }
+      ]
+    }
+  ]
 }
