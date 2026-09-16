@@ -86,6 +86,11 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
                 <Link href="/admin?tab=units" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'units' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                     Units Management
                   </Link>
+                  {user.hierarchy_weight <= 20 && (
+                      <Link href="/admin?tab=fs_groups" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'fs_groups' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                        FS Master Groups
+                      </Link>
+                  )}
                   {user.hierarchy_weight <= 10 && (
                       <>
                         <Link href="/admin?tab=users" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'users' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
@@ -93,9 +98,6 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
                       </Link>
                         <Link href="/admin?tab=fy" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'fy' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                           Custom Financial Years
-                        </Link>
-                        <Link href="/admin?tab=fs_groups" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'fs_groups' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-                          FS Master Groups
                         </Link>
                       </>
                   )}

@@ -2717,7 +2717,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
           </div>
         )}
         
-          {activeTab === 'fs_groups' && (
+          {activeTab === 'fs_groups' && user && user.hierarchy_weight <= 20 && (
             <div className="flex flex-col">
               <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/20">
                 <h3 className="font-semibold text-slate-800 dark:text-slate-200">Financial Statement Groups</h3>
