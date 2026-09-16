@@ -3262,6 +3262,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     let totalAct = 0;
                     let autoHol = 0;
                     let manualHol = 0;
+                    let totalApprox = 0;
 
                     if (Array.isArray(viewDetailsProject.gridData)) {
                       viewDetailsProject.gridData.forEach((row: any) => {
@@ -3269,11 +3270,13 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                           totalAct += Number(row.actual_days || 0);
                           autoHol += Number(row.auto_nw_days || 0);
                           manualHol += Number(row.manual_leave_days || 0);
+                          totalApprox += Number(row.approximate_days || 0);
                         } else {
                           row.subs.forEach((sub: any) => {
                             totalAct += Number(sub.actual_days || 0);
                             autoHol += Number(sub.auto_nw_days || 0);
                             manualHol += Number(sub.manual_leave_days || 0);
+                            totalApprox += Number(sub.approximate_days || 0);
                           });
                         }
                       });
@@ -3283,6 +3286,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
 
                     return (
                       <>
+                        <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs md:text-sm font-medium text-slate-600 dark:text-slate-400">Total Approx Days: <span className="font-bold text-indigo-600 dark:text-indigo-400 ml-1">{totalApprox}</span></div>
                         <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs md:text-sm font-medium text-slate-600 dark:text-slate-400">Total Calendar Days: <span className="font-bold text-slate-800 dark:text-slate-200 ml-1">{totalAct}</span></div>
                         <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs md:text-sm font-medium text-slate-600 dark:text-slate-400">Auto Holidays: <span className="font-bold text-amber-600 dark:text-amber-400 ml-1">{autoHol}</span></div>
                         <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs md:text-sm font-medium text-slate-600 dark:text-slate-400">Manual Holidays: <span className="font-bold text-rose-600 dark:text-rose-400 ml-1">{manualHol}</span></div>
