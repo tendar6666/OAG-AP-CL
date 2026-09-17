@@ -381,15 +381,30 @@ export default function AdminDashboard() {
       const api = await import('@/lib/api');
       const updates = { ...project };
       if (!updates.metadata) updates.metadata = {};
+      
+      let isUnverifying = false;
       if (level === 'js') {
-         updates.metadata.verifiedByJS = user.name;
-         updates.metadata.verifiedByJSDate = new Date().toISOString();
+         if (updates.metadata.verifiedByJS) {
+             isUnverifying = true;
+             delete updates.metadata.verifiedByJS;
+             delete updates.metadata.verifiedByJSDate;
+         } else {
+             updates.metadata.verifiedByJS = user.name;
+             updates.metadata.verifiedByJSDate = new Date().toISOString();
+         }
       } else if (level === 'admin') {
-         updates.metadata.verifiedByAdmin = user.name;
-         updates.metadata.verifiedByAdminDate = new Date().toISOString();
+         if (updates.metadata.verifiedByAdmin) {
+             isUnverifying = true;
+             delete updates.metadata.verifiedByAdmin;
+             delete updates.metadata.verifiedByAdminDate;
+         } else {
+             updates.metadata.verifiedByAdmin = user.name;
+             updates.metadata.verifiedByAdminDate = new Date().toISOString();
+         }
       }
-      await api.saveProject(updates, { action: `Verified FS by ${level.toUpperCase()}`, userId: user.id, userName: user.name });
-      alert(`Successfully verified FS by ${level.toUpperCase()}`);
+      const actionName = isUnverifying ? `Unverified FS by ${level.toUpperCase()}` : `Verified FS by ${level.toUpperCase()}`;
+      await api.saveProject(updates, { action: actionName, userId: user.id, userName: user.name });
+      alert(`Successfully ${isUnverifying ? 'unverified' : 'verified'} FS by ${level.toUpperCase()}`);
       if (editFsProject && editFsProject.id === updates.id) setEditFsProject(updates);
       fetchProjects();
     } catch (e: any) { alert("Verification failed: " + e.message); }
@@ -1919,12 +1934,20 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                                    ) : null;
                                  })()}
                                  
-                                 {matchedProject.metadata?.verifiedByJS && (
-                                   <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400 text-[11px] font-bold rounded-lg" title={`Verified by ${matchedProject.metadata.verifiedByJS}`}>Verified (JS)</span>
+                                 {matchedProject.metadata?.verifiedByAdmin && (
+                                   user.hierarchy_weight <= 10 ? (
+                                      <button onClick={() => handleFSVerifyProject(matchedProject, 'admin')} className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 text-[11px] font-bold rounded-lg hover:bg-rose-100 hover:text-rose-700 hover:border-rose-300 transition-colors" title={`Verified by ${matchedProject.metadata.verifiedByAdmin}. Click to Unverify.`}>Verified (Admin)</button>
+                                   ) : (
+                                      <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 text-[11px] font-bold rounded-lg" title={`Verified by ${matchedProject.metadata.verifiedByAdmin}`}>Verified (Admin)</span>
+                                   )
                                  )}
                                  
-                                 {matchedProject.metadata?.verifiedByAdmin && (
-                                   <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 text-[11px] font-bold rounded-lg" title={`Verified by ${matchedProject.metadata.verifiedByAdmin}`}>Verified (Admin)</span>
+                                 {matchedProject.metadata?.verifiedByJS && (
+                                   user.hierarchy_weight <= 20 ? (
+                                      <button onClick={() => handleFSVerifyProject(matchedProject, 'js')} className="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400 text-[11px] font-bold rounded-lg hover:bg-rose-100 hover:text-rose-700 hover:border-rose-300 transition-colors" title={`Verified by ${matchedProject.metadata.verifiedByJS}. Click to Unverify.`}>Verified (JS)</button>
+                                   ) : (
+                                      <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400 text-[11px] font-bold rounded-lg" title={`Verified by ${matchedProject.metadata.verifiedByJS}`}>Verified (JS)</span>
+                                   )
                                  )}
 
                                  {user.hierarchy_weight <= 20 && (
