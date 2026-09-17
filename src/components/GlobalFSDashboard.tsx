@@ -127,13 +127,27 @@ export default function GlobalFSDashboard({ projects, fsGroups }: { projects: an
   }, [fsGroups]);
 
 
+  const validUnitTypeIds = useMemo(() => {
+    if (filterUnitType === 'ALL') return [];
+    
+    const getDescendants = (id: string): string[] => {
+       let ids = [id];
+       const children = unitTypes.filter((t: any) => t.parent_id === id).map((t: any) => t.id);
+       for (const child of children) {
+          if (child) ids = ids.concat(getDescendants(child));
+       }
+       return ids;
+    };
+    return getDescendants(filterUnitType);
+  }, [filterUnitType, unitTypes]);
+
   // Filter rows
   const filteredRows = useMemo(() => {
     return allRows.filter(r => {
       if (hiddenRows.has(r.rowId)) return false;
       if (filterFy !== 'ALL' && r.fy !== filterFy) return false;
       if (filterCurrency !== 'ALL' && r.currency !== filterCurrency) return false;
-      if (filterUnitType !== 'ALL' && unitMap[r.fileNo] !== filterUnitType) return false;
+      if (filterUnitType !== 'ALL' && !validUnitTypeIds.includes(unitMap[r.fileNo])) return false;
       if (searchTerm) {
         const lower = searchTerm.toLowerCase();
         if (!String(r.fileNo).toLowerCase().includes(lower) && 
@@ -142,7 +156,7 @@ export default function GlobalFSDashboard({ projects, fsGroups }: { projects: an
       }
       return true;
     });
-  }, [allRows, filterFy, filterCurrency, searchTerm, hiddenRows, filterUnitType, unitMap]);
+  }, [allRows, filterFy, filterCurrency, searchTerm, hiddenRows, filterUnitType, unitMap, validUnitTypeIds]);
 
   // Consolidate totals for footer
   const consTotals = useMemo(() => {
@@ -376,7 +390,7 @@ export default function GlobalFSDashboard({ projects, fsGroups }: { projects: an
              </button>
              <div className="flex-1 overflow-hidden relative mt-10">
                {(() => {
-                 const relevantUnits = filterUnitType === 'ALL' ? allUnits : allUnits.filter(u => u.type === filterUnitType);
+                 const relevantUnits = filterUnitType === 'ALL' ? allUnits : allUnits.filter(u => validUnitTypeIds.includes(u.unit_type_id));
                    const totalUnit = relevantUnits.length;
                    const receivedUnits = new Set(filteredRows.map(r => String(r.fileNo))).size;
                    const pendingFs = totalUnit - receivedUnits;
