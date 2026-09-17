@@ -1920,11 +1920,11 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                                  })()}
                                  
                                  {matchedProject.metadata?.verifiedByJS && (
-                                   <span className="px-2 py-1 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400 text-[10px] font-bold rounded" title={`Verified by ${matchedProject.metadata.verifiedByJS}`}>JS ?</span>
+                                   <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400 text-[11px] font-bold rounded-lg" title={`Verified by ${matchedProject.metadata.verifiedByJS}`}>Verified (JS)</span>
                                  )}
                                  
                                  {matchedProject.metadata?.verifiedByAdmin && (
-                                   <span className="px-2 py-1 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 text-[10px] font-bold rounded" title={`Verified by ${matchedProject.metadata.verifiedByAdmin}`}>Admin ?</span>
+                                   <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 text-[11px] font-bold rounded-lg" title={`Verified by ${matchedProject.metadata.verifiedByAdmin}`}>Verified (Admin)</span>
                                  )}
 
                                  {user.hierarchy_weight <= 20 && (
