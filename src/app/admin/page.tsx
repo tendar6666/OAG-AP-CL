@@ -1901,7 +1901,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
             </div>
             
             <div className="p-4 bg-white dark:bg-slate-800">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
+              <div className="flex flex-wrap xl:flex-nowrap items-start md:items-center justify-between mb-4 gap-4">
                 <div className="flex flex-wrap items-center gap-4 bg-slate-100 dark:bg-slate-900 p-2 rounded-lg">
                   <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                     Total: {unitsWithFs.length}
@@ -1930,7 +1930,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                   </div>
                 </div>
                 
-                <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+                <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
                     <div className="relative w-full md:w-48">
                         <input type="text" placeholder="Search units..." value={addFsSearchQuery} onChange={e => setAddFsSearchQuery(e.target.value)} className="w-full pl-9 pr-3 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm" />
                         <Search className="absolute left-3 top-2 text-slate-400" size={14} />
@@ -2215,9 +2215,9 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
 
         {activeTab === 'audits' && (
           <div className="flex flex-col">
-            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-50/50 dark:bg-slate-900/20 gap-4">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex flex-wrap xl:flex-nowrap justify-between items-center bg-slate-50/50 dark:bg-slate-900/20 gap-4">
               <h3 className="font-semibold text-slate-800 dark:text-slate-200">Track Audit Progress</h3>
-              <div className="flex flex-col md:flex-row items-center space-x-0 md:space-x-3 space-y-3 md:space-y-0 w-full md:w-auto">
+              <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
                 <div className="relative w-full md:w-48">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Search size={14} className="text-slate-400" />
@@ -2637,7 +2637,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
 
         {activeTab === 'units' && (
           <div className="flex flex-col">
-            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-50/50 dark:bg-slate-900/20 gap-4">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex flex-wrap xl:flex-nowrap justify-between items-center bg-slate-50/50 dark:bg-slate-900/20 gap-4">
               <div className="flex items-center space-x-4">
                  <h3 className="font-semibold text-slate-800 dark:text-slate-200">Registered Units</h3>
                  <div className="flex bg-slate-200 dark:bg-slate-800 rounded-lg p-1">
@@ -2646,7 +2646,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                  </div>
               </div>
               
-              <div className="flex flex-col md:flex-row items-center space-x-0 md:space-x-3 space-y-3 md:space-y-0 w-full md:w-auto">
+              <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
                 <div className="relative w-full md:w-48">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Search size={14} className="text-slate-400" />
@@ -2692,7 +2692,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                 </select>
               </div>
 
-              <div className="flex space-x-2 w-full md:w-auto mt-4 md:mt-0">
+              <div className="flex space-x-2 shrink-0">
                 {!unitForm && (
                   <button 
                     onClick={() => setUnitForm({ file_number: '', name: '', tibetan_name: '', is_active: true })}
