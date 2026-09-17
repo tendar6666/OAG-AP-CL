@@ -1,10 +1,12 @@
 ﻿import React, { useState, useMemo, useEffect } from 'react';
 import { getUnits, getUnitTypes, saveProject } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 import { Search, Download, Filter, Maximize2, Minimize2, AlertTriangle, CheckCircle, EyeOff, LayoutTemplate, Trash2 } from 'lucide-react';
 import FinancialStatementViewer from '@/components/FinancialStatementViewer';
 import ExcelJS from 'exceljs';
 
 export default function GlobalFSDashboard({ projects, fsGroups, onRefresh }: { projects: any[], fsGroups: any[], onRefresh?: () => void }) {
+  const { user } = useAuth();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterFy, setFilterFy] = useState('');
@@ -356,9 +358,11 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh }: { p
                     <button onClick={() => setHiddenRows(prev => { const n = new Set(prev); n.add(r.rowId); return n; })} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-1" title="Hide Row">
                       <EyeOff size={14} />
                     </button>
-                    <button onClick={() => handleDeleteStatement(r.pId, r.fy, r.stmtId)} className="text-slate-400 hover:text-rose-600 transition-colors p-1" title="Permanently delete this statement">
-                      <Trash2 size={14} />
-                    </button>
+                    {user?.hierarchy_weight !== undefined && user.hierarchy_weight <= 10 && (
+                      <button onClick={() => handleDeleteStatement(r.pId, r.fy, r.stmtId)} className="text-slate-400 hover:text-rose-600 transition-colors p-1" title="Permanently delete this statement">
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 </td>
                 <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 font-semibold sticky left-[40px] bg-white dark:bg-slate-900 z-10 shadow-[1px_0_0_0_#e2e8f0] dark:shadow-[1px_0_0_0_#1e293b]">{r.fileNo}</td>

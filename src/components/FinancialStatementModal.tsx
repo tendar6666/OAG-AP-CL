@@ -342,7 +342,7 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
                                 <span className="truncate flex-1">{stmt.name}</span>
                                 <div className="flex items-center shrink-0 ml-1 space-x-1">
                                   {isStatementTallied(stmt) && <CheckCircle size={12} className="text-emerald-500" />}
-                                  {Object.keys(fsData[fy] || {}).length > 1 && (
+                                  {Object.keys(fsData[fy] || {}).length > 1 && userWeight !== undefined && userWeight <= 10 && (
                                     <button 
                                       onClick={(e) => handleDeleteStatement(fy, stmt.id, e)}
                                       className="text-slate-400 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 p-0.5"
