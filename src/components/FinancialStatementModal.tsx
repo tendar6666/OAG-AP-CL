@@ -572,53 +572,18 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
         )}
 
         {/* Modal Footer (Action Buttons) */}
-        <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-between items-center flex-wrap gap-4">
-          <div className="flex flex-wrap items-center gap-2">
-            {userWeight !== undefined && userWeight <= 20 && onVerify && !metadata?.verifiedByJS && (
-              <button onClick={() => onVerify('js')} className="px-3 py-1.5 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400 font-bold rounded-lg text-sm">
-                Verify as JS
-              </button>
-            )}
-            {metadata?.verifiedByJS && (
-              <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                Verified by JS: {metadata.verifiedByJS}
-              </span>
-            )}
-            
-            {userWeight !== undefined && userWeight <= 10 && onVerify && !metadata?.verifiedByAdmin && (
-              <button onClick={() => onVerify('admin')} className="px-3 py-1.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 font-bold rounded-lg text-sm">
-                Verify as Admin
-              </button>
-            )}
-            {metadata?.verifiedByAdmin && (
-              <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-                Verified by Admin: {metadata.verifiedByAdmin}
-              </span>
-            )}
-
-            {userWeight !== undefined && userWeight <= 10 && onLock && (
-              <button 
-                onClick={() => onLock(!metadata?.isFSLocked)}
-                className={`px-3 py-1.5 font-bold rounded-lg text-sm ${metadata?.isFSLocked ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400'}`}
-              >
-                {metadata?.isFSLocked ? 'Unlock Editing' : 'Lock Editing'}
-              </button>
-            )}
-          </div>
-          
-          <div className="flex space-x-3">
-            <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
-              Cancel
-            </button>
-            <button 
-              onClick={handleFinalSubmit}
-              disabled={!isAllTallied() || metadata?.isFSLocked}
-              className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors flex items-center shadow-md shadow-indigo-500/20"
-            >
-              <CheckCircle size={18} className="mr-2" />
-              {isNotApplicable ? 'Bypass & Submit Final' : 'Confirm Final Submit'}
-            </button>
-          </div>
+        <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-end space-x-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+            Cancel
+          </button>
+          <button 
+            onClick={handleFinalSubmit}
+            disabled={!isAllTallied() || metadata?.isFSLocked}
+            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors flex items-center shadow-md shadow-indigo-500/20"
+          >
+            <CheckCircle size={18} className="mr-2" />
+            {isNotApplicable ? 'Bypass & Submit Final' : 'Confirm Final Submit'}
+          </button>
         </div>
       </div>
     </div>

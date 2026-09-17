@@ -375,11 +375,11 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleFSVerifyProject = async (level: 'js' | 'admin') => {
-    if (!editFsProject || editFsProject.isNewHistorical) return;
+  const handleFSVerifyProject = async (project: any, level: 'js' | 'admin') => {
+    if (!project || project.isNewHistorical) return;
     try {
       const api = await import('@/lib/api');
-      const updates = { ...editFsProject };
+      const updates = { ...project };
       if (!updates.metadata) updates.metadata = {};
       if (level === 'js') {
          updates.metadata.verifiedByJS = user.name;
@@ -390,21 +390,21 @@ export default function AdminDashboard() {
       }
       await api.saveProject(updates, { action: `Verified FS by ${level.toUpperCase()}`, userId: user.id, userName: user.name });
       alert(`Successfully verified FS by ${level.toUpperCase()}`);
-      setEditFsProject(updates);
+      if (editFsProject && editFsProject.id === updates.id) setEditFsProject(updates);
       fetchProjects();
     } catch (e: any) { alert("Verification failed: " + e.message); }
   };
 
-  const handleFSLockProject = async (lock: boolean) => {
-    if (!editFsProject || editFsProject.isNewHistorical) return;
+  const handleFSLockProject = async (project: any, lock: boolean) => {
+    if (!project || project.isNewHistorical) return;
     try {
       const api = await import('@/lib/api');
-      const updates = { ...editFsProject };
+      const updates = { ...project };
       if (!updates.metadata) updates.metadata = {};
       updates.metadata.isFSLocked = lock;
       await api.saveProject(updates, { action: lock ? 'Locked FS' : 'Unlocked FS', userId: user.id, userName: user.name });
       alert(`FS successfully ${lock ? 'locked' : 'unlocked'}`);
-      setEditFsProject(updates);
+      if (editFsProject && editFsProject.id === updates.id) setEditFsProject(updates);
       fetchProjects();
     } catch (e: any) { alert("Failed to update lock status: " + e.message); }
   };
@@ -1368,6 +1368,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
 
   const pendingMyAction = allPendingActions.filter(p => {
       if (!user) return false;
+      if (p.isHistoricalFS) return false;
   
       // Explicitly ignoring Global FY filters for My Assigned Actions so users never miss a pending item
   
@@ -1903,12 +1904,38 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                           </td>
                           <td className="px-4 py-3 text-right">
                              {hasFS ? (
-                               <button 
-                                 onClick={() => setEditFsProject(matchedProject)}
-                                 className="px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/50 dark:text-amber-400 dark:hover:bg-amber-900 font-semibold rounded text-xs transition-colors"
-                               >
-                                 Edit FS
-                               </button>
+                               <div className="flex items-center justify-end gap-2">
+                                 {user.hierarchy_weight <= 20 && !matchedProject.metadata?.verifiedByJS && (
+                                   <button onClick={() => { handleFSVerifyProject(matchedProject, 'js'); }} className="px-3 py-1 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-400 font-semibold rounded text-xs">
+                                     Verify (JS)
+                                   </button>
+                                 )}
+                                 {matchedProject.metadata?.verifiedByJS && (
+                                   <span className="px-2 py-1 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400 text-[10px] font-bold rounded" title={`Verified by ${matchedProject.metadata.verifiedByJS}`}>JS ?</span>
+                                 )}
+                                 
+                                 {user.hierarchy_weight <= 10 && !matchedProject.metadata?.verifiedByAdmin && (
+                                   <button onClick={() => { handleFSVerifyProject(matchedProject, 'admin'); }} className="px-3 py-1 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-400 font-semibold rounded text-xs">
+                                     Verify (Admin)
+                                   </button>
+                                 )}
+                                 {matchedProject.metadata?.verifiedByAdmin && (
+                                   <span className="px-2 py-1 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 text-[10px] font-bold rounded" title={`Verified by ${matchedProject.metadata.verifiedByAdmin}`}>Admin ?</span>
+                                 )}
+
+                                 {user.hierarchy_weight <= 10 && (
+                                   <button onClick={() => { handleFSLockProject(matchedProject, !matchedProject.metadata?.isFSLocked); }} className={`px-3 py-1 font-semibold rounded text-xs ${matchedProject.metadata?.isFSLocked ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-rose-100 text-rose-700 hover:bg-rose-200'}`}>
+                                     {matchedProject.metadata?.isFSLocked ? 'Unlock' : 'Lock'}
+                                   </button>
+                                 )}
+
+                                 <button 
+                                   onClick={() => setEditFsProject(matchedProject)}
+                                   className="px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/50 dark:text-amber-400 dark:hover:bg-amber-900 font-semibold rounded text-xs transition-colors ml-2"
+                                 >
+                                   Edit FS
+                                 </button>
+                               </div>
                              ) : (
                                <button 
                                  onClick={() => setEditFsProject({
@@ -3199,8 +3226,8 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
             initialData={editFsProject.financialStatements}
             metadata={editFsProject.metadata}
             userWeight={user?.hierarchy_weight}
-            onVerify={!editFsProject.isNewHistorical ? handleFSVerifyProject : undefined}
-            onLock={!editFsProject.isNewHistorical ? handleFSLockProject : undefined}
+            onVerify={!editFsProject.isNewHistorical ? (level) => handleFSVerifyProject(editFsProject, level) : undefined}
+            onLock={!editFsProject.isNewHistorical ? (lock) => handleFSLockProject(editFsProject, lock) : undefined}
           />
         )}
 
