@@ -343,6 +343,7 @@ export default function AdminDashboard() {
   const [addFsStatusFilter, setAddFsStatusFilter] = useState('ALL');
   const [addFsUnitTypeFilter, setAddFsUnitTypeFilter] = useState('ALL');
   const [addFsSearchQuery, setAddFsSearchQuery] = useState('');
+  const [addFsSortConfig, setAddFsSortConfig] = useState<{key: 'name' | 'file_number' | 'status', direction: 'asc' | 'desc'} | null>(null);
   
   const [remarkModal, setRemarkModal] = useState<{project: any, field: string} | null>(null);
   const [remarkText, setRemarkText] = useState('');
@@ -1843,15 +1844,50 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
           // We also include historicalProjects which handles legacy manual imports.
           const allFSProjects = [...allPendingActions, ...historicalProjects];
 
-          const filteredAddFsUnits = units.filter(u => {
+          let unitsWithFs = units.filter(u => {
              if (addFsSearchQuery && !u.name.toLowerCase().includes(addFsSearchQuery.toLowerCase()) && !(u.file_number && u.file_number.toLowerCase().includes(addFsSearchQuery.toLowerCase()))) return false;
              if (addFsStatusFilter === 'ACTIVE' && u.is_active === false) return false;
              if (addFsStatusFilter === 'INACTIVE' && u.is_active !== false) return false;
              if (addFsUnitTypeFilter !== 'ALL' && u.unit_type_id !== addFsUnitTypeFilter) return false;
              return true;
+          }).map(u => {
+             const matchedProject = allFSProjects.find(p => isProjectMatch(p, u) && (p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter) && p.financialStatements);
+             return { unit: u, matchedProject, hasFS: !!matchedProject };
           });
+
+          if (addFsSortConfig) {
+             unitsWithFs.sort((a, b) => {
+                 let valA: any = a.unit[addFsSortConfig.key as keyof typeof a.unit] || '';
+                 let valB: any = b.unit[addFsSortConfig.key as keyof typeof b.unit] || '';
+                 if (addFsSortConfig.key === 'status') {
+                    valA = a.hasFS ? 1 : 0;
+                    valB = b.hasFS ? 1 : 0;
+                 }
+                 if (valA < valB) return addFsSortConfig.direction === 'asc' ? -1 : 1;
+                 if (valA > valB) return addFsSortConfig.direction === 'asc' ? 1 : -1;
+                 return 0;
+             });
+          }
           
-          const receivedCount = filteredAddFsUnits.filter(u => allFSProjects.some(p => isProjectMatch(p, u) && (p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter) && p.financialStatements)).length;
+          const receivedList = unitsWithFs.filter(u => u.hasFS);
+          const pendingList = unitsWithFs.filter(u => !u.hasFS);
+          const receivedCount = receivedList.length;
+          const pendingCount = pendingList.length;
+
+          const toggleAddFsSort = (key: 'name' | 'file_number' | 'status') => {
+             setAddFsSortConfig(prev => {
+                if (prev && prev.key === key) {
+                   if (prev.direction === 'asc') return { key, direction: 'desc' };
+                   return null;
+                }
+                return { key, direction: 'asc' };
+             });
+          };
+
+          const renderSortIndicator = (key: string) => {
+             if (addFsSortConfig?.key !== key) return null;
+             return addFsSortConfig.direction === 'asc' ? ' ↑' : ' ↓';
+          };
           
           return (
           <div className="flex flex-col">
@@ -1868,13 +1904,29 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
                 <div className="flex flex-wrap items-center gap-4 bg-slate-100 dark:bg-slate-900 p-2 rounded-lg">
                   <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                    Total: {filteredAddFsUnits.length}
+                    Total: {unitsWithFs.length}
                   </div>
-                  <div className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                  <div className="group relative text-sm font-semibold text-emerald-600 dark:text-emerald-400 cursor-help">
                     Received: {receivedCount}
+                    <div className="hidden group-hover:block absolute top-full left-0 mt-1 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 z-50">
+                       {receivedList.length === 0 ? <div className="text-slate-500 text-xs">None</div> : null}
+                       {receivedList.map(u => (
+                          <div key={u.unit.id} className="text-xs text-slate-700 dark:text-slate-300 py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0 truncate" title={`${u.unit.file_number || '-'} - ${u.unit.name}`}>
+                             {u.unit.file_number || '-'} - {u.unit.name}
+                          </div>
+                       ))}
+                    </div>
                   </div>
-                  <div className="text-sm font-semibold text-rose-600 dark:text-rose-400">
-                    Pending: {filteredAddFsUnits.length - receivedCount}
+                  <div className="group relative text-sm font-semibold text-rose-600 dark:text-rose-400 cursor-help">
+                    Pending: {pendingCount}
+                    <div className="hidden group-hover:block absolute top-full left-0 mt-1 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 z-50">
+                       {pendingList.length === 0 ? <div className="text-slate-500 text-xs">None</div> : null}
+                       {pendingList.map(u => (
+                          <div key={u.unit.id} className="text-xs text-slate-700 dark:text-slate-300 py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0 truncate" title={`${u.unit.file_number || '-'} - ${u.unit.name}`}>
+                             {u.unit.file_number || '-'} - {u.unit.name}
+                          </div>
+                       ))}
+                    </div>
                   </div>
                 </div>
                 
@@ -1897,18 +1949,16 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
               
               <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-lg">
                 <table className="w-full text-left text-sm text-slate-600 dark:text-slate-400">
-                  <thead className="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase font-semibold text-slate-500">
+                  <thead className="bg-slate-50 dark:bg-slate-900/50 text-xs uppercase font-semibold text-slate-500 select-none">
                     <tr>
-                      <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Unit Name</th>
-                      <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">File Number</th>
-                      <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">Status</th>
+                      <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors" onClick={() => toggleAddFsSort('name')}>Unit Name{renderSortIndicator('name')}</th>
+                      <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors" onClick={() => toggleAddFsSort('file_number')}>File Number{renderSortIndicator('file_number')}</th>
+                      <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors" onClick={() => toggleAddFsSort('status')}>Status{renderSortIndicator('status')}</th>
                       <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {filteredAddFsUnits.map((unit) => {
-                      const matchedProject = allFSProjects.find(p => isProjectMatch(p, unit) && (p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter) && p.financialStatements);
-                      const hasFS = !!matchedProject;
+                    {unitsWithFs.map(({unit, matchedProject, hasFS}) => {
                       return (
                         <tr key={unit.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                           <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-200">{unit.name}</td>
