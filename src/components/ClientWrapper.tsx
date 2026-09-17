@@ -92,14 +92,9 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
                       </Link>
                   )}
                   {user.hierarchy_weight <= 10 && (
-                      <>
                         <Link href="/admin?tab=users" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'users' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-                        User Roles
-                      </Link>
-                        <Link href="/admin?tab=fy" className={`block px-3 py-1.5 rounded-md text-sm transition-colors ${pathname === '/admin' && tab === 'fy' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-                          Custom Financial Years
+                          User Roles
                         </Link>
-                      </>
                   )}
               </div>
             )}
