@@ -23,12 +23,14 @@ export default function GlobalFSDashboard({ projects, fsGroups }: { projects: an
 
   const [filterUnitType, setFilterUnitType] = useState('ALL');
   const [unitTypes, setUnitTypes] = useState<any[]>([]);
+  const [allUnits, setAllUnits] = useState<any[]>([]);
   const [unitMap, setUnitMap] = useState<Record<string, string>>({});
   const [hiddenRows, setHiddenRows] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     Promise.all([getUnits(), getUnitTypes()]).then(([units, types]) => {
        setUnitTypes(types);
+       setAllUnits(units);
        const m: Record<string, string> = {};
        units.forEach(u => {
           if (u.file_number) m[u.file_number] = u.unit_type_id || '';
@@ -374,10 +376,15 @@ export default function GlobalFSDashboard({ projects, fsGroups }: { projects: an
              </button>
              <div className="flex-1 overflow-hidden relative mt-10">
                {(() => {
-                 const pseudoProject = {
-                   metadata: { unitName: "Filtered Consolidator" },
-                   financialStatements: { notApplicable: false, data: {} as Record<string, any> }
-                 };
+                 const relevantUnits = filterUnitType === 'ALL' ? allUnits : allUnits.filter(u => u.type === filterUnitType);
+                   const totalUnit = relevantUnits.length;
+                   const receivedUnits = new Set(filteredRows.map(r => String(r.fileNo))).size;
+                   const pendingFs = totalUnit - receivedUnits;
+                   
+                   const pseudoProject = {
+                     metadata: { unitName: "Filtered Consolidator", summaryMetrics: { total: totalUnit, received: receivedUnits, pending: pendingFs } },
+                     financialStatements: { notApplicable: false, data: {} as Record<string, any> }
+                   };
                  filteredRows.forEach(r => {
                     if (!pseudoProject.financialStatements.data[r.fy]) {
                       pseudoProject.financialStatements.data[r.fy] = {};

@@ -347,6 +347,56 @@ export default function AdminDashboard() {
   const [remarkModal, setRemarkModal] = useState<{project: any, field: string} | null>(null);
   const [remarkText, setRemarkText] = useState('');
 
+  const handleVerifyProject = async (level: 'js' | 'admin') => {
+    if (!viewDetailsProject) return;
+    try {
+      const api = await import('@/lib/api');
+      const updates = { ...viewDetailsProject };
+      if (!updates.metadata) updates.metadata = {};
+      
+      if (level === 'js') {
+         updates.metadata.verifiedByJS = user.name;
+         updates.metadata.verifiedByJSDate = new Date().toISOString();
+      } else if (level === 'admin') {
+         updates.metadata.verifiedByAdmin = user.name;
+         updates.metadata.verifiedByAdminDate = new Date().toISOString();
+      }
+      
+      await api.saveProject(updates, {
+         action: `Verified by ${level.toUpperCase()}`,
+         userId: user.id,
+         userName: user.name
+      });
+      alert(`Successfully verified by ${level.toUpperCase()}`);
+      setViewDetailsProject(updates);
+      fetchProjects();
+    } catch (e: any) {
+      alert("Verification failed: " + e.message);
+    }
+  };
+
+  const handleLockProject = async (lock: boolean) => {
+    if (!viewDetailsProject) return;
+    try {
+      const api = await import('@/lib/api');
+      const updates = { ...viewDetailsProject };
+      if (!updates.metadata) updates.metadata = {};
+      
+      updates.metadata.isLocked = lock;
+      
+      await api.saveProject(updates, {
+         action: lock ? 'Locked Project' : 'Unlocked Project',
+         userId: user.id,
+         userName: user.name
+      });
+      alert(`Project successfully ${lock ? 'locked' : 'unlocked'}`);
+      setViewDetailsProject(updates);
+      fetchProjects();
+    } catch (e: any) {
+      alert("Failed to update lock status: " + e.message);
+    }
+  };
+
   const handleSaveRemark = async () => {
       if (!remarkModal) return;
       try {
@@ -1828,7 +1878,12 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                              ) : (
                                <button 
                                  onClick={() => setEditFsProject({
-                                    metadata: { unitName: unit.name, financialYear: selectedTargetFyFilter, financialYears: [selectedTargetFyFilter] },
+                                    metadata: { 
+                                      unitName: unit.name, 
+                                      financialYear: selectedTargetFyFilter, 
+                                      financialYears: [selectedTargetFyFilter],
+                                      executionFY: selectedExecFyFilter 
+                                    },
                                     isNewHistorical: true
                                  })}
                                  className="px-3 py-1.5 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-400 dark:hover:bg-indigo-900 font-semibold rounded text-xs transition-colors"
@@ -3295,12 +3350,51 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     );
                   })()}
                 </div>
-                <button 
-                  onClick={() => setViewDetailsProject(null)}
-                  className="px-6 py-2.5 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 font-bold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors w-full md:w-auto"
-                >
-                  Close
-                </button>
+                <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                  {user.hierarchy_weight <= 20 && !viewDetailsProject.metadata?.verifiedByJS && (
+                    <button 
+                      onClick={() => handleVerifyProject('js')}
+                      className="px-4 py-2.5 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400 font-bold rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-900/60 transition-colors"
+                    >
+                      Verify as JS
+                    </button>
+                  )}
+                  {viewDetailsProject.metadata?.verifiedByJS && (
+                    <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                      Verified by JS: {viewDetailsProject.metadata.verifiedByJS}
+                    </span>
+                  )}
+
+                  {user.hierarchy_weight <= 10 && !viewDetailsProject.metadata?.verifiedByAdmin && (
+                    <button 
+                      onClick={() => handleVerifyProject('admin')}
+                      className="px-4 py-2.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 font-bold rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-900/60 transition-colors"
+                    >
+                      Verify as Admin
+                    </button>
+                  )}
+                  {viewDetailsProject.metadata?.verifiedByAdmin && (
+                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                      Verified by Admin: {viewDetailsProject.metadata.verifiedByAdmin}
+                    </span>
+                  )}
+
+                  {user.hierarchy_weight <= 10 && (
+                    <button 
+                      onClick={() => handleLockProject(!viewDetailsProject.metadata?.isLocked)}
+                      className={`px-4 py-2.5 font-bold rounded-lg transition-colors ${viewDetailsProject.metadata?.isLocked ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 hover:bg-amber-200' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400 hover:bg-rose-200'}`}
+                    >
+                      {viewDetailsProject.metadata?.isLocked ? 'Unlock Editing' : 'Lock Editing'}
+                    </button>
+                  )}
+
+                  <button 
+                    onClick={() => setViewDetailsProject(null)}
+                    className="px-6 py-2.5 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 font-bold rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors w-full md:w-auto"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
           </div>
         </div>

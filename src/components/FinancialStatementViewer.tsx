@@ -148,11 +148,31 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
           <div>
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
-              <Layers className="mr-2 text-indigo-600" size={24}/>
-              Financial Statement Report
-            </h2>
-            <p className="text-sm text-slate-500 mt-1">{project.name}</p>
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
+                  <Layers className="mr-2 text-indigo-600" size={24}/>
+                  Financial Statement Report
+                </h2>
+                {project.name !== "Filtered Consolidator (Historical FS)" && project.name !== "Filtered Consolidator" && (
+                   <p className="text-sm text-slate-500 mt-1">{project.name}</p>
+                )}
+              </div>
+              
+              {project.metadata?.summaryMetrics && (
+                <div className="flex items-center gap-3 text-xs md:text-sm font-semibold">
+                   <div className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg">
+                      Total Unit: {project.metadata.summaryMetrics.total}
+                   </div>
+                   <div className="px-3 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-lg">
+                      Received: {project.metadata.summaryMetrics.received}
+                   </div>
+                   <div className="px-3 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-400 rounded-lg">
+                      Pending: {project.metadata.summaryMetrics.pending}
+                   </div>
+                </div>
+              )}
+            </div>
           </div>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-red-500 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
             <X size={24} />

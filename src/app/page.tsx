@@ -96,6 +96,7 @@ function HomeContent() {
   const financialYear = financialYears[0] || '';
   const [auditorName, setAuditorName] = useState(user.name);
   const [isRevised, setIsRevised] = useState(false); const [isLockedRevised, setIsLockedRevised] = useState(false);
+  const [isLockedAdmin, setIsLockedAdmin] = useState(false);
   
   const [savedTemplates, setSavedTemplates] = useState<any[]>([]);
   const [templateFilter, setTemplateFilter] = useState<'all' | 'public' | 'private'>('all');
@@ -218,6 +219,7 @@ function HomeContent() {
                setOriginalEndDate(isAudited ? undefined : (p.metadata?.auditTotals?.endDate || undefined));
                setIsRevised(isAudited ? false : (p.isRevised || false));
                setIsLockedRevised(isAudited ? false : !!p.isRevised);
+               setIsLockedAdmin(isAudited ? false : !!p.metadata?.isLocked);
 
              setLoadedGridData(p.gridData);
              setLoadedChecklistData(p.checklistData);
@@ -284,6 +286,7 @@ function HomeContent() {
     setIsExtendingMode(false);
     setIsRevised(false);
     setIsLockedRevised(false);
+    setIsLockedAdmin(false);
     
     const defaultTemplate = savedTemplates.find((t: any) => t.isDefault);
     if (defaultTemplate) {

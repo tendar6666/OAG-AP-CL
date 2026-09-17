@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, getDocs, doc, setDoc, updateDoc, addDoc, deleteDoc, getDoc, query, where, orderBy, limit, startAfter, getCountFromServer, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, updateDoc, addDoc, deleteDoc, getDoc, query, where, orderBy, limit, startAfter, getCountFromServer, DocumentData, QueryDocumentSnapshot , or } from 'firebase/firestore';
 
 // ================= Financial Years =================
 export type FinancialYear = { 
@@ -227,6 +227,18 @@ export async function getProjects(targetFy: string = 'ALL', execFy: string = 'AL
 
   const querySnapshot = await getDocs(q);
   let projects = querySnapshot.docs.map(doc => ({ ...(doc.data() as any), id: doc.id } as any));
+  
+  // Fetch historical projects separately to avoid complex OR index requirements
+  if (execFy !== 'ALL') {
+      const qHist = query(collection(db, "projects"), where("isHistoricalFS", "==", true));
+      const histSnap = await getDocs(qHist);
+      const histProjects = histSnap.docs.map(doc => ({ ...(doc.data() as any), id: doc.id } as any));
+      // merge avoiding duplicates
+      const existingIds = new Set(projects.map(p => p.id));
+      for (const hp of histProjects) {
+          if (!existingIds.has(hp.id)) projects.push(hp);
+      }
+  }
   
   if (targetFy !== 'ALL') {
     projects = projects.filter(p => {
