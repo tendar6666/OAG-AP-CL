@@ -1855,8 +1855,19 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
              if (addFsUnitTypeFilter !== 'ALL' && u.unit_type_id !== addFsUnitTypeFilter) return false;
              return true;
           }).map(u => {
-             const matchedProject = allFSProjects.find(p => isProjectMatch(p, u) && (p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter) && p.financialStatements);
-             return { unit: u, matchedProject, hasFS: !!matchedProject };
+             const matchedProject = allFSProjects.find(p => isProjectMatch(p, u) && (p.metadata?.financialYears || [p.metadata?.financialYear]).includes(selectedTargetFyFilter));
+               
+               let hasFS = false;
+               if (matchedProject && matchedProject.financialStatements) {
+                   if (matchedProject.financialStatements.notApplicable) {
+                       hasFS = true;
+                   } else {
+                       const data = matchedProject.financialStatements.data || {};
+                       const targetData = data[selectedTargetFyFilter] || {};
+                       hasFS = Object.keys(targetData).length > 0;
+                   }
+               }
+               return { unit: u, matchedProject, hasFS };
           });
 
           if (addFsSortConfig) {
@@ -2025,7 +2036,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                                </div>
                              ) : (
                                <button 
-                                 onClick={() => setEditFsProject({
+                                 onClick={() => setEditFsProject(matchedProject || {
                                     metadata: { 
                                       unitName: unit.name, 
                                       financialYear: selectedTargetFyFilter, 
