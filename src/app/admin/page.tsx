@@ -595,7 +595,7 @@ export default function AdminDashboard() {
   }, [user, selectedTargetFyFilter, selectedExecFyFilter, hasLoadedFilters]);
 
     useEffect(() => {
-    if (activeTab === 'global_fs' && historicalProjects.length === 0 && !isHistLoading) {
+    if ((activeTab === 'global_fs' || activeTab === 'add_fs') && historicalProjects.length === 0 && !isHistLoading) {
       setIsHistLoading(true);
       getHistoricalProjects().then(data => {
         setHistoricalProjects(data);
@@ -1826,7 +1826,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         
         {activeTab === 'global_fs' && (
           <div className="fade-in">
-             <GlobalFSDashboard projects={allPendingActions.filter(p => { const fys = p.metadata?.financialYears || (p.metadata?.financialYear ? [p.metadata.financialYear] : []); return fys.includes(selectedTargetFyFilter); })} fsGroups={fsGroups} />
+             <GlobalFSDashboard projects={[...allPendingActions, ...historicalProjects]} fsGroups={fsGroups} />
           </div>
         )}
 
@@ -1840,7 +1840,8 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
           
           // Add FS only cares about Global Target FY, ignoring Global Execution FY.
           // Since allPendingActions contains all projects across all Execution FYs, we can search it directly.
-          const allFSProjects = allPendingActions;
+          // We also include historicalProjects which handles legacy manual imports.
+          const allFSProjects = [...allPendingActions, ...historicalProjects];
 
           const filteredAddFsUnits = units.filter(u => {
              if (addFsSearchQuery && !u.name.toLowerCase().includes(addFsSearchQuery.toLowerCase()) && !(u.file_number && u.file_number.toLowerCase().includes(addFsSearchQuery.toLowerCase()))) return false;
