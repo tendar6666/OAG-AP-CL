@@ -1831,7 +1831,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         
         {activeTab === 'global_fs' && (
           <div className="fade-in">
-             <GlobalFSDashboard projects={[...allPendingActions, ...historicalProjects]} fsGroups={fsGroups} onRefresh={fetchProjects} />
+             <GlobalFSDashboard projects={[...allPendingActions, ...historicalProjects]} fsGroups={fsGroups} onRefresh={fetchProjects} defaultFy={selectedTargetFyFilter} />
           </div>
         )}
 

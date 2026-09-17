@@ -5,7 +5,7 @@ import { Search, Download, Filter, Maximize2, Minimize2, AlertTriangle, CheckCir
 import FinancialStatementViewer from '@/components/FinancialStatementViewer';
 import ExcelJS from 'exceljs';
 
-export default function GlobalFSDashboard({ projects, fsGroups, onRefresh }: { projects: any[], fsGroups: any[], onRefresh?: () => void }) {
+export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defaultFy }: { projects: any[], fsGroups: any[], onRefresh?: () => void, defaultFy?: string }) {
   const { user } = useAuth();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -134,14 +134,18 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh }: { p
   }, [projects]);
 
   // Extract unique FYs and Currencies for filters
-  const uniqueFys = Array.from(new Set(allRows.map(r => r.fy))).sort().reverse();
+  const uniqueFys = Array.from(new Set([...allRows.map(r => r.fy), ...(defaultFy && defaultFy !== 'ALL' ? [defaultFy] : [])])).sort().reverse();
   const uniqueCurrencies = Array.from(new Set(allRows.map(r => r.currency))).sort();
 
   useEffect(() => {
-    if (!filterFy && uniqueFys.length > 0) {
-      setFilterFy(uniqueFys[0]);
+    if (!filterFy) {
+      if (defaultFy && defaultFy !== 'ALL') {
+        setFilterFy(defaultFy);
+      } else if (uniqueFys.length > 0) {
+        setFilterFy(uniqueFys[0]);
+      }
     }
-  }, [uniqueFys, filterFy]);
+  }, [uniqueFys, filterFy, defaultFy]);
 
 
   
