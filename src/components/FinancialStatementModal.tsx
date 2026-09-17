@@ -163,7 +163,7 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
   const isStatementTallied = (statement: StatementData): boolean => {
     const tA = calculateTotal(statement, 'Asset');
     const tL = calculateTotal(statement, 'Liability');
-    return tA === tL && (tA > 0 || tL > 0); // Must tally and not be totally empty (0=0) unless they haven't started
+    return Math.abs(tA - tL) < 0.01 && (tA > 0 || tL > 0); // Must tally and not be totally empty (0=0) unless they haven't started
   };
 
   const isFyTallied = (fy: string): boolean => {
