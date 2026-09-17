@@ -145,6 +145,29 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
     setActiveStatementId(prev => ({ ...prev, [fy]: newId }));
   };
 
+  const handleDeleteStatement = (fy: string, stmtId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm("Delete this statement? All data within it will be lost.")) return;
+    
+    setFsData(prev => {
+      const newData = { ...prev };
+      const currentFyStmts = { ...newData[fy] };
+      delete currentFyStmts[stmtId];
+      newData[fy] = currentFyStmts;
+      return newData;
+    });
+    
+    if (activeStatementId[fy] === stmtId) {
+      setActiveStatementId(prev => {
+         const remainingIds = Object.keys(fsData[fy] || {}).filter(id => id !== stmtId);
+         return {
+            ...prev,
+            [fy]: remainingIds.length > 0 ? remainingIds[0] : ''
+         };
+      });
+    }
+  };
+
   const calculateGroupTotal = (groupId: string, groupData: FSGroupData | undefined, groupType: 'Asset'|'Liability'): number => {
     if (!groupData) return 0;
     const groupDef = fsGroups.find(g => g.id === groupId);
@@ -311,15 +334,26 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
                       {isActive && (
                         <div className="pl-6 pr-3 py-2 space-y-1 bg-indigo-50/30 dark:bg-indigo-900/10">
                           {Object.values(fsData[fy] || {}).map(stmt => (
-                            <button
-                              key={stmt.id}
-                              onClick={() => setActiveStatementId(prev => ({...prev, [fy]: stmt.id}))}
-                              className={`w-full text-left px-2 py-1.5 rounded text-xs font-medium flex justify-between items-center ${activeStatementId[fy] === stmt.id ? 'bg-indigo-200 dark:bg-indigo-800 text-indigo-900 dark:text-indigo-100' : 'text-slate-600 hover:bg-indigo-100 dark:text-slate-400 dark:hover:bg-indigo-900/30'}`}
-                            >
-                              <span className="truncate">{stmt.name}</span>
-                              {isStatementTallied(stmt) && <CheckCircle size={12} className="text-emerald-500 shrink-0 ml-1" />}
-                            </button>
-                          ))}
+                              <div
+                                key={stmt.id}
+                                onClick={() => setActiveStatementId(prev => ({...prev, [fy]: stmt.id}))}
+                                className={`w-full text-left px-2 py-1.5 rounded text-xs font-medium flex justify-between items-center cursor-pointer group ${activeStatementId[fy] === stmt.id ? 'bg-indigo-200 dark:bg-indigo-800 text-indigo-900 dark:text-indigo-100' : 'text-slate-600 hover:bg-indigo-100 dark:text-slate-400 dark:hover:bg-indigo-900/30'}`}
+                              >
+                                <span className="truncate flex-1">{stmt.name}</span>
+                                <div className="flex items-center shrink-0 ml-1 space-x-1">
+                                  {isStatementTallied(stmt) && <CheckCircle size={12} className="text-emerald-500" />}
+                                  {Object.keys(fsData[fy] || {}).length > 1 && (
+                                    <button 
+                                      onClick={(e) => handleDeleteStatement(fy, stmt.id, e)}
+                                      className="text-slate-400 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 p-0.5"
+                                      title="Delete Statement"
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
                           <button
                             onClick={() => handleAddStatement(fy)}
                             className="w-full text-left px-2 py-1.5 rounded text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 flex items-center mt-1"
