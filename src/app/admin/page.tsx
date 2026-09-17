@@ -1826,7 +1826,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         
         {activeTab === 'global_fs' && (
           <div className="fade-in">
-             <GlobalFSDashboard projects={[...projects, ...historicalProjects]} fsGroups={fsGroups} />
+             <GlobalFSDashboard projects={allPendingActions.filter(p => { const fys = p.metadata?.financialYears || (p.metadata?.financialYear ? [p.metadata.financialYear] : []); return fys.includes(selectedTargetFyFilter); })} fsGroups={fsGroups} />
           </div>
         )}
 
@@ -1838,7 +1838,9 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
              return pName === uName || pName.endsWith(uName);
           };
           
-          const allFSProjects = [...projects, ...historicalProjects];
+          // Add FS only cares about Global Target FY, ignoring Global Execution FY.
+          // Since allPendingActions contains all projects across all Execution FYs, we can search it directly.
+          const allFSProjects = allPendingActions;
 
           const filteredAddFsUnits = units.filter(u => {
              if (addFsSearchQuery && !u.name.toLowerCase().includes(addFsSearchQuery.toLowerCase()) && !(u.file_number && u.file_number.toLowerCase().includes(addFsSearchQuery.toLowerCase()))) return false;
