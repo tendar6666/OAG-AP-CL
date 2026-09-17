@@ -1,10 +1,10 @@
 ﻿import React, { useState, useMemo, useEffect } from 'react';
-import { getUnits, getUnitTypes } from '@/lib/api';
-import { Search, Download, Filter, Maximize2, Minimize2, AlertTriangle, CheckCircle, EyeOff, LayoutTemplate } from 'lucide-react';
+import { getUnits, getUnitTypes, saveProject } from '@/lib/api';
+import { Search, Download, Filter, Maximize2, Minimize2, AlertTriangle, CheckCircle, EyeOff, LayoutTemplate, Trash2 } from 'lucide-react';
 import FinancialStatementViewer from '@/components/FinancialStatementViewer';
 import ExcelJS from 'exceljs';
 
-export default function GlobalFSDashboard({ projects, fsGroups }: { projects: any[], fsGroups: any[] }) {
+export default function GlobalFSDashboard({ projects, fsGroups, onRefresh }: { projects: any[], fsGroups: any[], onRefresh?: () => void }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterFy, setFilterFy] = useState('');
@@ -26,6 +26,24 @@ export default function GlobalFSDashboard({ projects, fsGroups }: { projects: an
   const [allUnits, setAllUnits] = useState<any[]>([]);
   const [unitMap, setUnitMap] = useState<Record<string, string>>({});
   const [hiddenRows, setHiddenRows] = useState<Set<string>>(new Set());
+
+  const handleDeleteStatement = async (pId: string, fy: string, stmtId: string) => {
+    if (!window.confirm("Are you sure you want to PERMANENTLY delete this statement?")) return;
+    try {
+      const p = projects.find(pr => pr.id === pId);
+      if (!p) return;
+      const updatedProject = JSON.parse(JSON.stringify(p));
+      if (updatedProject.financialStatements?.data?.[fy]?.[stmtId]) {
+         delete updatedProject.financialStatements.data[fy][stmtId];
+         await saveProject(updatedProject);
+         if (onRefresh) onRefresh();
+         else window.location.reload();
+      }
+    } catch (e) {
+      console.error("Failed to delete statement", e);
+      alert("Failed to delete statement");
+    }
+  };
 
   useEffect(() => {
     Promise.all([getUnits(), getUnitTypes()]).then(([units, types]) => {
@@ -96,7 +114,8 @@ export default function GlobalFSDashboard({ projects, fsGroups }: { projects: an
              totalAssets,
              totalLiabilities,
              diff: Math.round((totalAssets - totalLiabilities) * 100) / 100,
-             rowId: p.id + '_' + fy + '_' + stmtId,
+             pId: p.id,
+               rowId: p.id + '_' + fy + '_' + stmtId,
              originalStmt: stmt,
              groupVals
            });
@@ -333,9 +352,14 @@ export default function GlobalFSDashboard({ projects, fsGroups }: { projects: an
             {filteredRows.map((r, i) => (
               <tr key={i} className="hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors">
                 <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 sticky left-0 bg-white dark:bg-slate-900 z-10 text-center">
-                  <button onClick={() => setHiddenRows(prev => { const n = new Set(prev); n.add(r.rowId); return n; })} className="text-slate-400 hover:text-rose-500 transition-colors p-1" title="Hide Row">
-                    <EyeOff size={14} />
-                  </button>
+                  <div className="flex items-center justify-center gap-1">
+                    <button onClick={() => setHiddenRows(prev => { const n = new Set(prev); n.add(r.rowId); return n; })} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-1" title="Hide Row">
+                      <EyeOff size={14} />
+                    </button>
+                    <button onClick={() => handleDeleteStatement(r.pId, r.fy, r.stmtId)} className="text-slate-400 hover:text-rose-600 transition-colors p-1" title="Permanently delete this statement">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </td>
                 <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 font-semibold sticky left-[40px] bg-white dark:bg-slate-900 z-10 shadow-[1px_0_0_0_#e2e8f0] dark:shadow-[1px_0_0_0_#1e293b]">{r.fileNo}</td>
                 <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 sticky left-[120px] bg-white dark:bg-slate-900 z-10 shadow-[1px_0_0_0_#e2e8f0] dark:shadow-[1px_0_0_0_#1e293b] truncate max-w-[200px]" title={r.unitName}>{r.unitName}</td>
