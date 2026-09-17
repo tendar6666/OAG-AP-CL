@@ -47,9 +47,9 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
          if (onRefresh) onRefresh();
          else window.location.reload();
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to delete statement", e);
-      alert("Failed to delete statement");
+      alert("Failed to delete statement: " + (e.message || "Unknown error"));
     }
   };
 
@@ -123,7 +123,8 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
              totalLiabilities,
              diff: Math.round((totalAssets - totalLiabilities) * 100) / 100,
              pId: p.id,
-               rowId: p.id + '_' + fy + '_' + stmtId,
+             stmtId: stmtId,
+             rowId: p.id + '_' + fy + '_' + stmtId,
              originalStmt: stmt,
              groupVals
            });
