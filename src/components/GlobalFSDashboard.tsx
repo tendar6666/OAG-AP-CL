@@ -1,5 +1,5 @@
 ﻿import React, { useState, useMemo, useEffect } from 'react';
-import { getUnits, getUnitTypes, saveProject } from '@/lib/api';
+import { getUnits, getUnitTypes, saveProject, saveHistoricalProject } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Search, Download, Filter, Maximize2, Minimize2, AlertTriangle, CheckCircle, EyeOff, LayoutTemplate, Trash2 } from 'lucide-react';
 import FinancialStatementViewer from '@/components/FinancialStatementViewer';
@@ -37,7 +37,13 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh }: { p
       const updatedProject = JSON.parse(JSON.stringify(p));
       if (updatedProject.financialStatements?.data?.[fy]?.[stmtId]) {
          delete updatedProject.financialStatements.data[fy][stmtId];
-         await saveProject(updatedProject);
+         
+         if (updatedProject.fromHistoricalCollection) {
+            await saveHistoricalProject(updatedProject);
+         } else {
+            await saveProject(updatedProject);
+         }
+         
          if (onRefresh) onRefresh();
          else window.location.reload();
       }

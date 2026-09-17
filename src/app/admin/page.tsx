@@ -699,6 +699,10 @@ export default function AdminDashboard() {
       // Fetch all projects once to find pending actions from any FY
       const allData = await getProjects("ALL", "ALL");
       setAllPendingActions(allData);
+      
+      // Also refetch historical projects so Global FS Dashboard updates immediately
+      const histData = await getHistoricalProjects();
+      setHistoricalProjects(histData);
     } catch (e: any) {
       console.error("Failed to fetch projects", e);
     }

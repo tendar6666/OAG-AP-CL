@@ -215,7 +215,15 @@ export function clearProjectsCache() {
 export async function getHistoricalProjects() {
   const q = collection(db, "historical_projects");
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ ...(doc.data() as any), id: doc.id } as any));
+  return querySnapshot.docs.map(doc => ({ ...(doc.data() as any), id: doc.id, fromHistoricalCollection: true } as any));
+}
+
+export async function saveHistoricalProject(data: any) {
+  let docId = data.id;
+  const payload = { ...data };
+  delete payload.id;
+  delete payload.fromHistoricalCollection;
+  await updateDoc(doc(db, "historical_projects", docId), payload);
 }
 
 export async function getProjects(targetFy: string = 'ALL', execFy: string = 'ALL') {
