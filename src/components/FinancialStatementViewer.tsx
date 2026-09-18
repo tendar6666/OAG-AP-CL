@@ -160,18 +160,52 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
               </div>
               
               {project.metadata?.summaryMetrics && (
-                <div className="flex items-center gap-3 text-xs md:text-sm font-semibold">
-                   <div className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg">
-                      Total Unit: {project.metadata.summaryMetrics.total}
-                   </div>
-                   <div className="px-3 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-lg">
-                      Received: {project.metadata.summaryMetrics.received}
-                   </div>
-                   <div className="px-3 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-400 rounded-lg">
-                      Pending: {project.metadata.summaryMetrics.pending}
-                   </div>
-                </div>
-              )}
+                  <div className="flex items-center gap-3 text-xs md:text-sm font-semibold z-50">
+                     
+                     <div className="group relative px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg cursor-help">
+                        Total Unit: {project.metadata.summaryMetrics.total}
+                        {project.metadata.summaryMetrics.totalList && (
+                          <div className="hidden group-hover:block absolute top-full left-0 mt-1 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 z-[60]">
+                             {project.metadata.summaryMetrics.totalList.length === 0 ? <div className="text-slate-500 text-xs">None</div> : null}
+                             {project.metadata.summaryMetrics.totalList.map((u: string, idx: number) => (
+                                <div key={idx} className="text-xs text-slate-700 dark:text-slate-300 py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0 truncate" title={u}>
+                                   {u}
+                                </div>
+                             ))}
+                          </div>
+                        )}
+                     </div>
+
+                     <div className="group relative px-3 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-lg cursor-help">
+                        Received: {project.metadata.summaryMetrics.received}
+                        {project.metadata.summaryMetrics.receivedList && (
+                          <div className="hidden group-hover:block absolute top-full left-0 mt-1 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 z-[60]">
+                             {project.metadata.summaryMetrics.receivedList.length === 0 ? <div className="text-slate-500 text-xs">None</div> : null}
+                             {project.metadata.summaryMetrics.receivedList.map((u: string, idx: number) => (
+                                <div key={idx} className="text-xs text-slate-700 dark:text-slate-300 py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0 truncate" title={u}>
+                                   {u}
+                                </div>
+                             ))}
+                          </div>
+                        )}
+                     </div>
+
+                     <div className="group relative px-3 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-400 rounded-lg cursor-help">
+                        Pending: {project.metadata.summaryMetrics.pending}
+                        {project.metadata.summaryMetrics.pendingList && (
+                          <div className="hidden group-hover:block absolute top-full left-0 mt-1 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 z-[60]">
+                             {project.metadata.summaryMetrics.pendingList.length === 0 ? <div className="text-slate-500 text-xs">None</div> : null}
+                             {project.metadata.summaryMetrics.pendingList.map((u: string, idx: number) => (
+                                <div key={idx} className="text-xs text-slate-700 dark:text-slate-300 py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0 truncate" title={u}>
+                                   {u}
+                                </div>
+                             ))}
+                          </div>
+                        )}
+                     </div>
+
+                  </div>
+                )}
             </div>
           </div>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-red-500 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">

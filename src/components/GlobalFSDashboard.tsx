@@ -447,8 +447,23 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
                    const receivedUnits = new Set(filteredRows.map(r => String(r.fileNo))).size;
                    const pendingFs = totalUnit - receivedUnits;
                    
+                   const receivedList = Array.from(new Set(filteredRows.map(r => (r.fileNo || '-') + ' - ' + r.unitName)));
+                   const pendingList = relevantUnits.filter(u => !receivedList.some(r => r.startsWith((u.file_number || '-') + ' - ')))
+                                                    .map(u => (u.file_number || '-') + ' - ' + u.name);
+                   const totalList = relevantUnits.map(u => (u.file_number || '-') + ' - ' + u.name);
+
                    const pseudoProject = {
-                     metadata: { unitName: "Filtered Consolidator", summaryMetrics: { total: totalUnit, received: receivedUnits, pending: pendingFs } },
+                     metadata: { 
+                         unitName: "Filtered Consolidator", 
+                         summaryMetrics: { 
+                             total: totalUnit, 
+                             received: receivedUnits, 
+                             pending: pendingFs,
+                             receivedList,
+                             pendingList,
+                             totalList
+                         } 
+                     },
                      financialStatements: { notApplicable: false, data: {} as Record<string, any> }
                    };
                  filteredRows.forEach(r => {
