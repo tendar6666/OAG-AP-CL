@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OAG Audit Program & Checklist - Handover Documentation
 
-## Getting Started
+This document contains all the necessary technical information for the Tibetan Computer Resource Centre (TCRC) to take over, run, maintain, and deploy the Office of the Auditor General (OAG) Audit Program & Checklist application.
 
-First, run the development server:
+## 1. Tech Stack Overview
+* **Frontend Framework:** Next.js (React) using the App Router.
+* **Language:** TypeScript.
+* **Styling:** Tailwind CSS.
+* **Backend / Database:** Firebase Firestore (NoSQL).
+* **Authentication:** Firebase Authentication (Email/Password).
+* **Hosting:** Firebase Hosting.
+* **Notifications:** ntfy.sh (Open-source push notifications).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 2. Access & Ownership Required
+To fully manage this project, TCRC must have access to:
+1. **The GitHub Repository:** Contains this source code.
+2. **The Firebase Console:** Go to [console.firebase.google.com](https://console.firebase.google.com/), select the project `oag-audit-management-online`, and ensure TCRC's Google account is listed as an **Owner** under *Project Settings -> Users and permissions*.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 3. Local Development Setup
+To run the code on a new machine, follow these steps:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prerequisites
+* Install **Node.js** (v18 or higher recommended).
+* Install **Git**.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Installation
+1. Clone the repository from GitHub:
+   ```bash
+   git clone <github-repo-url>
+   cd "Audit Program Online"
+   ```
+2. Install the necessary dependencies:
+   ```bash
+   npm install
+   ```
+3. Run the local development server:
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Learn More
+## 4. Deployment Instructions
+The application is statically exported (`output: 'export'` in `next.config.ts`) and hosted on Firebase Hosting. 
 
-To learn more about Next.js, take a look at the following resources:
+To deploy an update to the live website:
+1. Compile the code for production:
+   ```bash
+   npm run build
+   ```
+2. Deploy the compiled files to Firebase:
+   ```bash
+   npx firebase-tools deploy --only hosting
+   ```
+*(Note: You will need to be logged into Firebase CLI (`npx firebase-tools login`) with an account that has Owner/Editor access to the project).*
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 5. Super Admin Account
+If TCRC needs to log into the live website to manage units, templates, or users, they can use the master Super Admin account:
+* **Email:** `admin@test.com`
+* **Password:** `Admin123`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+*(It is highly recommended that TCRC logs into the app, creates their own official Admin accounts, and changes this default password).*
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 6. Project Architecture Notes
+* **Firebase Config:** The Firebase client configuration is located in `src/lib/firebase.ts`. Because this is a client-side Firebase app, these API keys are safe to be public and do not need to be hidden in `.env` files.
+* **API / Database Calls:** All Firestore queries and mutations are centralized in `src/lib/api.ts`.
+* **State Management:** Global state (like the current user and active theme) is managed via React Context in `src/context/`.
