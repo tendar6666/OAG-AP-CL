@@ -84,24 +84,33 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
       let displayFileNo = p.customId || 'N/A';
       let displayUnitName = p.metadata?.unitName || 'Unknown';
       
-      if (!p.isHistoricalFS && displayUnitName.match(/^\d+\|\d+/)) {
-          const match = displayUnitName.match(/^(\d+\|\d+)\s+(.*)/);
-          if (match) {
-              displayFileNo = match[1];
-              displayUnitName = match[2];
-          }
+      // Always dynamically fetch latest Master Unit details if possible
+      let matchedUnit = null;
+      if (p.metadata?.unitId) {
+          matchedUnit = units.find(u => u.id === p.metadata.unitId);
       }
       
-      // If it's a historical FS or just doesn't have a parsed file number yet, lookup from units array
-      if (p.isHistoricalFS || displayFileNo.startsWith('AP-')) {
-          const matchedUnit = units.find(u => 
-              u.name === displayUnitName || 
-              (p.metadata?.unitId && u.id === p.metadata.unitId)
-          );
-          if (matchedUnit && matchedUnit.file_number) {
-              displayFileNo = matchedUnit.file_number;
-          } else if (p.metadata?.fileNumber) {
-              displayFileNo = p.metadata.fileNumber;
+      if (matchedUnit) {
+          displayUnitName = matchedUnit.name;
+          if (matchedUnit.file_number) displayFileNo = matchedUnit.file_number;
+      } else {
+          // Fallback parsing for legacy records
+          if (!p.isHistoricalFS && displayUnitName.match(/^\d+\|\d+/)) {
+              const match = displayUnitName.match(/^(\d+\|\d+)\s+(.*)/);
+              if (match) {
+                  displayFileNo = match[1];
+                  displayUnitName = match[2];
+              }
+          }
+          
+          if (p.isHistoricalFS || displayFileNo.startsWith('AP-')) {
+              const fbUnit = units.find(u => u.name === displayUnitName);
+              if (fbUnit) {
+                  displayUnitName = fbUnit.name;
+                  if (fbUnit.file_number) displayFileNo = fbUnit.file_number;
+              } else if (p.metadata?.fileNumber) {
+                  displayFileNo = p.metadata.fileNumber;
+              }
           }
       }
 
