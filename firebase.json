@@ -23,7 +23,8 @@
           ]
         }
       ],
-      "site": "oagonline"
+      "site": "oagonline",
+      "revisionsPerSite": 5
     },
     {
       "site": "oag-audit-management-online",
@@ -34,7 +35,8 @@
           "destination": "https://oagonline.web.app",
           "type": 301
         }
-      ]
+      ],
+      "revisionsPerSite": 5
     }
   ]
 }
