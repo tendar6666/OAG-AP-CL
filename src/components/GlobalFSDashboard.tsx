@@ -35,9 +35,17 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
       const p = projects.find(pr => pr.id === pId);
       if (!p) return;
       const updatedProject = JSON.parse(JSON.stringify(p));
-      if (updatedProject.financialStatements?.data?.[fy]?.[stmtId]) {
+      
+      let modified = false;
+      if (stmtId === 'NA') {
+          updatedProject.financialStatements.notApplicable = false;
+          modified = true;
+      } else if (updatedProject.financialStatements?.data?.[fy]?.[stmtId]) {
          delete updatedProject.financialStatements.data[fy][stmtId];
-         
+         modified = true;
+      }
+      
+      if (modified) {
          if (updatedProject.fromHistoricalCollection) {
             await saveHistoricalProject(updatedProject);
          } else {
@@ -71,7 +79,58 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
   const allRows = useMemo(() => {
     const rows: any[] = [];
     projects.forEach(p => {
-      if (!p.financialStatements || p.financialStatements.notApplicable || !p.financialStatements.data) return;
+      if (!p.financialStatements) return;
+
+      let displayFileNo = p.customId || 'N/A';
+      let displayUnitName = p.metadata?.unitName || 'Unknown';
+      
+      if (!p.isHistoricalFS && displayUnitName.match(/^\d+\|\d+/)) {
+          const match = displayUnitName.match(/^(\d+\|\d+)\s+(.*)/);
+          if (match) {
+              displayFileNo = match[1];
+              displayUnitName = match[2];
+          }
+      }
+      
+      // If it's a historical FS or just doesn't have a parsed file number yet, lookup from units array
+      if (p.isHistoricalFS || displayFileNo.startsWith('AP-')) {
+          const matchedUnit = units.find(u => 
+              u.name === displayUnitName || 
+              (p.metadata?.unitId && u.id === p.metadata.unitId)
+          );
+          if (matchedUnit && matchedUnit.file_number) {
+              displayFileNo = matchedUnit.file_number;
+          } else if (p.metadata?.fileNumber) {
+              displayFileNo = p.metadata.fileNumber;
+          }
+      }
+
+      if (p.financialStatements.notApplicable) {
+          const fys = p.metadata?.financialYears || (p.metadata?.financialYear ? [p.metadata.financialYear] : []);
+          fys.forEach((fy: string) => {
+              rows.push({
+                projectId: p.id,
+                fileNo: displayFileNo,
+                unitName: displayUnitName,
+                fy: fy,
+                stmtName: 'Not Applicable',
+                currency: '-',
+                totalAssets: 0,
+                totalLiabilities: 0,
+                diff: 0,
+                pId: p.id,
+                stmtId: 'NA',
+                rowId: p.id + '_' + fy + '_NA',
+                originalStmt: null,
+                groupVals: {},
+                isNA: true
+              });
+          });
+          return;
+      }
+      
+      if (!p.financialStatements.data) return;
+
       const fsData = p.financialStatements.data;
       for (const fy in fsData) {
         for (const stmtId in fsData[fy]) {
@@ -83,7 +142,7 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
            
            const groupVals: Record<string, number> = {};
 
-                        fsGroups.forEach(g => {
+           fsGroups.forEach(g => {
                const gData = (stmt.assets && stmt.assets[g.id!]) || (stmt.liabilities && stmt.liabilities[g.id!]);
                if (!gData) return;
                let val = 0;
@@ -99,36 +158,10 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
                if (g.type === 'Liability') totalLiabilities += val;
              });
 
-           
-           let displayFileNo = p.customId || 'N/A';
-           let displayUnitName = p.metadata?.unitName || 'Unknown';
-           
-           if (!p.isHistoricalFS && displayUnitName.match(/^\d+\|\d+/)) {
-               const match = displayUnitName.match(/^(\d+\|\d+)\s+(.*)/);
-               if (match) {
-                   displayFileNo = match[1];
-                   displayUnitName = match[2];
-               }
-           }
-           
-           // If it's a historical FS or just doesn't have a parsed file number yet, lookup from units array
-           if (p.isHistoricalFS || displayFileNo.startsWith('AP-')) {
-               const matchedUnit = units.find(u => 
-                   u.name === displayUnitName || 
-                   (p.metadata?.unitId && u.id === p.metadata.unitId)
-               );
-               if (matchedUnit && matchedUnit.file_number) {
-                   displayFileNo = matchedUnit.file_number;
-               } else if (p.metadata?.fileNumber) {
-                   displayFileNo = p.metadata.fileNumber;
-               }
-           }
-
            rows.push({
              projectId: p.id,
              fileNo: displayFileNo,
              unitName: displayUnitName,
-
              fy,
              stmtName: stmt.name || 'Main Statement',
              currency: stmt.currency || 'INR',
@@ -145,7 +178,7 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
       }
     });
     return rows;
-  }, [projects]);
+  }, [projects, units, fsGroups]);
 
   // Extract unique FYs and Currencies for filters
   const uniqueFys = Array.from(new Set([...allRows.map(r => r.fy), ...(defaultFy && defaultFy !== 'ALL' ? [defaultFy] : [])])).sort().reverse();
@@ -394,11 +427,15 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
                 <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800">{r.fy}</td>
                 <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 max-w-[150px] truncate" title={r.stmtName}>{r.stmtName}</td>
                 <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800">{r.currency}</td>
-                <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 font-medium bg-emerald-50/30 dark:bg-emerald-900/10 text-right">{r.totalAssets.toLocaleString()}</td>
-                <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 font-medium bg-rose-50/30 dark:bg-rose-900/10 text-right">{r.totalLiabilities.toLocaleString()}</td>
-                <td className={`px-3 py-2 border-r border-slate-200 dark:border-slate-800 font-bold text-right ${Math.abs(r.diff) < 0.01 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                  {Math.abs(r.diff) < 0.01 ? <CheckCircle size={12} className="inline mr-1"/> : null}
-                  {r.diff.toLocaleString()}
+                <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 font-medium bg-emerald-50/30 dark:bg-emerald-900/10 text-right">{r.isNA ? '-' : r.totalAssets.toLocaleString()}</td>
+                <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 font-medium bg-rose-50/30 dark:bg-rose-900/10 text-right">{r.isNA ? '-' : r.totalLiabilities.toLocaleString()}</td>
+                <td className={`px-3 py-2 border-r border-slate-200 dark:border-slate-800 font-bold text-right ${r.isNA ? 'text-slate-400' : (Math.abs(r.diff) < 0.01 ? 'text-emerald-500' : 'text-rose-500')}`}>
+                  {r.isNA ? '-' : (
+                    <>
+                      {Math.abs(r.diff) < 0.01 ? <CheckCircle size={12} className="inline mr-1"/> : null}
+                      {r.diff.toLocaleString()}
+                    </>
+                  )}
                 </td>
                 {sortedFsGroups.map(g => (
                   <td key={g.id} className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 text-right text-slate-600 dark:text-slate-400">
@@ -471,7 +508,11 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
                       pseudoProject.financialStatements.data[r.fy] = {};
                     }
                     const newName = r.fileNo + ' - ' + r.unitName + ' - ' + r.stmtName;
-                    pseudoProject.financialStatements.data[r.fy][r.rowId] = { ...r.originalStmt, id: r.rowId, name: newName };
+                    if (r.isNA) {
+                       pseudoProject.financialStatements.data[r.fy][r.rowId] = { id: r.rowId, name: newName, currency: '-', assets: {}, liabilities: {} };
+                    } else {
+                       pseudoProject.financialStatements.data[r.fy][r.rowId] = { ...r.originalStmt, id: r.rowId, name: newName };
+                    }
                  });
                  return <FinancialStatementViewer isOpen={true} project={pseudoProject} onClose={() => setShowTShape(false)} />;
                })()}
