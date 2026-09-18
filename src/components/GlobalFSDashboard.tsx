@@ -81,7 +81,7 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
     projects.forEach(p => {
       if (!p.financialStatements) return;
 
-      let displayFileNo = p.customId || 'N/A';
+      let displayFileNo = p.customId || p.metadata?.fileNumber || 'N/A';
       let displayUnitName = p.metadata?.unitName || 'Unknown';
       
       // Always dynamically fetch latest Master Unit details if possible
@@ -95,7 +95,7 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
           if (matchedUnit.file_number) displayFileNo = matchedUnit.file_number;
       } else {
           // Fallback parsing for legacy records
-          if (!p.isHistoricalFS && displayUnitName.match(/^\d+\|\d+/)) {
+          if (displayUnitName.match(/^\d+\|\d+/)) {
               const match = displayUnitName.match(/^(\d+\|\d+)\s+(.*)/);
               if (match) {
                   displayFileNo = match[1];
@@ -104,7 +104,13 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
           }
           
           if (p.isHistoricalFS || displayFileNo.startsWith('AP-')) {
-              const fbUnit = units.find(u => u.name === displayUnitName);
+              let fbUnit = null;
+              if (displayFileNo && displayFileNo !== 'N/A' && !displayFileNo.startsWith('AP-')) {
+                  fbUnit = units.find(u => String(u.file_number).trim() === String(displayFileNo).trim());
+              }
+              if (!fbUnit) {
+                  fbUnit = units.find(u => u.name === displayUnitName || displayUnitName.endsWith(u.name) || u.name.endsWith(displayUnitName));
+              }
               if (fbUnit) {
                   displayUnitName = fbUnit.name;
                   if (fbUnit.file_number) displayFileNo = fbUnit.file_number;

@@ -1851,10 +1851,23 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
 
         {activeTab === 'add_fs' && (() => {
           const isProjectMatch = (p: any, u: any) => {
-             if (!p.metadata?.unitName) return false;
-             const pName = p.metadata.unitName.trim();
+             if (p.metadata?.unitId && p.metadata.unitId === u.id) return true;
+             
+             let pFileNo = p.metadata?.fileNumber || p.customId;
+             let pName = (p.metadata?.unitName || '').trim();
+             
+             if (pName.match(/^\d+\|\d+/)) {
+                 const match = pName.match(/^(\d+\|\d+)\s+(.*)/);
+                 if (match) {
+                     pFileNo = match[1];
+                     pName = match[2];
+                 }
+             }
+             
+             if (pFileNo && u.file_number && String(pFileNo).trim() === String(u.file_number).trim()) return true;
+             
              const uName = u.name.trim();
-             return pName === uName || pName.endsWith(uName);
+             return pName === uName || pName.endsWith(uName) || uName.endsWith(pName);
           };
           
           // Add FS only cares about Global Target FY, ignoring Global Execution FY.
