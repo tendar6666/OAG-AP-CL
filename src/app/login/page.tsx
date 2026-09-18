@@ -276,8 +276,8 @@ export default function LoginPage() {
            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider text-center mb-4">Development Switcher</h4>
            <div className="flex space-x-2">
               <select id="devUserSelect" className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs p-2 outline-none dark:text-slate-300">
-                {/* 
                 <optgroup label="Admins (L1)">
+                  <option value="admin@test.com|10">Super Admin</option>
                   <option value="admin1@test.com|10">Admin 1 (Secretary)</option>
                   <option value="admin2@test.com|10">Admin 2 (Secretary)</option>
                 </optgroup>
@@ -285,8 +285,7 @@ export default function LoginPage() {
                   <option value="joint1@test.com|20">Joint Secretary 1</option>
                   <option value="joint2@test.com|20">Joint Secretary 2</option>
                   <option value="joint3@test.com|20">Joint Secretary 3</option>
-                </optgroup> 
-                */}
+                </optgroup>
                 <optgroup label="Deputy Secretaries (L3)">
                   <option value="deputy1@test.com|30">Deputy Secretary 1</option>
                   <option value="deputy2@test.com|30">Deputy Secretary 2</option>
