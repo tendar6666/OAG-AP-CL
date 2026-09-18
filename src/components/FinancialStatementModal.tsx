@@ -342,7 +342,7 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
                                 <span className="truncate flex-1">{stmt.name}</span>
                                 <div className="flex items-center shrink-0 ml-1 space-x-1">
                                   {isStatementTallied(stmt) && <CheckCircle size={12} className="text-emerald-500" />}
-                                  {Object.keys(fsData[fy] || {}).length > 1 && userWeight !== undefined && userWeight <= 10 && (
+                                  {Object.keys(fsData[fy] || {}).length > 1 && (
                                     <button 
                                       onClick={(e) => handleDeleteStatement(fy, stmt.id, e)}
                                       className="text-slate-400 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 p-0.5"
@@ -375,7 +375,17 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
                 {/* Statement Toolbar */}
                 <div className="px-6 py-3 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
                   <div className="flex items-center space-x-4">
-                    <h3 className="font-bold text-slate-800 dark:text-slate-200">{currentStatement.name}</h3>
+                    <input
+                      type="text"
+                      value={currentStatement.name}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFsData(prev => ({...prev, [activeFy]: {...prev[activeFy], [currentStatement.id]: {...currentStatement, name: val}}}));
+                      }}
+                      className="font-bold text-slate-800 dark:text-slate-200 bg-transparent border-b border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 outline-none px-1 py-0.5 transition-colors max-w-[200px]"
+                      placeholder="Statement Name"
+                      disabled={metadata?.isFSLocked}
+                    />
                     <div className="flex items-center space-x-2">
                       <label className="text-xs text-slate-500 uppercase">Currency:</label>
                       <select 
