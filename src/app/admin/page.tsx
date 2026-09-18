@@ -282,12 +282,22 @@ export default function AdminDashboard() {
           {(!hwShowTypes || expanded) && (
              <div className="flex flex-col">
                 {hwShowUnits && filteredMyUnits.map(u => (
-                   <div key={u.id} className="flex items-center py-1 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md">
-                      <div style={{ paddingLeft: `${(depth + (hwShowTypes ? 1 : 0)) * 20 + 24}px` }} className="flex items-center space-x-2">
-                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
-                         <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">{u.name} {u.tibetan_name && <span className="text-xs text-slate-400 opacity-70 ml-1">({u.tibetan_name})</span>}</span>
-                         <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">{u.file_number}</span>
-                      </div>
+                   <div key={u.id} className="flex flex-col w-full">
+                     <div className="flex items-center py-1 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md group">
+                        <div style={{ paddingLeft: `${(depth + (hwShowTypes ? 1 : 0)) * 20 + 24}px` }} className="flex items-center space-x-2">
+                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                           <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">{u.name} {u.tibetan_name && <span className="text-xs text-slate-400 opacity-70 ml-1">({u.tibetan_name})</span>}</span>
+                           <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">{u.file_number}</span>
+                           <button onClick={() => setUnitForm(unitForm?.id === u.id ? null : u)} className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-indigo-600 transition-opacity" title="Edit Unit">
+                              <Edit2 size={14} />
+                           </button>
+                        </div>
+                     </div>
+                     {unitForm && unitForm.id === u.id && (
+                        <div style={{ paddingLeft: `${(depth + (hwShowTypes ? 1 : 0)) * 20 + 24}px` }} className="py-2 pr-4 bg-slate-50/80 dark:bg-slate-900/50 rounded-lg my-1 shadow-sm border border-slate-200 dark:border-slate-700">
+                           {renderUnitForm(true)}
+                        </div>
+                     )}
                    </div>
                 ))}
                 {childrenTypes.map(child => renderHierarchyNode(child, depth + (hwShowTypes ? 1 : 0), branchContext))}
@@ -343,7 +353,7 @@ export default function AdminDashboard() {
   const [addFsStatusFilter, setAddFsStatusFilter] = useState('ALL');
   const [addFsUnitTypeFilter, setAddFsUnitTypeFilter] = useState('ALL');
   const [addFsSearchQuery, setAddFsSearchQuery] = useState('');
-  const [addFsSortConfig, setAddFsSortConfig] = useState<{key: 'name' | 'file_number' | 'status', direction: 'asc' | 'desc'} | null>(null);
+  const [addFsSortConfig, setAddFsSortConfig] = useState<{key: 'name' | 'file_number' | 'status' | 'submit_date', direction: 'asc' | 'desc'} | null>(null);
   
   const [remarkModal, setRemarkModal] = useState<{project: any, field: string} | null>(null);
   const [remarkText, setRemarkText] = useState('');
@@ -1098,6 +1108,10 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
       const api = await import('@/lib/api');
       
       let payload = { ...editFsProject, financialStatements: fsData };
+      
+      if (!payload.metadata) payload.metadata = {};
+      payload.metadata.submittedAt = new Date().toISOString();
+      
       if (payload.isNewHistorical) {
           payload.name = `${payload.metadata.unitName} ${payload.metadata.financialYear} (Historical FS)`;
           payload.status = 'Audited';
@@ -1878,6 +1892,10 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     valA = a.hasFS ? 1 : 0;
                     valB = b.hasFS ? 1 : 0;
                  }
+                 if (addFsSortConfig.key === 'submit_date') {
+                    valA = a.hasFS && a.matchedProject?.metadata ? (a.matchedProject.metadata.submittedAt || a.matchedProject.metadata.updatedAt || '0') : '0';
+                    valB = b.hasFS && b.matchedProject?.metadata ? (b.matchedProject.metadata.submittedAt || b.matchedProject.metadata.updatedAt || '0') : '0';
+                 }
                  if (valA < valB) return addFsSortConfig.direction === 'asc' ? -1 : 1;
                  if (valA > valB) return addFsSortConfig.direction === 'asc' ? 1 : -1;
                  return 0;
@@ -1889,7 +1907,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
           const receivedCount = receivedList.length;
           const pendingCount = pendingList.length;
 
-          const toggleAddFsSort = (key: 'name' | 'file_number' | 'status') => {
+          const toggleAddFsSort = (key: 'name' | 'file_number' | 'status' | 'submit_date') => {
              setAddFsSortConfig(prev => {
                 if (prev && prev.key === key) {
                    if (prev.direction === 'asc') return { key, direction: 'desc' };
@@ -1969,6 +1987,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                       <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors" onClick={() => toggleAddFsSort('name')}>Unit Name{renderSortIndicator('name')}</th>
                       <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors" onClick={() => toggleAddFsSort('file_number')}>File Number{renderSortIndicator('file_number')}</th>
                       <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors" onClick={() => toggleAddFsSort('status')}>Status{renderSortIndicator('status')}</th>
+                      <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors" onClick={() => toggleAddFsSort('submit_date')}>Submit Date{renderSortIndicator('submit_date')}</th>
                       <th className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 text-right">Action</th>
                     </tr>
                   </thead>
@@ -1984,6 +2003,13 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                             ) : (
                                <span className="px-2 py-1 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 text-xs font-bold rounded-full">Pending</span>
                             )}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-slate-500">
+                            {hasFS && matchedProject?.metadata ? (
+                               matchedProject.metadata.submittedAt || matchedProject.metadata.updatedAt ? 
+                               new Date(matchedProject.metadata.submittedAt || matchedProject.metadata.updatedAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) 
+                               : 'Nill'
+                            ) : '-'}
                           </td>
                           <td className="px-4 py-3 text-right">
                              {hasFS ? (
@@ -2870,11 +2896,21 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                                                     {(!hwShowTypes || uExpanded) && hwShowUnits && (
                                                        <div className="flex flex-col">
                                                           {uncategorizedUnits.map(u => (
-                                                             <div key={u.id} className="flex items-center py-1 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md">
-                                                                <div style={{ paddingLeft: `${(hwShowTypes ? 1 : 0) * 20 + 24}px` }} className="flex items-center space-x-2">
-                                                                   <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
-                                                                   <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">{u.name}</span>
-                                                                </div>
+                                                             <div key={u.id} className="flex flex-col w-full">
+                                                               <div className="flex items-center py-1 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md group">
+                                                                  <div style={{ paddingLeft: `${(hwShowTypes ? 1 : 0) * 20 + 24}px` }} className="flex items-center space-x-2">
+                                                                     <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                                                                     <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">{u.name}</span>
+                                                                     <button onClick={() => setUnitForm(unitForm?.id === u.id ? null : u)} className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-indigo-600 transition-opacity" title="Edit Unit">
+                                                                        <Edit2 size={14} />
+                                                                     </button>
+                                                                  </div>
+                                                               </div>
+                                                               {unitForm && unitForm.id === u.id && (
+                                                                  <div style={{ paddingLeft: `${(hwShowTypes ? 1 : 0) * 20 + 24}px` }} className="py-2 pr-4 bg-slate-50/80 dark:bg-slate-900/50 rounded-lg my-1 shadow-sm border border-slate-200 dark:border-slate-700">
+                                                                     {renderUnitForm(true)}
+                                                                  </div>
+                                                               )}
                                                              </div>
                                                           ))}
                                                        </div>
@@ -2921,11 +2957,21 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                                        {(!hwShowTypes || uExpanded) && hwShowUnits && (
                                           <div className="flex flex-col">
                                              {uncategorizedUnits.map(u => (
-                                                <div key={u.id} className="flex items-center py-1 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md">
-                                                   <div style={{ paddingLeft: `${(hwShowTypes ? 1 : 0) * 20 + 24}px` }} className="flex items-center space-x-2">
-                                                      <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
-                                                      <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">{u.name}</span>
-                                                   </div>
+                                                <div key={u.id} className="flex flex-col w-full">
+                                                  <div className="flex items-center py-1 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md group">
+                                                     <div style={{ paddingLeft: `${(hwShowTypes ? 1 : 0) * 20 + 24}px` }} className="flex items-center space-x-2">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                                                        <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">{u.name}</span>
+                                                        <button onClick={() => setUnitForm(unitForm?.id === u.id ? null : u)} className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-indigo-600 transition-opacity" title="Edit Unit">
+                                                           <Edit2 size={14} />
+                                                        </button>
+                                                     </div>
+                                                  </div>
+                                                  {unitForm && unitForm.id === u.id && (
+                                                     <div style={{ paddingLeft: `${(hwShowTypes ? 1 : 0) * 20 + 24}px` }} className="py-2 pr-4 bg-slate-50/80 dark:bg-slate-900/50 rounded-lg my-1 shadow-sm border border-slate-200 dark:border-slate-700">
+                                                        {renderUnitForm(true)}
+                                                     </div>
+                                                  )}
                                                 </div>
                                              ))}
                                           </div>
