@@ -411,12 +411,26 @@ const Header = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
 export const Shell = ({ children }: { children: React.ReactNode }) => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
   
-  const [showSplash, setShowSplash] = React.useState(() => {
-    if (typeof window !== 'undefined') {
-      return !sessionStorage.getItem('hasSeenSplash');
+  const [showSplash, setShowSplash] = React.useState(true);
+  
+  React.useEffect(() => {
+    try {
+      if (sessionStorage.getItem('hasSeenSplash')) {
+        setShowSplash(false);
+        return;
+      }
+    } catch (e) {
+      console.warn("Storage access denied", e);
     }
-    return true; // Default for SSR
-  });
+    
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+      try {
+        sessionStorage.setItem('hasSeenSplash', 'true');
+      } catch (e) {}
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
   
   const [isMounted, setIsMounted] = React.useState(false);
   const pathname = usePathname();

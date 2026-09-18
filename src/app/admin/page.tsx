@@ -61,7 +61,7 @@ const Pagination = ({ page, setPage, total, itemsPerPage }: any) => {
   );
 };
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
 
 
   const [unitTypeFilter, setUnitTypeFilter] = useState('ALL');
@@ -3607,5 +3607,15 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
       )}
 
     </div>
+  );
+}
+
+
+import { Suspense } from 'react';
+export default function AdminDashboard() {
+  return (
+    <Suspense fallback={<div className="p-8 text-slate-500">Loading admin dashboard...</div>}>
+      <AdminDashboardContent />
+    </Suspense>
   );
 }
