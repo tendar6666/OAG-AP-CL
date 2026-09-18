@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, AlertCircle, CheckCircle, Calculator } from 'lucide-react';
+import { X, Plus, Trash2, AlertCircle, CheckCircle, Calculator, Maximize2, Minimize2 } from 'lucide-react';
 import { getFSGroups, FSGroup } from '@/lib/api';
 
 interface FinancialStatementModalProps {
@@ -42,6 +42,7 @@ interface StatementData {
 
 export default function FinancialStatementModal({ isOpen, onClose, onSubmit, financialYears, unitName , initialData, metadata, userWeight, onVerify, onLock }: FinancialStatementModalProps) {
   const [isNotApplicable, setIsNotApplicable] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const [fsGroups, setFsGroups] = useState<FSGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -264,48 +265,50 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
   const currentStatement = fsData[activeFy]?.[activeStatementId[activeFy]];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-7xl h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm ${isFullScreen ? 'p-0' : 'p-4'}`}>
+      <div className={`bg-white dark:bg-slate-900 flex flex-col shadow-2xl overflow-hidden border-slate-200 dark:border-slate-700 transition-all ${isFullScreen ? 'w-full h-full rounded-none border-0' : 'rounded-2xl w-full max-w-7xl h-[90vh] border'}`}>
         
-        {/* Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-          <div>
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
-              <Calculator className="mr-2 text-indigo-600" size={24}/>
-              Financial Statement
-            </h2>
-            <p className="text-sm text-slate-500 mt-1">{unitName}</p>
+        {/* Compact Header */}
+        <div className="flex justify-between items-center px-4 py-2 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Calculator className="text-indigo-600" size={18}/>
+              <h2 className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center">
+                FS: <span className="text-slate-500 dark:text-slate-400 font-medium ml-1 truncate max-w-[200px] lg:max-w-[300px]">{unitName}</span>
+              </h2>
+            </div>
+            
+            {/* Inline N/A Toggle */}
+            <div className="hidden sm:block w-px h-5 bg-slate-300 dark:bg-slate-700"></div>
+            <label className="flex items-center space-x-2 cursor-pointer group">
+              <input 
+                type="checkbox" 
+                checked={isNotApplicable} 
+                onChange={e => setIsNotApplicable(e.target.checked)}
+                className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+              />
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 transition-colors">
+                Mark Not Applicable (N/A)
+              </span>
+            </label>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-red-500 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-            <X size={24} />
-          </button>
+          
+          <div className="flex items-center space-x-1">
+            <button onClick={() => setIsFullScreen(!isFullScreen)} className="p-1.5 text-slate-400 hover:text-indigo-500 rounded-md hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors" title="Toggle Full Screen">
+              {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+            </button>
+            <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-red-500 rounded-md hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+              <X size={20} />
+            </button>
+          </div>
         </div>
+        
         {metadata?.isFSLocked && (
-          <div className="bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-400 p-3 text-sm font-semibold flex items-center justify-center">
-            <AlertCircle size={16} className="mr-2" />
+          <div className="bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-400 px-4 py-2 text-xs font-semibold flex items-center justify-center">
+            <AlertCircle size={14} className="mr-2" />
             This Financial Statement is locked by Admin. Editing is disabled.
           </div>
         )}
-
-        {/* Not Applicable Toggle */}
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30">
-          <label className="flex items-center space-x-3 cursor-pointer group w-max">
-            <input 
-              type="checkbox" 
-              checked={isNotApplicable} 
-              onChange={e => setIsNotApplicable(e.target.checked)}
-              className="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-            />
-            <span className="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 transition-colors">
-              Financial Statement Not Applicable (N/A)
-            </span>
-          </label>
-          {isNotApplicable && (
-            <p className="text-xs text-slate-500 mt-2 ml-8">
-              Bypassing the Balance Sheet. Use this for consolidated branch accounts or multi-auditor collaboration.
-            </p>
-          )}
-        </div>
 
         {/* Main Content */}
         {!isNotApplicable && !isLoading && (
@@ -373,7 +376,7 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
               <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-slate-900">
                 
                 {/* Statement Toolbar */}
-                <div className="px-6 py-3 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
+                <div className="px-4 py-2 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center relative group">
                       <input
