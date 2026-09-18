@@ -2061,15 +2061,25 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                                  </button>
                                </div>
                              ) : (
-                               <button 
-                                 onClick={() => setEditFsProject(matchedProject || {
-                                    metadata: { unitName: unit.name, fileNumber: unit.file_number, financialYear: selectedTargetFyFilter, financialYears: [selectedTargetFyFilter], executionFY: selectedExecFyFilter },
-                                    isNewHistorical: true
-                                 })}
-                                 className="px-3 py-1.5 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-400 dark:hover:bg-indigo-900 font-semibold rounded text-xs transition-colors"
-                               >
-                                 Add FS
-                               </button>
+                               <div className="flex items-center justify-end gap-2">
+                                 {matchedProject?.metadata?.isFSLocked && user.hierarchy_weight <= 20 && (
+                                   <button 
+                                     onClick={() => handleFSLockProject(matchedProject, false)} 
+                                     className="px-3 py-1.5 font-semibold rounded text-xs transition-colors bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/50 dark:text-amber-400"
+                                   >
+                                     Unlock
+                                   </button>
+                                 )}
+                                 <button 
+                                   onClick={() => setEditFsProject(matchedProject || {
+                                      metadata: { unitName: unit.name, fileNumber: unit.file_number, financialYear: selectedTargetFyFilter, financialYears: [selectedTargetFyFilter], executionFY: selectedExecFyFilter },
+                                      isNewHistorical: true
+                                   })}
+                                   className="px-3 py-1.5 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-400 dark:hover:bg-indigo-900 font-semibold rounded text-xs transition-colors"
+                                 >
+                                   {matchedProject?.metadata?.isFSLocked ? 'View FS' : 'Add FS'}
+                                 </button>
+                               </div>
                              )}
                           </td>
                         </tr>
