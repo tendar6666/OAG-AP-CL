@@ -1927,7 +1927,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
             <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/20">
               <div>
                 <h3 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                  <FileSpreadsheet size={18} /> Add FS
+                  <FileSpreadsheet size={18} /> Add FS <span className="text-indigo-600 dark:text-indigo-400">({selectedTargetFyFilter})</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">Manually enter Financial Statements for units.</p>
               </div>
