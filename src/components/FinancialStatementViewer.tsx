@@ -209,9 +209,18 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
                 )}
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-red-500 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-            <X size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+              title="Toggle Fullscreen"
+            >
+              {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+            </button>
+            <button onClick={onClose} className="p-2 text-slate-400 hover:text-red-500 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Close">
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         {isLoading ? (
