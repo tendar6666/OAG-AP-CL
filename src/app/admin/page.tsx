@@ -1924,12 +1924,19 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
           
           return (
           <div className="flex flex-col">
-            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/20">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/20 relative">
               <div>
                 <h3 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                  <FileSpreadsheet size={18} /> Add FS <span className="text-indigo-600 dark:text-indigo-400">({selectedTargetFyFilter})</span>
+                  <FileSpreadsheet size={18} /> Add FS
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">Manually enter Financial Statements for units.</p>
+              </div>
+              <div className="absolute left-1/2 -translate-x-1/2 hidden md:block">
+                <div className="px-6 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded-full shadow-sm">
+                  <span className="text-lg md:text-xl font-black text-indigo-700 dark:text-indigo-400 tracking-wider">
+                    {selectedTargetFyFilter}
+                  </span>
+                </div>
               </div>
             </div>
             
