@@ -5,7 +5,7 @@ import { Search, Download, Filter, Maximize2, Minimize2, AlertTriangle, CheckCir
 import FinancialStatementViewer from '@/components/FinancialStatementViewer';
 import ExcelJS from 'exceljs';
 
-export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defaultFy }: { projects: any[], fsGroups: any[], onRefresh?: () => void, defaultFy?: string }) {
+export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defaultFy, units = [] }: { projects: any[], fsGroups: any[], onRefresh?: () => void, defaultFy?: string, units?: any[] }) {
   const { user } = useAuth();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -108,6 +108,19 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
                if (match) {
                    displayFileNo = match[1];
                    displayUnitName = match[2];
+               }
+           }
+           
+           // If it's a historical FS or just doesn't have a parsed file number yet, lookup from units array
+           if (p.isHistoricalFS || displayFileNo.startsWith('AP-')) {
+               const matchedUnit = units.find(u => 
+                   u.name === displayUnitName || 
+                   (p.metadata?.unitId && u.id === p.metadata.unitId)
+               );
+               if (matchedUnit && matchedUnit.file_number) {
+                   displayFileNo = matchedUnit.file_number;
+               } else if (p.metadata?.fileNumber) {
+                   displayFileNo = p.metadata.fileNumber;
                }
            }
 

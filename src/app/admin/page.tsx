@@ -1831,7 +1831,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
         
         {activeTab === 'global_fs' && (
           <div className="fade-in">
-             <GlobalFSDashboard projects={[...allPendingActions, ...historicalProjects]} fsGroups={fsGroups} onRefresh={fetchProjects} defaultFy={selectedTargetFyFilter} />
+             <GlobalFSDashboard projects={[...allPendingActions, ...historicalProjects]} fsGroups={fsGroups} onRefresh={fetchProjects} defaultFy={selectedTargetFyFilter} units={units} />
           </div>
         )}
 
@@ -2037,12 +2037,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                              ) : (
                                <button 
                                  onClick={() => setEditFsProject(matchedProject || {
-                                    metadata: { 
-                                      unitName: unit.name, 
-                                      financialYear: selectedTargetFyFilter, 
-                                      financialYears: [selectedTargetFyFilter],
-                                      executionFY: selectedExecFyFilter 
-                                    },
+                                    metadata: { unitName: unit.name, fileNumber: unit.file_number, financialYear: selectedTargetFyFilter, financialYears: [selectedTargetFyFilter], executionFY: selectedExecFyFilter },
                                     isNewHistorical: true
                                  })}
                                  className="px-3 py-1.5 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-400 dark:hover:bg-indigo-900 font-semibold rounded text-xs transition-colors"
