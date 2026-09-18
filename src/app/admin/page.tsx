@@ -1946,9 +1946,9 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                   <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                     Total: {unitsWithFs.length}
                   </div>
-                  <div className="group relative text-sm font-semibold text-emerald-600 dark:text-emerald-400 cursor-help">
+                  <div tabIndex={0} className="group relative text-sm font-semibold text-emerald-600 dark:text-emerald-400 cursor-help cursor-pointer outline-none focus-within:ring-2 focus-within:ring-slate-400/50 rounded">
                     Received: {receivedCount}
-                    <div className="hidden group-hover:block absolute top-full left-0 mt-1 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 z-50">
+                    <div className="hidden group-hover:block group-focus-within:block absolute top-full left-0 mt-1 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 z-50">
                        {receivedList.length === 0 ? <div className="text-slate-500 text-xs">None</div> : null}
                        {receivedList.map(u => (
                           <div key={u.unit.id} className="text-xs text-slate-700 dark:text-slate-300 py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0 truncate" title={`${u.unit.file_number || '-'} - ${u.unit.name}`}>
@@ -1957,9 +1957,9 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                        ))}
                     </div>
                   </div>
-                  <div className="group relative text-sm font-semibold text-rose-600 dark:text-rose-400 cursor-help">
+                  <div tabIndex={0} className="group relative text-sm font-semibold text-rose-600 dark:text-rose-400 cursor-help cursor-pointer outline-none focus-within:ring-2 focus-within:ring-slate-400/50 rounded">
                     Pending: {pendingCount}
-                    <div className="hidden group-hover:block absolute top-full left-0 mt-1 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 z-50">
+                    <div className="hidden group-hover:block group-focus-within:block absolute top-full left-0 mt-1 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 z-50">
                        {pendingList.length === 0 ? <div className="text-slate-500 text-xs">None</div> : null}
                        {pendingList.map(u => (
                           <div key={u.unit.id} className="text-xs text-slate-700 dark:text-slate-300 py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0 truncate" title={`${u.unit.file_number || '-'} - ${u.unit.name}`}>

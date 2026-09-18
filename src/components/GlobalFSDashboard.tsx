@@ -472,13 +472,7 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
 
       {/* T-Shape Modal */}
       {showTShape && (
-        <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm p-4 md:p-8 flex items-center justify-center fade-in">
-          <div className="bg-white dark:bg-slate-900 w-full h-full rounded-2xl shadow-2xl flex flex-col overflow-hidden relative">
-             <button onClick={() => setShowTShape(false)} className="absolute top-4 right-4 z-[70] p-2 bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 hover:text-rose-600 rounded-full transition-colors">
-                <Minimize2 size={18} />
-             </button>
-             <div className="flex-1 overflow-hidden relative mt-10">
-               {(() => {
+               (() => {
                  const relevantUnits = filterUnitType === 'ALL' ? allUnits : allUnits.filter(u => validUnitTypeIds.includes(u.unit_type_id));
                    const totalUnit = relevantUnits.length;
                    const receivedUnits = new Set(filteredRows.map(r => String(r.fileNo))).size;
@@ -515,10 +509,7 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
                     }
                  });
                  return <FinancialStatementViewer isOpen={true} project={pseudoProject} onClose={() => setShowTShape(false)} />;
-               })()}
-             </div>
-          </div>
-        </div>
+               })()
       )}
 
     </div>

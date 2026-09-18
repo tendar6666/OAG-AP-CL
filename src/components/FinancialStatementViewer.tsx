@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calculator, AlertCircle, Layers } from 'lucide-react';
+import { X, Calculator, AlertCircle, Layers, Maximize, Minimize } from 'lucide-react';
 import { getFSGroups, FSGroup } from '@/lib/api';
 
 interface FSViewerProps {
@@ -13,6 +13,7 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
   const [isLoading, setIsLoading] = useState(true);
   
   const [activeFy, setActiveFy] = useState<string>('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('CONSOLIDATED'); // 'CONSOLIDATED' or statementId
 
   const fsNode = project?.financialStatements;
@@ -142,8 +143,8 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
     };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-7xl h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm ${isFullscreen ? 'p-0' : 'p-4'}`}>
+      <div className={`bg-white dark:bg-slate-900 w-full flex flex-col shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 transition-all duration-200 ${isFullscreen ? 'h-full rounded-none' : 'max-w-7xl h-[90vh] rounded-2xl'}`}>
         
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
@@ -162,10 +163,10 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
               {project.metadata?.summaryMetrics && (
                   <div className="flex items-center gap-3 text-xs md:text-sm font-semibold z-50">
                      
-                     <div className="group relative px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg cursor-help">
+                     <div tabIndex={0} className="group relative px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg cursor-help focus-within:ring-2 focus-within:ring-slate-400/50 outline-none cursor-pointer">
                         Total Unit: {project.metadata.summaryMetrics.total}
                         {project.metadata.summaryMetrics.totalList && (
-                          <div className="hidden group-hover:block absolute top-full left-0 mt-1 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 z-[60]">
+                          <div className="hidden group-hover:block group-focus-within:block group-focus-within:block group-focus-within:block absolute top-full left-0 mt-1 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 z-[60]">
                              {project.metadata.summaryMetrics.totalList.length === 0 ? <div className="text-slate-500 text-xs">None</div> : null}
                              {project.metadata.summaryMetrics.totalList.map((u: string, idx: number) => (
                                 <div key={idx} className="text-xs text-slate-700 dark:text-slate-300 py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0 truncate" title={u}>
@@ -176,10 +177,10 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
                         )}
                      </div>
 
-                     <div className="group relative px-3 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-lg cursor-help">
+                     <div tabIndex={0} className="group relative px-3 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-lg cursor-help focus-within:ring-2 focus-within:ring-slate-400/50 outline-none cursor-pointer">
                         Received: {project.metadata.summaryMetrics.received}
                         {project.metadata.summaryMetrics.receivedList && (
-                          <div className="hidden group-hover:block absolute top-full left-0 mt-1 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 z-[60]">
+                          <div className="hidden group-hover:block group-focus-within:block group-focus-within:block group-focus-within:block absolute top-full left-0 mt-1 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 z-[60]">
                              {project.metadata.summaryMetrics.receivedList.length === 0 ? <div className="text-slate-500 text-xs">None</div> : null}
                              {project.metadata.summaryMetrics.receivedList.map((u: string, idx: number) => (
                                 <div key={idx} className="text-xs text-slate-700 dark:text-slate-300 py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0 truncate" title={u}>
@@ -190,10 +191,10 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
                         )}
                      </div>
 
-                     <div className="group relative px-3 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-400 rounded-lg cursor-help">
+                     <div tabIndex={0} className="group relative px-3 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-400 rounded-lg cursor-help focus-within:ring-2 focus-within:ring-slate-400/50 outline-none cursor-pointer">
                         Pending: {project.metadata.summaryMetrics.pending}
                         {project.metadata.summaryMetrics.pendingList && (
-                          <div className="hidden group-hover:block absolute top-full left-0 mt-1 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 z-[60]">
+                          <div className="hidden group-hover:block group-focus-within:block group-focus-within:block group-focus-within:block absolute top-full left-0 mt-1 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 z-[60]">
                              {project.metadata.summaryMetrics.pendingList.length === 0 ? <div className="text-slate-500 text-xs">None</div> : null}
                              {project.metadata.summaryMetrics.pendingList.map((u: string, idx: number) => (
                                 <div key={idx} className="text-xs text-slate-700 dark:text-slate-300 py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0 truncate" title={u}>
