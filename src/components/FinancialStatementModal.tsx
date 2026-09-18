@@ -375,17 +375,19 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
                 {/* Statement Toolbar */}
                 <div className="px-6 py-3 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
                   <div className="flex items-center space-x-4">
-                    <input
-                      type="text"
-                      value={currentStatement.name}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setFsData(prev => ({...prev, [activeFy]: {...prev[activeFy], [currentStatement.id]: {...currentStatement, name: val}}}));
-                      }}
-                      className="font-bold text-slate-800 dark:text-slate-200 bg-transparent border-b border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 outline-none px-1 py-0.5 transition-colors max-w-[200px]"
-                      placeholder="Statement Name"
-                      disabled={metadata?.isFSLocked}
-                    />
+                    <div className="flex items-center relative group">
+                      <input
+                        type="text"
+                        value={currentStatement.name}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setFsData(prev => ({...prev, [activeFy]: {...prev[activeFy], [currentStatement.id]: {...currentStatement, name: val}}}));
+                        }}
+                        className="font-bold text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded px-3 py-1 outline-none transition-colors max-w-[250px] shadow-sm hover:border-indigo-400"
+                        placeholder="Statement Name"
+                        disabled={metadata?.isFSLocked}
+                      />
+                    </div>
                     <div className="flex items-center space-x-2">
                       <label className="text-xs text-slate-500 uppercase">Currency:</label>
                       <select 
