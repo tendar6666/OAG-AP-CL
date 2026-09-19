@@ -309,24 +309,34 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
                       return (
                         <div key={g.id} className="py-2 px-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded border-b border-slate-100 dark:border-slate-800/50">
                           {g.requiresBifurcation && gData?.bifurcation ? (
-                            <div className="flex flex-col space-y-1">
-                              <span className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">{g.name}</span>
-                              <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 pl-2">
-                                <span>Opening Balance</span>
-                                <span>{(gData.bifurcation.opening||0).toLocaleString()}</span>
+                            <div className="flex flex-col">
+                              <div 
+                                className="flex justify-between items-center cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400"
+                                onClick={() => toggleGroup(g.id!)}
+                              >
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                  {expandedGroups[g.id!] ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
+                                  <span className="font-bold text-slate-800 dark:text-slate-200">{g.name}</span>
+                                </span>
+                                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{total.toLocaleString()}</span>
                               </div>
-                              <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 pl-2">
-                                <span>Add: Surplus / (Less: Deficit)</span>
-                                <span>{(gData.bifurcation.surplus||0).toLocaleString()}</span>
-                              </div>
-                              <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 pl-2 pb-1 border-b border-slate-200 dark:border-slate-700">
-                                <span>Add / (Less): Other Adjustments</span>
-                                <span>{(gData.bifurcation.other||0).toLocaleString()}</span>
-                              </div>
-                              <div className="flex justify-between text-sm font-bold text-slate-900 dark:text-slate-100 pt-1">
-                                <span>Closing Balance</span>
-                                <span>{total.toLocaleString()}</span>
-                              </div>
+                              
+                              {expandedGroups[g.id!] && (
+                                <div className="mt-2 pl-5 pr-2 py-2 bg-slate-50 dark:bg-slate-800/30 rounded border border-slate-100 dark:border-slate-700/50 space-y-1.5">
+                                  <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
+                                    <span>Opening Balance</span>
+                                    <span className="font-medium">{(gData.bifurcation.opening||0).toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
+                                    <span>Add: Surplus / (Less: Deficit)</span>
+                                    <span className="font-medium">{(gData.bifurcation.surplus||0).toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400 pb-1 border-b border-slate-200 dark:border-slate-700/50">
+                                    <span>Add / (Less): Other Adjustments</span>
+                                    <span className="font-medium">{(gData.bifurcation.other||0).toLocaleString()}</span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <div className="flex flex-col">
@@ -373,24 +383,34 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
                       return (
                         <div key={g.id} className="py-2 px-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded border-b border-slate-100 dark:border-slate-800/50">
                           {g.requiresBifurcation && gData?.bifurcation ? (
-                            <div className="flex flex-col space-y-1">
-                              <span className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">{g.name}</span>
-                              <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 pl-2">
-                                <span>Opening Balance</span>
-                                <span>{(gData.bifurcation.opening||0).toLocaleString()}</span>
+                            <div className="flex flex-col">
+                              <div 
+                                className="flex justify-between items-center cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400"
+                                onClick={() => toggleGroup(g.id!)}
+                              >
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                  {expandedGroups[g.id!] ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
+                                  <span className="font-bold text-slate-800 dark:text-slate-200">{g.name}</span>
+                                </span>
+                                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{total.toLocaleString()}</span>
                               </div>
-                              <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 pl-2">
-                                <span>Add: Additions / (Less: Disposals)</span>
-                                <span>{(gData.bifurcation.surplus||0).toLocaleString()}</span>
-                              </div>
-                              <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 pl-2 pb-1 border-b border-slate-200 dark:border-slate-700">
-                                <span>Add / (Less): Other Adjustments</span>
-                                <span>{(gData.bifurcation.other||0).toLocaleString()}</span>
-                              </div>
-                              <div className="flex justify-between text-sm font-bold text-slate-900 dark:text-slate-100 pt-1">
-                                <span>Closing Balance</span>
-                                <span>{total.toLocaleString()}</span>
-                              </div>
+                              
+                              {expandedGroups[g.id!] && (
+                                <div className="mt-2 pl-5 pr-2 py-2 bg-slate-50 dark:bg-slate-800/30 rounded border border-slate-100 dark:border-slate-700/50 space-y-1.5">
+                                  <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
+                                    <span>Opening Balance</span>
+                                    <span className="font-medium">{(gData.bifurcation.opening||0).toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
+                                    <span>Add: Additions / (Less: Disposals)</span>
+                                    <span className="font-medium">{(gData.bifurcation.surplus||0).toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400 pb-1 border-b border-slate-200 dark:border-slate-700/50">
+                                    <span>Add / (Less): Other Adjustments</span>
+                                    <span className="font-medium">{(gData.bifurcation.other||0).toLocaleString()}</span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <div className="flex flex-col">
