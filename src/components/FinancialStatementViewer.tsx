@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calculator, AlertCircle, Layers, Maximize, Minimize } from 'lucide-react';
+import { X, Calculator, AlertCircle, Layers, Maximize, Minimize, ChevronDown, ChevronRight } from 'lucide-react';
 import { getFSGroups, FSGroup } from '@/lib/api';
 
 interface FSViewerProps {
@@ -15,6 +15,7 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
   const [activeFy, setActiveFy] = useState<string>('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('CONSOLIDATED'); // 'CONSOLIDATED' or statementId
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
   const fsNode = project?.financialStatements;
 
@@ -85,7 +86,7 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
       
       // Merge Liabilities
       Object.keys(stmt.liabilities || {}).forEach(groupId => {
-        if (!data.liabilities[groupId]) data.liabilities[groupId] = { total: 0, bifurcation: { opening: 0, surplus: 0, other: 0 } };
+        if (!data.liabilities[groupId]) data.liabilities[groupId] = { total: 0, items: [], bifurcation: { opening: 0, surplus: 0, other: 0 } };
           const gData = stmt.liabilities[groupId];
           if (gData.bifurcation) {
               data.liabilities[groupId].bifurcation.opening += (gData.bifurcation.opening||0);
@@ -94,6 +95,7 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
               data.liabilities[groupId].total += (gData.bifurcation.opening||0) + (gData.bifurcation.surplus||0) + (gData.bifurcation.other||0);
           } else if (gData.items && gData.items.length > 0) {
             data.liabilities[groupId].total += gData.items.reduce((sum:number, i:any) => sum + (i.amount||0), 0);
+            gData.items.forEach((item: any) => data.liabilities[groupId].items.push({ ...item, _stmtName: stmt.name }));
           } else {
             data.liabilities[groupId].total += (gData.total || 0);
           }
@@ -101,7 +103,7 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
       
       // Merge Assets
       Object.keys(stmt.assets || {}).forEach(groupId => {
-        if (!data.assets[groupId]) data.assets[groupId] = { total: 0, bifurcation: { opening: 0, surplus: 0, other: 0 } };
+        if (!data.assets[groupId]) data.assets[groupId] = { total: 0, items: [], bifurcation: { opening: 0, surplus: 0, other: 0 } };
           const gData = stmt.assets[groupId];
           if (gData.bifurcation) {
               data.assets[groupId].bifurcation.opening += (gData.bifurcation.opening||0);
@@ -110,6 +112,7 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
               data.assets[groupId].total += (gData.bifurcation.opening||0) + (gData.bifurcation.surplus||0) + (gData.bifurcation.other||0);
           } else if (gData.items && gData.items.length > 0) {
             data.assets[groupId].total += gData.items.reduce((sum:number, i:any) => sum + (i.amount||0), 0);
+            gData.items.forEach((item: any) => data.assets[groupId].items.push({ ...item, _stmtName: stmt.name }));
           } else {
             data.assets[groupId].total += (gData.total || 0);
           }
@@ -141,6 +144,10 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
          return sum + val;
       }, 0);
     };
+
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
+  };
 
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm ${isFullscreen ? 'p-0' : 'p-4'}`}>
@@ -236,7 +243,7 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
               <div className="p-2 border-b border-slate-200 dark:border-slate-800">
                 <select 
                   value={activeFy} 
-                  onChange={e => { setActiveFy(e.target.value); setActiveTab('CONSOLIDATED'); }}
+                  onChange={e => { setActiveFy(e.target.value); setActiveTab('CONSOLIDATED'); setExpandedGroups({}); }}
                   className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-indigo-700 dark:text-indigo-400 outline-none"
                 >
                   {fys.map(fy => <option key={fy} value={fy}>{fy}</option>)}
@@ -248,7 +255,7 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
               </div>
               <div className="flex-1 overflow-y-auto p-2 space-y-1">
                 <button
-                  onClick={() => setActiveTab('CONSOLIDATED')}
+                  onClick={() => { setActiveTab('CONSOLIDATED'); setExpandedGroups({}); }}
                   className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-bold flex items-center transition-colors ${activeTab === 'CONSOLIDATED' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'}`}
                 >
                   <Calculator size={16} className="mr-2" /> Consolidated Total
@@ -257,7 +264,7 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
                 {currentStatements.map((stmt: any) => (
                   <button
                     key={stmt.id}
-                    onClick={() => setActiveTab(stmt.id)}
+                    onClick={() => { setActiveTab(stmt.id); setExpandedGroups({}); }}
                     className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === stmt.id ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-200' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                   >
                     {stmt.name}
@@ -322,9 +329,30 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
                               </div>
                             </div>
                           ) : (
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{g.name}</span>
-                              <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{total.toLocaleString()}</span>
+                            <div className="flex flex-col">
+                              <div 
+                                className={`flex justify-between items-center ${gData?.items && gData.items.length > 0 ? 'cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400' : ''}`}
+                                onClick={() => gData?.items && gData.items.length > 0 && toggleGroup(g.id!)}
+                              >
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                  {gData?.items && gData.items.length > 0 && (
+                                    expandedGroups[g.id!] ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />
+                                  )}
+                                  {g.name}
+                                </span>
+                                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{total.toLocaleString()}</span>
+                              </div>
+                              
+                              {expandedGroups[g.id!] && gData?.items && gData.items.length > 0 && (
+                                <div className="mt-2 pl-5 pr-2 py-2 bg-slate-50 dark:bg-slate-800/30 rounded border border-slate-100 dark:border-slate-700/50 space-y-1.5">
+                                  {gData.items.map((item: any, idx: number) => (
+                                    <div key={idx} className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
+                                      <span className="truncate pr-2" title={item.name}>{item.name} {activeTab === 'CONSOLIDATED' && item._stmtName ? `(${item._stmtName})` : ''}</span>
+                                      <span className="font-medium">{(item.amount || 0).toLocaleString()}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -365,9 +393,30 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
                               </div>
                             </div>
                           ) : (
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{g.name}</span>
-                              <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{total.toLocaleString()}</span>
+                            <div className="flex flex-col">
+                              <div 
+                                className={`flex justify-between items-center ${gData?.items && gData.items.length > 0 ? 'cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400' : ''}`}
+                                onClick={() => gData?.items && gData.items.length > 0 && toggleGroup(g.id!)}
+                              >
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                  {gData?.items && gData.items.length > 0 && (
+                                    expandedGroups[g.id!] ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />
+                                  )}
+                                  {g.name}
+                                </span>
+                                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{total.toLocaleString()}</span>
+                              </div>
+                              
+                              {expandedGroups[g.id!] && gData?.items && gData.items.length > 0 && (
+                                <div className="mt-2 pl-5 pr-2 py-2 bg-slate-50 dark:bg-slate-800/30 rounded border border-slate-100 dark:border-slate-700/50 space-y-1.5">
+                                  {gData.items.map((item: any, idx: number) => (
+                                    <div key={idx} className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
+                                      <span className="truncate pr-2" title={item.name}>{item.name} {activeTab === 'CONSOLIDATED' && item._stmtName ? `(${item._stmtName})` : ''}</span>
+                                      <span className="font-medium">{(item.amount || 0).toLocaleString()}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
