@@ -336,11 +336,11 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
                       {/* Sub-Statements */}
                       {isActive && (
                         <div className="pl-6 pr-3 py-2 space-y-1 bg-indigo-50/30 dark:bg-indigo-900/10">
-                          {Object.values(fsData[fy] || {}).map(stmt => (
+                          {Object.entries(fsData[fy] || {}).map(([stmtKey, stmt]) => (
                               <div
-                                key={stmt.id}
-                                onClick={() => setActiveStatementId(prev => ({...prev, [fy]: stmt.id}))}
-                                className={`w-full text-left px-2 py-1.5 rounded text-xs font-medium flex justify-between items-center cursor-pointer group ${activeStatementId[fy] === stmt.id ? 'bg-indigo-200 dark:bg-indigo-800 text-indigo-900 dark:text-indigo-100' : 'text-slate-600 hover:bg-indigo-100 dark:text-slate-400 dark:hover:bg-indigo-900/30'}`}
+                                key={stmtKey}
+                                onClick={() => setActiveStatementId(prev => ({...prev, [fy]: stmtKey}))}
+                                className={`w-full text-left px-2 py-1.5 rounded text-xs font-medium flex justify-between items-center cursor-pointer group ${activeStatementId[fy] === stmtKey ? 'bg-indigo-200 dark:bg-indigo-800 text-indigo-900 dark:text-indigo-100' : 'text-slate-600 hover:bg-indigo-100 dark:text-slate-400 dark:hover:bg-indigo-900/30'}`}
                               >
                                 <span className="truncate flex-1">{stmt.name}</span>
                                 <div className="flex items-center shrink-0 ml-1 space-x-1">
