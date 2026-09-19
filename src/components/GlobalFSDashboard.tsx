@@ -251,6 +251,27 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
     });
   }, [allRows, filterFy, filterCurrency, searchTerm, hiddenRows, filterUnitType, unitMap, validUnitTypeIds]);
 
+  const summaryMetrics = useMemo(() => {
+     const relevantUnits = filterUnitType === 'ALL' ? allUnits : allUnits.filter(u => validUnitTypeIds.includes(u.unit_type_id));
+     const totalUnit = relevantUnits.length;
+     const receivedUnits = new Set(filteredRows.map(r => String(r.fileNo))).size;
+     const pendingFs = totalUnit - receivedUnits;
+     
+     const receivedList = Array.from(new Set(filteredRows.map(r => (r.fileNo || '-') + ' - ' + r.unitName)));
+     const pendingList = relevantUnits.filter(u => !receivedList.some(r => r.startsWith((u.file_number || '-') + ' - ')))
+                                      .map(u => (u.file_number || '-') + ' - ' + u.name);
+     const totalList = relevantUnits.map(u => (u.file_number || '-') + ' - ' + u.name);
+
+     return {
+         total: totalUnit, 
+         received: receivedUnits, 
+         pending: pendingFs,
+         receivedList,
+         pendingList,
+         totalList
+     };
+  }, [allUnits, filterUnitType, validUnitTypeIds, filteredRows]);
+
   // Consolidate totals for footer
   const consTotals = useMemo(() => {
     const totals: Record<string, number> = {
@@ -389,6 +410,48 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
           <button onClick={toggleFullscreen} className="p-1.5 bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
             {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
+
+          <div tabIndex={0} className="group relative px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg cursor-help focus-within:ring-2 focus-within:ring-slate-400/50 outline-none text-sm font-semibold ml-2 flex items-center">
+            Total Unit: {summaryMetrics.total}
+            {summaryMetrics.totalList && (
+              <div className="hidden group-hover:block group-focus-within:block absolute top-full right-0 mt-2 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-2 z-[60]">
+                 {summaryMetrics.totalList.length === 0 ? <div className="text-slate-500 text-xs p-1">None</div> : null}
+                 {summaryMetrics.totalList.map((u: string, idx: number) => (
+                    <div key={idx} className="text-xs text-slate-700 dark:text-slate-300 py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0 truncate" title={u}>
+                       {u}
+                    </div>
+                 ))}
+              </div>
+            )}
+          </div>
+
+          <div tabIndex={0} className="group relative px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-lg cursor-help focus-within:ring-2 focus-within:ring-slate-400/50 outline-none text-sm font-semibold flex items-center">
+            Received: {summaryMetrics.received}
+            {summaryMetrics.receivedList && (
+              <div className="hidden group-hover:block group-focus-within:block absolute top-full right-0 mt-2 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-2 z-[60]">
+                 {summaryMetrics.receivedList.length === 0 ? <div className="text-slate-500 text-xs p-1">None</div> : null}
+                 {summaryMetrics.receivedList.map((u: string, idx: number) => (
+                    <div key={idx} className="text-xs text-slate-700 dark:text-slate-300 py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0 truncate" title={u}>
+                       {u}
+                    </div>
+                 ))}
+              </div>
+            )}
+          </div>
+
+          <div tabIndex={0} className="group relative px-3 py-1.5 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-400 rounded-lg cursor-help focus-within:ring-2 focus-within:ring-slate-400/50 outline-none text-sm font-semibold flex items-center">
+            Pending: {summaryMetrics.pending}
+            {summaryMetrics.pendingList && (
+              <div className="hidden group-hover:block group-focus-within:block absolute top-full right-0 mt-2 w-64 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-2 z-[60]">
+                 {summaryMetrics.pendingList.length === 0 ? <div className="text-slate-500 text-xs p-1">None</div> : null}
+                 {summaryMetrics.pendingList.map((u: string, idx: number) => (
+                    <div key={idx} className="text-xs text-slate-700 dark:text-slate-300 py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0 truncate" title={u}>
+                       {u}
+                    </div>
+                 ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -488,27 +551,10 @@ export default function GlobalFSDashboard({ projects, fsGroups, onRefresh, defau
       {/* T-Shape Modal */}
       {showTShape && (
                (() => {
-                 const relevantUnits = filterUnitType === 'ALL' ? allUnits : allUnits.filter(u => validUnitTypeIds.includes(u.unit_type_id));
-                   const totalUnit = relevantUnits.length;
-                   const receivedUnits = new Set(filteredRows.map(r => String(r.fileNo))).size;
-                   const pendingFs = totalUnit - receivedUnits;
-                   
-                   const receivedList = Array.from(new Set(filteredRows.map(r => (r.fileNo || '-') + ' - ' + r.unitName)));
-                   const pendingList = relevantUnits.filter(u => !receivedList.some(r => r.startsWith((u.file_number || '-') + ' - ')))
-                                                    .map(u => (u.file_number || '-') + ' - ' + u.name);
-                   const totalList = relevantUnits.map(u => (u.file_number || '-') + ' - ' + u.name);
-
                    const pseudoProject = {
                      metadata: { 
                          unitName: "Filtered Consolidator", 
-                         summaryMetrics: { 
-                             total: totalUnit, 
-                             received: receivedUnits, 
-                             pending: pendingFs,
-                             receivedList,
-                             pendingList,
-                             totalList
-                         } 
+                         summaryMetrics: summaryMetrics
                      },
                      financialStatements: { notApplicable: false, data: {} as Record<string, any> }
                    };
