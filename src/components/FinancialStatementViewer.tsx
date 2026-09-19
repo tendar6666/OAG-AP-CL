@@ -86,13 +86,16 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
       
       // Merge Liabilities
       Object.keys(stmt.liabilities || {}).forEach(groupId => {
-        if (!data.liabilities[groupId]) data.liabilities[groupId] = { total: 0, items: [], bifurcation: { opening: 0, surplus: 0, other: 0 } };
+        if (!data.liabilities[groupId]) data.liabilities[groupId] = { total: 0, items: [], bifurcation: { opening: 0, surplus: 0, other: 0 }, bifurcationBreakdown: { opening: [], surplus: [], other: [] } };
           const gData = stmt.liabilities[groupId];
           if (gData.bifurcation) {
               data.liabilities[groupId].bifurcation.opening += (gData.bifurcation.opening||0);
               data.liabilities[groupId].bifurcation.surplus += (gData.bifurcation.surplus||0);
               data.liabilities[groupId].bifurcation.other += (gData.bifurcation.other||0);
               data.liabilities[groupId].total += (gData.bifurcation.opening||0) + (gData.bifurcation.surplus||0) + (gData.bifurcation.other||0);
+              if (gData.bifurcation.opening) data.liabilities[groupId].bifurcationBreakdown.opening.push({ name: stmt.name, amount: gData.bifurcation.opening });
+              if (gData.bifurcation.surplus) data.liabilities[groupId].bifurcationBreakdown.surplus.push({ name: stmt.name, amount: gData.bifurcation.surplus });
+              if (gData.bifurcation.other) data.liabilities[groupId].bifurcationBreakdown.other.push({ name: stmt.name, amount: gData.bifurcation.other });
           } else if (gData.items && gData.items.length > 0) {
             data.liabilities[groupId].total += gData.items.reduce((sum:number, i:any) => sum + (i.amount||0), 0);
             gData.items.forEach((item: any) => data.liabilities[groupId].items.push({ ...item, _stmtName: stmt.name }));
@@ -103,13 +106,16 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
       
       // Merge Assets
       Object.keys(stmt.assets || {}).forEach(groupId => {
-        if (!data.assets[groupId]) data.assets[groupId] = { total: 0, items: [], bifurcation: { opening: 0, surplus: 0, other: 0 } };
+        if (!data.assets[groupId]) data.assets[groupId] = { total: 0, items: [], bifurcation: { opening: 0, surplus: 0, other: 0 }, bifurcationBreakdown: { opening: [], surplus: [], other: [] } };
           const gData = stmt.assets[groupId];
           if (gData.bifurcation) {
               data.assets[groupId].bifurcation.opening += (gData.bifurcation.opening||0);
               data.assets[groupId].bifurcation.surplus += (gData.bifurcation.surplus||0);
               data.assets[groupId].bifurcation.other += (gData.bifurcation.other||0);
               data.assets[groupId].total += (gData.bifurcation.opening||0) + (gData.bifurcation.surplus||0) + (gData.bifurcation.other||0);
+              if (gData.bifurcation.opening) data.assets[groupId].bifurcationBreakdown.opening.push({ name: stmt.name, amount: gData.bifurcation.opening });
+              if (gData.bifurcation.surplus) data.assets[groupId].bifurcationBreakdown.surplus.push({ name: stmt.name, amount: gData.bifurcation.surplus });
+              if (gData.bifurcation.other) data.assets[groupId].bifurcationBreakdown.other.push({ name: stmt.name, amount: gData.bifurcation.other });
           } else if (gData.items && gData.items.length > 0) {
             data.assets[groupId].total += gData.items.reduce((sum:number, i:any) => sum + (i.amount||0), 0);
             gData.items.forEach((item: any) => data.assets[groupId].items.push({ ...item, _stmtName: stmt.name }));
@@ -143,9 +149,46 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
          const val = ((consData.assets && consData.assets[g.id!]?.total) || 0) + ((consData.liabilities && consData.liabilities[g.id!]?.total) || 0);
          return sum + val;
       }, 0);
+
     };
 
+  const renderBreakdownRow = (g: any, gData: any, field: string, label: string) => {
+      const isConsolidated = activeTab === 'CONSOLIDATED';
+      const breakdown = isConsolidated && gData?.bifurcationBreakdown ? gData.bifurcationBreakdown[field] : [];
+      const hasBreakdown = breakdown.length > 0;
+      const key = `${g.id}_${field}`;
+      const amount = (gData?.bifurcation?.[field] || 0);
+      
+      return (
+        <div className="flex flex-col">
+          <div 
+            className={`flex justify-between items-center text-xs text-slate-600 dark:text-slate-400 ${hasBreakdown ? 'cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400' : ''}`}
+            onClick={() => hasBreakdown && toggleGroup(key)}
+          >
+            <span className="flex items-center gap-1">
+              {hasBreakdown && (
+                expandedGroups[key] ? <ChevronDown size={12} className="text-slate-400" /> : <ChevronRight size={12} className="text-slate-400" />
+              )}
+              {label}
+            </span>
+            <span className="font-medium">{amount.toLocaleString()}</span>
+          </div>
+          {expandedGroups[key] && hasBreakdown && (
+             <div className="mt-1 mb-2 pl-4 pr-2 py-1.5 bg-white dark:bg-slate-900/50 rounded border border-slate-100 dark:border-slate-800/50 space-y-1">
+               {breakdown.map((item: any, idx: number) => (
+                 <div key={idx} className="flex justify-between items-center text-[10px] text-slate-500 dark:text-slate-500">
+                   <span className="truncate pr-2" title={item.name}>{item.name}</span>
+                   <span>{item.amount.toLocaleString()}</span>
+                 </div>
+               ))}
+             </div>
+          )}
+        </div>
+      );
+  };
+
   const toggleGroup = (groupId: string) => {
+
     setExpandedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
   };
 
@@ -323,18 +366,9 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
                               
                               {expandedGroups[g.id!] && (
                                 <div className="mt-2 pl-5 pr-2 py-2 bg-slate-50 dark:bg-slate-800/30 rounded border border-slate-100 dark:border-slate-700/50 space-y-1.5">
-                                  <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
-                                    <span>Opening Balance</span>
-                                    <span className="font-medium">{(gData.bifurcation.opening||0).toLocaleString()}</span>
-                                  </div>
-                                  <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
-                                    <span>Add: Surplus / (Less: Deficit)</span>
-                                    <span className="font-medium">{(gData.bifurcation.surplus||0).toLocaleString()}</span>
-                                  </div>
-                                  <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400 pb-1 border-b border-slate-200 dark:border-slate-700/50">
-                                    <span>Add / (Less): Other Adjustments</span>
-                                    <span className="font-medium">{(gData.bifurcation.other||0).toLocaleString()}</span>
-                                  </div>
+                                  {renderBreakdownRow(g, gData, 'opening', 'Opening Balance')}
+                                  {renderBreakdownRow(g, gData, 'surplus', 'Add: Surplus / (Less: Deficit)')}
+                                  {renderBreakdownRow(g, gData, 'other', 'Add / (Less): Other Adjustments')}
                                 </div>
                               )}
                             </div>
@@ -397,18 +431,9 @@ export default function FinancialStatementViewer({ isOpen, onClose, project }: F
                               
                               {expandedGroups[g.id!] && (
                                 <div className="mt-2 pl-5 pr-2 py-2 bg-slate-50 dark:bg-slate-800/30 rounded border border-slate-100 dark:border-slate-700/50 space-y-1.5">
-                                  <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
-                                    <span>Opening Balance</span>
-                                    <span className="font-medium">{(gData.bifurcation.opening||0).toLocaleString()}</span>
-                                  </div>
-                                  <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
-                                    <span>Add: Additions / (Less: Disposals)</span>
-                                    <span className="font-medium">{(gData.bifurcation.surplus||0).toLocaleString()}</span>
-                                  </div>
-                                  <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400 pb-1 border-b border-slate-200 dark:border-slate-700/50">
-                                    <span>Add / (Less): Other Adjustments</span>
-                                    <span className="font-medium">{(gData.bifurcation.other||0).toLocaleString()}</span>
-                                  </div>
+                                  {renderBreakdownRow(g, gData, 'opening', 'Opening Balance')}
+                                  {renderBreakdownRow(g, gData, 'surplus', 'Add: Additions / (Less: Disposals)')}
+                                  {renderBreakdownRow(g, gData, 'other', 'Add / (Less): Other Adjustments')}
                                 </div>
                               )}
                             </div>
