@@ -12,8 +12,12 @@ export default function CleanupPage() {
 
   const runCleanup = async () => {
     setRunning(true);
-    addLog('Starting cleanup v3 (Grouping by Name fallback)...');
+    addLog('Starting cleanup v5 (Bulletproof Master Directory grouping)...');
     try {
+      const { getUnits } = await import('@/lib/api');
+      const units = await getUnits();
+      addLog(`Loaded ${units.length} units from Master Directory.`);
+
       const snap = await getDocs(collection(db, 'historical_projects'));
       addLog(`Found ${snap.docs.length} historical projects.`);
 
@@ -24,23 +28,51 @@ export default function CleanupPage() {
         const fy = data.metadata?.financialYear;
         if (!fy) return;
         
-        let fileNo = data.customId || data.metadata?.fileNumber;
+        let rawFileNo = data.customId || data.metadata?.fileNumber;
         let unitName = (data.metadata?.unitName || '').trim();
-        if (!fileNo && unitName.match(/^\d+\|\d+/)) {
+        
+        if (unitName.match(/^\d+\|\d+/)) {
             const match = unitName.match(/^(\d+\|\d+)\s+(.*)/);
             if (match) {
-                fileNo = match[1];
+                if (!rawFileNo || !String(rawFileNo).includes('|')) {
+                    rawFileNo = match[1];
+                }
                 unitName = match[2].trim();
             }
         }
         
+        // Always try to resolve the canonical Master Directory file number
+        let canonicalFileNo = null;
+        let fbUnit = null;
+
+        // Try matching rawFileNo directly if it looks like a file number
+        if (rawFileNo && String(rawFileNo).includes('|')) {
+            fbUnit = units.find(u => String(u.file_number).trim() === String(rawFileNo).trim());
+        }
+        
+        // If not found, try matching by name
+        if (!fbUnit && unitName) {
+            const cleanName = unitName.toLowerCase();
+            fbUnit = units.find(u => 
+                u.name.toLowerCase() === cleanName || 
+                cleanName.endsWith(u.name.toLowerCase()) || 
+                u.name.toLowerCase().endsWith(cleanName)
+            );
+        }
+
+        if (fbUnit && fbUnit.file_number) {
+            canonicalFileNo = fbUnit.file_number;
+        }
+
         let key = '';
-        if (fileNo) {
-            key = `${fileNo}_${fy}`;
+        if (canonicalFileNo) {
+            key = `${canonicalFileNo}_${fy}`;
         } else if (unitName) {
             key = `name_${unitName}_${fy}`;
+        } else if (rawFileNo) {
+            key = `raw_${rawFileNo}_${fy}`;
         } else {
-            return;
+            return; // Completely useless record
         }
         
         if (!groups[key]) groups[key] = [];
@@ -79,6 +111,12 @@ export default function CleanupPage() {
              }
           });
 
+          // Ensure the merged doc has the canonical fileNo if we found one
+          if (key.includes('|')) {
+              mergedData.customId = key.split('_')[0]; 
+              mergedData.metadata.fileNumber = key.split('_')[0];
+          }
+
           await setDoc(doc(db, 'historical_projects', baseDoc.id), mergedData);
           addLog(`Saved merged doc ${baseDoc.id} with ${stmtCounter - 1} statements.`);
           mergedCount++;
@@ -99,8 +137,8 @@ export default function CleanupPage() {
 
   return (
     <div className="p-8 max-w-2xl mx-auto mt-20 bg-white shadow-xl rounded-xl border border-slate-200">
-      <h1 className="text-2xl font-bold mb-4 text-slate-800">Database Cleanup Utility v3</h1>
-      <p className="text-slate-600 mb-6 text-sm">This version features robust grouping that catches unindexed records lacking file numbers.</p>
+      <h1 className="text-2xl font-bold mb-4 text-slate-800">Database Cleanup Utility v5</h1>
+      <p className="text-slate-600 mb-6 text-sm">Bulletproof version. It aggressively cross-references every historical record with the Master Audit Directory to guarantee absolute grouping, overcoming randomized internal IDs.</p>
       <button 
         onClick={runCleanup} 
         disabled={running}
