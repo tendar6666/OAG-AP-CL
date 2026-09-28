@@ -187,7 +187,26 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
   const isStatementTallied = (statement: StatementData): boolean => {
     const tA = calculateTotal(statement, 'Asset');
     const tL = calculateTotal(statement, 'Liability');
-    return Math.abs(tA - tL) < 0.01 && (tA > 0 || tL > 0); // Must tally and not be totally empty (0=0) unless they haven't started
+    
+    // Check if the user has entered any actual non-zero data
+    let hasData = false;
+    const checkData = (dataObj: Record<string, FSGroupData> | undefined) => {
+        if (!dataObj) return;
+        Object.values(dataObj).forEach(g => {
+            if (g.bifurcation) {
+                if (Math.abs(g.bifurcation.opening || 0) > 0 || Math.abs(g.bifurcation.surplus || 0) > 0 || Math.abs(g.bifurcation.other || 0) > 0) hasData = true;
+            }
+            if (g.items) {
+                g.items.forEach(i => {
+                    if (Math.abs(i.amount || 0) > 0) hasData = true;
+                });
+            }
+        });
+    };
+    checkData(statement.assets);
+    checkData(statement.liabilities);
+
+    return Math.abs(tA - tL) < 0.01 && hasData; 
   };
 
   const isFyTallied = (fy: string): boolean => {
