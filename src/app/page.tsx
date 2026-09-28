@@ -1200,8 +1200,18 @@ function HomeContent() {
                       )}
                     </div>
                     <div className="text-xs text-slate-500 flex flex-wrap gap-x-4 gap-y-1">
-                      <span><strong>Unit:</strong> {p.metadata?.unitName || 'Unknown'}</span>
-                      <span><strong>FY:</strong> {p.metadata?.executionFY || 'Unknown'}</span>
+                      {p.metadata?.auditTotals?.startDate ? (
+                        <span><strong>Audit Start:</strong> {new Date(p.metadata.auditTotals.startDate).toLocaleDateString('en-GB')}</span>
+                      ) : null}
+                      {p.metadata?.auditTotals?.endDate ? (
+                        <span><strong>End:</strong> {new Date(p.metadata.auditTotals.endDate).toLocaleDateString('en-GB')}</span>
+                      ) : null}
+                      {p.metadata?.auditTotals?.totalAllocatedGlobalDays !== undefined ? (
+                        <span><strong>Allocated:</strong> {p.metadata.auditTotals.totalAllocatedGlobalDays} Days</span>
+                      ) : null}
+                      {p.metadata?.auditTotals?.totalApproximate !== undefined ? (
+                        <span><strong>Approx:</strong> {p.metadata.auditTotals.totalApproximate} Days</span>
+                      ) : null}
                       {p.submittedAt && <span><strong>Submitted:</strong> {new Date(p.submittedAt).toLocaleDateString('en-GB')}</span>}
                     </div>
                       {p.status !== 'Audited' && p.metadata?.lastNotification && (
