@@ -91,8 +91,10 @@ function HomeContent() {
 
   // New Section State
   const [unitName, setUnitName] = useState('');
+  const [loadedUnitName, setLoadedUnitName] = useState('');
   const [selectedBranchFilter, setSelectedBranchFilter] = useState('ALL');
   const [financialYears, setFinancialYears] = useState<string[]>(['']);
+  const [loadedFinancialYears, setLoadedFinancialYears] = useState<string[]>(['']);
   const financialYear = financialYears[0] || '';
   const [auditorName, setAuditorName] = useState(user.name);
   const [isRevised, setIsRevised] = useState(false); const [isLockedRevised, setIsLockedRevised] = useState(false);
@@ -225,8 +227,9 @@ function HomeContent() {
                   if (p.metadata.auditTotals) setLoadedTotals(p.metadata.auditTotals);
                   else setLoadedTotals(null);
                 setUnitName(p.metadata.unitName || '');
+                setLoadedUnitName(p.metadata.unitName || '');
                 setAuditorName(p.metadata.auditorName || user.name);
-                if (p.metadata.financialYears) setFinancialYears(p.metadata.financialYears); else if (p.metadata.financialYear) setFinancialYears([p.metadata.financialYear]);
+                if (p.metadata.financialYears) { setFinancialYears(p.metadata.financialYears); setLoadedFinancialYears(p.metadata.financialYears); } else if (p.metadata.financialYear) { setFinancialYears([p.metadata.financialYear]); setLoadedFinancialYears([p.metadata.financialYear]); }
                 setAssignedDeputyId(p.metadata.assignedDeputyId || '');
                 setAssignedJointId(p.metadata.assignedJointId || '');
              }
@@ -250,8 +253,9 @@ function HomeContent() {
                   if (t.metadata.auditTotals) setLoadedTotals(t.metadata.auditTotals);
                   else setLoadedTotals(null);
                 setUnitName(t.metadata.unitName || '');
+                setLoadedUnitName(t.metadata.unitName || '');
                 setAuditorName(t.metadata.auditorName || user.name);
-                if (t.metadata.financialYears) setFinancialYears(t.metadata.financialYears); else if (t.metadata.financialYear) setFinancialYears([t.metadata.financialYear]);
+                if (t.metadata.financialYears) { setFinancialYears(t.metadata.financialYears); setLoadedFinancialYears(t.metadata.financialYears); } else if (t.metadata.financialYear) { setFinancialYears([t.metadata.financialYear]); setLoadedFinancialYears([t.metadata.financialYear]); }
              }
           }
        }
@@ -368,12 +372,23 @@ function HomeContent() {
     }));
     const cleanChecklist = checklistData ? JSON.parse(JSON.stringify(checklistData)) : { items: [] };
 
+    let idToSave = currentProjectId;
+    let customIdToSave = currentCustomId;
+    
+    // If editing an existing project but Unit or FY changed, force saving as a new project
+    if (idToSave && (unitName.trim() !== loadedUnitName.trim() || JSON.stringify(financialYears) !== JSON.stringify(loadedFinancialYears))) {
+        idToSave = null;
+        customIdToSave = null;
+        setCurrentProjectId(null);
+        setCurrentCustomId(null);
+    }
+
     try {
       const result = await api.saveProject({
           financialStatements: fsData,
           _cacheBuster: Date.now(), 
-        id: currentProjectId,
-        customId: currentCustomId,
+        id: idToSave,
+        customId: customIdToSave,
         name, 
         status: finalStatus,
         submittedAt: submitDate,
@@ -391,6 +406,8 @@ function HomeContent() {
       setCurrentProjectId(result.id);
       setCurrentCustomId(result.customId);
       setCurrentProjectStatus(result.status);
+      setLoadedUnitName(unitName);
+      setLoadedFinancialYears([...financialYears]);
       
       alert((isFinalSubmit || isDraftSubmit) ? "Audit Program Submitted Successfully!" : "Audit Program Draft Saved!");
       const newData = await api.getProjects(localStorage.getItem('globalTargetFy') || (() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s-1}-${s}`; })(), localStorage.getItem('globalExecFy') || (() => { const y = new Date().getFullYear(); const s = new Date().getMonth() < 3 ? y - 1 : y; return `FY ${s}-${s+1}`; })());
