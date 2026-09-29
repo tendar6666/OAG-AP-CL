@@ -368,10 +368,10 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
                                 <span className="truncate flex-1">{stmt.name}</span>
                                 <div className="flex items-center shrink-0 ml-1 space-x-1">
                                   {isStatementTallied(stmt) && <CheckCircle size={12} className="text-emerald-500" />}
-                                  {!metadata?.isFSLocked && (
+                                  {(!metadata?.isFSLocked && Object.keys(fsData[fy] || {}).length > 1) && (
                                     <button 
                                       onClick={(e) => handleDeleteStatement(fy, stmt.id, e)}
-                                      className="text-slate-400 hover:text-rose-500 transition-colors opacity-50 group-hover:opacity-100 focus:opacity-100 p-0.5"
+                                      className="text-slate-400 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 p-0.5"
                                       title="Delete Statement"
                                     >
                                       <Trash2 size={12} />
@@ -428,15 +428,6 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
                         {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
-                    {!metadata?.isFSLocked && (
-                      <button
-                        onClick={() => handleDeleteStatement(activeFy, currentStatement.id)}
-                        className="ml-4 px-2 py-1.5 text-xs font-semibold bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 dark:hover:bg-rose-900/50 rounded flex items-center transition-colors border border-rose-200 dark:border-rose-800/50"
-                        title="Delete Statement"
-                      >
-                        <Trash2 size={14} className="mr-1" /> Delete
-                      </button>
-                    )}
                   </div>
                   {isStatementTallied(currentStatement) ? (
                     <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full flex items-center">
