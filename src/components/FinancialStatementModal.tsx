@@ -28,6 +28,7 @@ interface FSBifurcation {
 }
 
 interface FSGroupData {
+  total?: number;
   items: FSItem[];
   bifurcation?: FSBifurcation;
 }
@@ -175,7 +176,10 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
     if (groupDef?.requiresBifurcation && groupData.bifurcation) {
       return (groupData.bifurcation.opening || 0) + (groupData.bifurcation.surplus || 0) + (groupData.bifurcation.other || 0);
     }
-    return groupData.items.reduce((sum, item) => sum + (item.amount || 0), 0);
+    if (groupData.items && groupData.items.length > 0) {
+      return groupData.items.reduce((sum, item) => sum + (item.amount || 0), 0);
+    }
+    return groupData.total || 0;
   };
 
   const calculateTotal = (statement: StatementData, type: 'Asset'|'Liability'): number => {
@@ -501,7 +505,7 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
                                 <span className="text-sm text-slate-600 dark:text-slate-400">Total Amount</span>
                                 <input 
                                   type="number" 
-                                  value={data?.items?.[0]?.amount || ''} 
+                                  value={(data?.items && data.items.length > 0) ? data.items[0].amount : (data?.total ?? '')} 
                                   onChange={e => {
                                     if (!data?.items?.length) {
                                       addItem(activeFy, currentStatement.id, 'Liability', group.id!);
@@ -592,7 +596,7 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
                                 <span className="text-sm text-slate-600 dark:text-slate-400">Total Amount</span>
                                 <input 
                                   type="number" 
-                                  value={data?.items?.[0]?.amount || ''} 
+                                  value={(data?.items && data.items.length > 0) ? data.items[0].amount : (data?.total ?? '')} 
                                   onChange={e => {
                                     setFsData(prev => {
                                       const draft = JSON.parse(JSON.stringify(prev));
