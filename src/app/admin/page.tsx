@@ -414,7 +414,11 @@ function AdminDashboardContent() {
          }
       }
       const actionName = isUnverifying ? `Unverified FS by ${level.toUpperCase()}` : `Verified FS by ${level.toUpperCase()}`;
-      await api.saveProject(updates, { action: actionName, userId: user.id, userName: user.name });
+      if (updates.fromHistoricalCollection) {
+          await api.saveHistoricalProject(updates);
+      } else {
+          await api.saveProject(updates, { action: actionName, userId: user.id, userName: user.name });
+      }
       alert(`Successfully ${isUnverifying ? 'unverified' : 'verified'} FS by ${level.toUpperCase()}`);
       if (editFsProject && editFsProject.id === updates.id) setEditFsProject(updates);
       fetchProjects();
@@ -428,7 +432,11 @@ function AdminDashboardContent() {
       const updates = { ...project };
       if (!updates.metadata) updates.metadata = {};
       updates.metadata.isFSLocked = lock;
-      await api.saveProject(updates, { action: lock ? 'Locked FS' : 'Unlocked FS', userId: user.id, userName: user.name });
+      if (updates.fromHistoricalCollection) {
+          await api.saveHistoricalProject(updates);
+      } else {
+          await api.saveProject(updates, { action: lock ? 'Locked FS' : 'Unlocked FS', userId: user.id, userName: user.name });
+      }
       alert(`FS successfully ${lock ? 'locked' : 'unlocked'}`);
       if (editFsProject && editFsProject.id === updates.id) setEditFsProject(updates);
       fetchProjects();
@@ -1119,11 +1127,15 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
           delete payload.isNewHistorical;
       }
       
-      await api.saveProject(payload, {
-        action: payload.isHistoricalFS ? 'Added Historical FS' : 'Edited Financial Statements',
-        userId: user.id,
-        userName: user.name
-      });
+      if (payload.fromHistoricalCollection) {
+          await api.saveHistoricalProject(payload);
+      } else {
+          await api.saveProject(payload, {
+            action: payload.isHistoricalFS ? 'Added Historical FS' : 'Edited Financial Statements',
+            userId: user.id,
+            userName: user.name
+          });
+      }
       alert('Financial Statements updated successfully!');
       setEditFsProject(null);
       fetchProjects();
