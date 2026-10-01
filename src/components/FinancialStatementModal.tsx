@@ -94,6 +94,12 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
         const stKeys = dataToSet[fy] ? Object.keys(dataToSet[fy]) : [];
         if (stKeys.length > 0) {
           initialActiveSt[fy] = stKeys[0];
+          // Ensure legacy statements have the 'id' field matching their key
+          stKeys.forEach(key => {
+            if (!dataToSet[fy][key].id) {
+              dataToSet[fy][key].id = key;
+            }
+          });
         } else {
            const defaultStId = 'stmt_1';
            if (!dataToSet[fy]) dataToSet[fy] = {};
@@ -370,7 +376,7 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
                                   {isStatementTallied(stmt) && <CheckCircle size={12} className="text-emerald-500" />}
                                   {(!metadata?.isFSLocked && Object.keys(fsData[fy] || {}).length > 1) && (
                                     <button 
-                                      onClick={(e) => handleDeleteStatement(fy, stmt.id, e)}
+                                      onClick={(e) => handleDeleteStatement(fy, stmtKey, e)}
                                       className="text-slate-400 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 p-0.5"
                                       title="Delete Statement"
                                     >
@@ -407,7 +413,7 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
                         value={currentStatement.name}
                         onChange={(e) => {
                           const val = e.target.value;
-                          setFsData(prev => ({...prev, [activeFy]: {...prev[activeFy], [currentStatement.id]: {...currentStatement, name: val}}}));
+                          setFsData(prev => ({...prev, [activeFy]: {...prev[activeFy], [activeStatementId[activeFy]]: {...currentStatement, name: val}}}));
                         }}
                         className="font-bold text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded px-3 py-1 outline-none transition-colors max-w-[250px] shadow-sm hover:border-indigo-400"
                         placeholder="Statement Name"
@@ -420,7 +426,7 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
                         value={currentStatement.currency}
                         onChange={e => {
                           const val = e.target.value;
-                          setFsData(prev => ({...prev, [activeFy]: {...prev[activeFy], [currentStatement.id]: {...currentStatement, currency: val}}}));
+                          setFsData(prev => ({...prev, [activeFy]: {...prev[activeFy], [activeStatementId[activeFy]]: {...currentStatement, currency: val}}}));
                         }}
                         className="text-sm border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
                         disabled={metadata?.isFSLocked}
