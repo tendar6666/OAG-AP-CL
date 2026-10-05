@@ -2155,12 +2155,13 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     const auditor = users.find(u => u.id === p.createdBy)?.name || "Unknown";
                     
                     const matchedUnit = units.find(u => {
+                      if (p.metadata?.fileNumber && u.file_number === p.metadata.fileNumber) return true;
                       const dName = u.file_number ? `${u.file_number} ${u.name}` : u.name;
                       return dName === p.metadata?.unitName || u.name === p.metadata?.unitName;
-                    }) || { branch: '-', file_number: '-' };
+                    }) || { branch: '-', file_number: '-', name: '' };
 
                     return [
-                      p.metadata?.unitName || "",
+                      matchedUnit.name || p.metadata?.unitName || "",
                       matchedUnit.branch || p.metadata?.branch || "-",
                       matchedUnit.file_number || p.metadata?.fileNumber || "-",
                       (p.metadata?.financialYears || [p.metadata?.financialYear]).filter(Boolean).join(', ') || "",
@@ -2221,9 +2222,10 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     const auditor = users.find(u => u.id === p.createdBy)?.name || "Unknown";
                     
                     const matchedUnit = units.find(u => {
+                      if (p.metadata?.fileNumber && u.file_number === p.metadata.fileNumber) return true;
                       const dName = u.file_number ? `${u.file_number} ${u.name}` : u.name;
                       return dName === p.metadata?.unitName || u.name === p.metadata?.unitName;
-                    }) || { branch: '-', file_number: '-' };
+                    }) || { branch: '-', file_number: '-', name: '' };
 
                     const renderCell = (dateStr: any, name: any, isNA: any, remarkField: string) => {
                        const remark = ht[remarkField + 'Remark'];
@@ -2243,7 +2245,7 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     return (
                       <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                         <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">
-    {p.metadata?.unitName}
+    {matchedUnit.name || p.metadata?.unitName}
     {p.metadata?.financialYears && p.metadata.financialYears.length > 1 && (
       <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800 uppercase tracking-wide">
         Multi-Year
