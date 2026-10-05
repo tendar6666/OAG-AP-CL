@@ -101,10 +101,14 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
             }
           });
         } else {
-           const defaultStId = 'stmt_1';
-           if (!dataToSet[fy]) dataToSet[fy] = {};
-           dataToSet[fy][defaultStId] = createEmptyStatement(defaultStId, 'Main Account');
-           initialActiveSt[fy] = defaultStId;
+           if (!dataToSet[fy]) {
+               const defaultStId = 'stmt_1';
+               dataToSet[fy] = {};
+               dataToSet[fy][defaultStId] = createEmptyStatement(defaultStId, 'Main Account');
+               initialActiveSt[fy] = defaultStId;
+           } else {
+               initialActiveSt[fy] = '';
+           }
         }
       });
       
@@ -221,7 +225,7 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
 
   const isFyTallied = (fy: string): boolean => {
     const stmts = Object.values(fsData[fy] || {});
-    if (stmts.length === 0) return false;
+    if (stmts.length === 0) return true; // Allow submission if user explicitly deleted all statements
     return stmts.every(s => isStatementTallied(s));
   };
 
