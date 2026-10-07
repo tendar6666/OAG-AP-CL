@@ -302,6 +302,11 @@ export default function LoginPage() {
               <button 
                 type="button"
                 onClick={() => {
+                  const pass = window.prompt("Enter Developer Passcode:");
+                  if (pass !== "946394") {
+                      alert("Incorrect Passcode!");
+                      return;
+                  }
                   const val = (document.getElementById('devUserSelect') as HTMLSelectElement).value;
                   const [email, weightStr] = val.split('|');
                   autoLoginDev(email, 'password123', parseInt(weightStr));
@@ -315,7 +320,14 @@ export default function LoginPage() {
            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-center">
               <button 
                 type="button"
-                onClick={seedAllDummyUsers}
+                onClick={() => {
+                  const pass = window.prompt("Enter Developer Passcode to seed database:");
+                  if (pass !== "946394") {
+                      alert("Incorrect Passcode!");
+                      return;
+                  }
+                  seedAllDummyUsers();
+                }}
                 disabled={loading}
                 className="text-xs text-rose-600 hover:text-rose-700 font-semibold"
               >
