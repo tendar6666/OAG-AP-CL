@@ -52,7 +52,20 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
   const [activeFy, setActiveFy] = useState<string>(financialYears[0] || '');
   const [activeStatementId, setActiveStatementId] = useState<Record<string, string>>({}); // fy -> active statementId
 
-  const CURRENCIES = ['INR', 'USD', 'NPR', 'EUR', 'GBP', 'CHF', 'JPY', 'NTD', 'ZAR', 'RUB', 'Other'];
+  const CURRENCIES = [
+    { code: 'INR', name: 'Indian Rupee' },
+    { code: 'USD', name: 'US Dollar' },
+    { code: 'NPR', name: 'Nepalese Rupee' },
+    { code: 'AUD', name: 'Australian Dollar' },
+    { code: 'EUR', name: 'Euro' },
+    { code: 'GBP', name: 'British Pound' },
+    { code: 'CHF', name: 'Swiss Franc' },
+    { code: 'JPY', name: 'Japanese Yen' },
+    { code: 'NTD', name: 'New Taiwan Dollar' },
+    { code: 'ZAR', name: 'South African Rand' },
+    { code: 'RUB', name: 'Russian Ruble' },
+    { code: 'Other', name: 'Other' }
+  ];
 
   useEffect(() => {
     if (isOpen) {
@@ -456,7 +469,7 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
                         className="text-sm border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
                         disabled={metadata?.isFSLocked}
                       >
-                        {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code === 'Other' ? 'Other' : `${c.code} - ${c.name}`}</option>)}
                       </select>
                     </div>
                   </div>

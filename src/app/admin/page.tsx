@@ -2032,7 +2032,20 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     </select>
                     <select value={addFsCurrencyFilter} onChange={e => setAddFsCurrencyFilter(e.target.value)} className="w-full md:w-32 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none">
                         <option value="ALL">All Currencies</option>
-                        {['INR', 'USD', 'NPR', 'EUR', 'GBP', 'CHF', 'JPY', 'NTD', 'ZAR', 'RUB', 'Other'].map(c => <option key={c} value={c}>{c}</option>)}
+                        {[
+    { code: 'INR', name: 'Indian Rupee' },
+    { code: 'USD', name: 'US Dollar' },
+    { code: 'NPR', name: 'Nepalese Rupee' },
+    { code: 'AUD', name: 'Australian Dollar' },
+    { code: 'EUR', name: 'Euro' },
+    { code: 'GBP', name: 'British Pound' },
+    { code: 'CHF', name: 'Swiss Franc' },
+    { code: 'JPY', name: 'Japanese Yen' },
+    { code: 'NTD', name: 'New Taiwan Dollar' },
+    { code: 'ZAR', name: 'South African Rand' },
+    { code: 'RUB', name: 'Russian Ruble' },
+    { code: 'Other', name: 'Other' }
+  ].map(c => <option key={c.code} value={c.code}>{c.code === 'Other' ? 'Other' : `${c.code} - ${c.name}`}</option>)}
                     </select>
                 </div>
               </div>
