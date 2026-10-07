@@ -1876,7 +1876,16 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                  }
              }
              
-             if (pFileNo && u.file_number && String(pFileNo).trim() === String(u.file_number).trim()) return true;
+             if (pFileNo && u.file_number) {
+                 const pFileClean = String(pFileNo).trim().replace('-', '|');
+                 const uFileClean = String(u.file_number).trim().replace('-', '|');
+                 if (pFileClean === uFileClean) return true;
+                 
+                 // If both are explicitly formatted file numbers but they differ, strictly reject to prevent name-collision bleeding
+                 if (/^\d+\|\d+$/.test(pFileClean) && /^\d+\|\d+$/.test(uFileClean)) {
+                     return false;
+                 }
+             }
              
              const uName = u.name.trim();
              return pName === uName || pName.endsWith(uName) || uName.endsWith(pName);

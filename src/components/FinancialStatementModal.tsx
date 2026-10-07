@@ -73,11 +73,11 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
     setIsLoading(false);
   };
 
-  const createEmptyStatement = (id: string, name: string): StatementData => {
+  const createEmptyStatement = (id: string, name: string, currency: string = 'INR'): StatementData => {
     return {
       id,
       name,
-      currency: 'INR',
+      currency,
       liabilities: {},
       assets: {}
     };
@@ -146,12 +146,17 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
     const name = window.prompt("Enter name for new Financial Statement (e.g., Sur-nyul account, Student Welfare account, AET, GOI, Provident Fund Trust):");
     if (!name) return;
     
+    const currentActiveId = activeStatementId[fy];
+    const defaultCurrency = (fsData[fy] && currentActiveId && fsData[fy][currentActiveId]) 
+                            ? fsData[fy][currentActiveId].currency || 'INR'
+                            : 'INR';
+
     const newId = 'stmt_' + Date.now();
     setFsData(prev => ({
       ...prev,
       [fy]: {
         ...prev[fy],
-        [newId]: createEmptyStatement(newId, name)
+        [newId]: createEmptyStatement(newId, name, defaultCurrency)
       }
     }));
     setActiveStatementId(prev => ({ ...prev, [fy]: newId }));
@@ -430,6 +435,22 @@ export default function FinancialStatementModal({ isOpen, onClose, onSubmit, fin
                         value={currentStatement.currency}
                         onChange={e => {
                           const val = e.target.value;
+                          const stmts = Object.keys(fsData[activeFy] || {});
+                          
+                          if (stmts.length > 1) {
+                            if (window.confirm(`Do you want to apply ${val} to ALL statements in this Financial Year?`)) {
+                              setFsData(prev => {
+                                const currentFyData = prev[activeFy] || {};
+                                const updatedFyData = { ...currentFyData };
+                                Object.keys(updatedFyData).forEach(stId => {
+                                  updatedFyData[stId] = { ...updatedFyData[stId], currency: val };
+                                });
+                                return { ...prev, [activeFy]: updatedFyData };
+                              });
+                              return;
+                            }
+                          }
+                          
                           setFsData(prev => ({...prev, [activeFy]: {...prev[activeFy], [activeStatementId[activeFy]]: {...currentStatement, currency: val}}}));
                         }}
                         className="text-sm border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
