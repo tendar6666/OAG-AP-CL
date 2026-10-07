@@ -352,6 +352,7 @@ function AdminDashboardContent() {
 
   const [addFsStatusFilter, setAddFsStatusFilter] = useState('ALL');
   const [addFsUnitTypeFilter, setAddFsUnitTypeFilter] = useState('ALL');
+  const [addFsCurrencyFilter, setAddFsCurrencyFilter] = useState('ALL');
   const [addFsSearchQuery, setAddFsSearchQuery] = useState('');
   const [addFsSortConfig, setAddFsSortConfig] = useState<{key: 'name' | 'file_number' | 'status' | 'submit_date', direction: 'asc' | 'desc'} | null>(null);
   
@@ -1916,6 +1917,17 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                    }
                }
                return { unit: u, matchedProject, hasFS };
+          }).filter(item => {
+             if (addFsCurrencyFilter !== 'ALL') {
+                 if (!item.hasFS || !item.matchedProject || !item.matchedProject.financialStatements) return false;
+                 if (item.matchedProject.financialStatements.notApplicable) return false;
+                 const data = item.matchedProject.financialStatements.data || {};
+                 const targetData = data[selectedTargetFyFilter] || {};
+                 const stmts = Object.values(targetData);
+                 if (stmts.length === 0) return false;
+                 return stmts.some((s: any) => s.currency === addFsCurrencyFilter);
+             }
+             return true;
           });
 
           if (addFsSortConfig) {
@@ -2017,6 +2029,10 @@ if (isDraftSupport) newStatus = 'Draft AP & CL Supported';
                     <select value={addFsUnitTypeFilter} onChange={e => setAddFsUnitTypeFilter(e.target.value)} className="w-full md:w-48 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none">
                         <option value="ALL">All Types</option>
                         {renderCategoryOptions(null, 0)}
+                    </select>
+                    <select value={addFsCurrencyFilter} onChange={e => setAddFsCurrencyFilter(e.target.value)} className="w-full md:w-32 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none">
+                        <option value="ALL">All Currencies</option>
+                        {['INR', 'USD', 'NPR', 'EUR', 'GBP', 'CHF', 'JPY', 'NTD', 'ZAR', 'RUB', 'Other'].map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                 </div>
               </div>
