@@ -333,18 +333,37 @@ function HomeContent() {
     const executionDateToUse = auditTotals?.endDate || auditTotals?.startDate || new Date().toISOString();
     const executionFY = getIndianFY(executionDateToUse);
 
-    const metadataPayload: any = { unitName, auditorName, financialYear: financialYears[0], financialYears, executionFY, assignedDeputyId, assignedJointId, auditTotals };
-    if (statusTarget === 'Submitted' || statusTarget === 'DraftSubmitted') {
-      metadataPayload.dsSupported = false;
-      metadataPayload.jsApproved = false;
+    let idToSave = currentProjectId;
+    let customIdToSave = currentCustomId;
+    let isNewFromUnitOrFyChange = false;
+    
+    // If editing an existing project but Unit or FY changed, force saving as a new project
+    if (idToSave && (unitName.trim() !== loadedUnitName.trim() || JSON.stringify(financialYears) !== JSON.stringify(loadedFinancialYears))) {
+        idToSave = null;
+        customIdToSave = null;
+        isNewFromUnitOrFyChange = true;
+        setCurrentProjectId(null);
+        setCurrentCustomId(null);
     }
 
-    const isFinalSubmit = statusTarget === 'Submitted';
-    const isDraftSubmit = statusTarget === 'DraftSubmitted';
+    const existingProject = idToSave ? savedProjects.find(p => p.id === idToSave) : null;
+    const effectiveStatusTarget = (statusTarget === 'Maintain' && isNewFromUnitOrFyChange) ? 'Draft' : statusTarget;
+
+    const isFinalSubmit = effectiveStatusTarget === 'Submitted';
+    const isDraftSubmit = effectiveStatusTarget === 'DraftSubmitted';
     const generateSubmitDate = isFinalSubmit || isDraftSubmit;
+
+    const metadataPayload: any = { unitName, auditorName, financialYear: financialYears[0], financialYears, executionFY, assignedDeputyId, assignedJointId, auditTotals };
+    if (isFinalSubmit || isDraftSubmit) {
+      metadataPayload.dsSupported = assignedDeputyId === 'NA' || (user?.hierarchy_weight || 40) <= 30;
+      metadataPayload.jsApproved = (user?.hierarchy_weight || 40) <= 20;
+    } else if (effectiveStatusTarget === 'Maintain' && existingProject?.metadata) {
+      if (existingProject.metadata.dsSupported !== undefined) metadataPayload.dsSupported = existingProject.metadata.dsSupported;
+      if (existingProject.metadata.jsApproved !== undefined) metadataPayload.jsApproved = existingProject.metadata.jsApproved;
+    }
     
     let finalStatus = 'Draft';
-    if (statusTarget === 'Maintain') {
+    if (effectiveStatusTarget === 'Maintain') {
       finalStatus = currentProjectStatus || 'Draft';
     } else if (isFinalSubmit) {
       if (user?.hierarchy_weight === 40) {
@@ -364,7 +383,9 @@ function HomeContent() {
       }
     }
     
-    const submitDate = generateSubmitDate ? new Date().toISOString() : null;
+    const submitDate = generateSubmitDate
+      ? new Date().toISOString()
+      : (effectiveStatusTarget === 'Maintain' ? (existingProject?.submittedAt || null) : null);
 
     const cleanGrid = (gridData || []).map((m: any) => ({
         ...m,
@@ -372,33 +393,23 @@ function HomeContent() {
     }));
     const cleanChecklist = checklistData ? JSON.parse(JSON.stringify(checklistData)) : { items: [] };
 
-    let idToSave = currentProjectId;
-    let customIdToSave = currentCustomId;
-    
-    // If editing an existing project but Unit or FY changed, force saving as a new project
-    if (idToSave && (unitName.trim() !== loadedUnitName.trim() || JSON.stringify(financialYears) !== JSON.stringify(loadedFinancialYears))) {
-        idToSave = null;
-        customIdToSave = null;
-        setCurrentProjectId(null);
-        setCurrentCustomId(null);
-    }
-
     try {
       const result = await api.saveProject({
-          financialStatements: fsData,
+          financialStatements: fsData !== undefined ? fsData : existingProject?.financialStatements,
           _cacheBuster: Date.now(), 
         id: idToSave,
         customId: customIdToSave,
         name, 
         status: finalStatus,
         submittedAt: submitDate,
-        createdBy: user.id,
+        createdBy: existingProject?.createdBy || user.id,
         isRevised: isRevised,
         gridData: cleanGrid, 
         checklistData: cleanChecklist, 
-        metadata: metadataPayload 
+        metadata: metadataPayload,
+        history: existingProject?.history ? [...existingProject.history] : []
       }, {
-        action: isFinalSubmit ? 'Submitted Audit Program' : (isDraftSubmit ? 'Submitted Draft AP & CL' : 'Saved Draft'),
+        action: isFinalSubmit ? 'Submitted Audit Program' : (isDraftSubmit ? 'Submitted Draft AP & CL' : (effectiveStatusTarget === 'Maintain' ? 'Updated Audit Program' : 'Saved Draft')),
         userId: user?.id || 'system',
         userName: user?.name || 'System'
       });
@@ -513,30 +524,35 @@ function HomeContent() {
          }
       }
 
-      // Validate days allocation before final or draft submission
-      if (statusTarget === 'Submitted' || statusTarget === 'DraftSubmitted') {
-          if (auditTotals) {
-             const alloc = auditTotals.totalAllocatedGlobalDays || 0;
-             const approx = auditTotals.totalApproximate || 0;
-             const taken = auditTotals.totalCalendarDays || 0;
-             if (approx > alloc) {
-                 alert(`Total Approx Days (${approx}) cannot exceed Total Allocated Days (${alloc}).`);
-                 return;
-             }
-             if (taken !== alloc) {
-                 alert(`Total Day Taken (${taken}) must exactly match Total Allocated Days (${alloc}). Please adjust the actual days taken.`);
-                 return;
-             }
+      const isNewFromUnitOrFyChange = currentProjectId && (unitName.trim() !== loadedUnitName.trim() || JSON.stringify(financialYears) !== JSON.stringify(loadedFinancialYears));
+      const effectiveStatusTarget = (statusTarget === 'Maintain' && isNewFromUnitOrFyChange) ? 'Draft' : statusTarget;
+
+      // Validate days allocation before final or draft submission (or saving an already-submitted AP)
+      if (effectiveStatusTarget === 'Submitted' || effectiveStatusTarget === 'DraftSubmitted' || effectiveStatusTarget === 'Maintain') {
+          const alloc = auditTotals?.totalAllocatedGlobalDays || 0;
+          const approx = auditTotals?.totalApproximate || 0;
+          const taken = auditTotals?.totalCalendarDays || 0;
+          if (!auditTotals?.startDate || !auditTotals?.endDate || alloc <= 0 || taken <= 0) {
+              alert("Cannot submit an empty Audit Program. Please select the Audit Start Date and End Date and allocate the days in the schedule grid before submitting (or click 'Save Draft' to save your progress).");
+              return;
+          }
+          if (approx > alloc) {
+              alert(`Total Approx Days (${approx}) cannot exceed Total Allocated Days (${alloc}).`);
+              return;
+          }
+          if (taken !== alloc) {
+              alert(`Total Day Taken (${taken}) must exactly match Total Allocated Days (${alloc}). Please adjust the actual days taken.`);
+              return;
           }
       }
 
       // Check officer assignment when making a final submission or draft submission
-      if (statusTarget === 'Submitted' || statusTarget === 'DraftSubmitted') {
+      if (effectiveStatusTarget === 'Submitted' || effectiveStatusTarget === 'DraftSubmitted') {
         const isFieldAuditor = user && user.hierarchy_weight === 40;
         const isDeputySec = user && user.hierarchy_weight === 30;
 
         if (isFieldAuditor && (!assignedDeputyId || !assignedJointId)) {
-          if (statusTarget === 'DraftSubmitted') {
+          if (effectiveStatusTarget === 'DraftSubmitted') {
             alert("Reminder: You must select both an Assigned Deputy Secretary and an Assigned Joint Secretary before submitting your Draft. This is required so they can support and approve your Draft AP & CL.");
           } else {
             alert("Reminder: You must select both an Assigned Deputy Secretary and an Assigned Joint Secretary before your Final Submission. This is required so they can support and approve your Final Audit.");
@@ -545,7 +561,7 @@ function HomeContent() {
         }
 
         if (isDeputySec && !assignedJointId) {
-          if (statusTarget === 'DraftSubmitted') {
+          if (effectiveStatusTarget === 'DraftSubmitted') {
             alert("Reminder: As a Deputy Secretary, you must select an Assigned Joint Secretary before submitting your Draft for approval.");
           } else {
             alert("Reminder: As a Deputy Secretary, you must select an Assigned Joint Secretary before submitting your Final Audit for approval.");
@@ -553,15 +569,21 @@ function HomeContent() {
           return;
         }
       }
+
+      if (effectiveStatusTarget === 'DraftSubmitted') {
+          if (!window.confirm("Are you sure you want to submit this Draft AP & CL for official review and approval?")) {
+              return;
+          }
+      }
       
-      if (statusTarget === 'Submitted') {
+      if (effectiveStatusTarget === 'Submitted') {
           setPendingFsStatus('Submitted');
           setShowFsModal(true);
           return;
         }
         
         // Instantly save/submit without the modal
-        await executeProjectSave(statusTarget);
+        await executeProjectSave(effectiveStatusTarget);
     };
   
     const handleBeginExtension = () => {
